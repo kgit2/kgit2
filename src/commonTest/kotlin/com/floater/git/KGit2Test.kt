@@ -17,4 +17,9 @@ class KGit2Test {
     fun preRelease() {
         assertNull(kGit2.preRelease())
     }
+
+    @Test
+    fun features() {
+        assertEquals(kGit2.features(), 15)
+    }
 }

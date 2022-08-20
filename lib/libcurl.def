@@ -1,6 +1,0 @@
-headers = curl/curl.h
-headerFilter = curl/*
-compilerOpts = -I/opt/homebrew/opt/curl/include -std=c11
-#linkerOpts = -L/opt/homebrew/opt/curl/lib -lcurl
-staticLibraries = libcurl.a
-libraryPaths = /opt/homebrew/opt/curl/lib

@@ -3,7 +3,7 @@ import libdemo.add
 import com.floater.git.KGit2
 
 fun main() {
-    KGit2().features()
+    println(KGit2().features())
     // memScoped {
     //     val c = alloc<IntVar>()
     //     add(1, 1, c.ptr)

@@ -39,11 +39,6 @@ kotlin {
                     packageName("libgit2")
                 }
 
-                val libcurl by creating {
-                    defFile(project.file("lib/libcurl.def"))
-                    packageName("libcurl")
-                }
-
                 val libdemo by creating {
                     defFile(project.file("lib/libdemo.def"))
                     packageName("libdemo")

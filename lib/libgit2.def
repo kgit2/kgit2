@@ -1,5 +1,5 @@
 headers = git2.h
-staticLibraries = libgit2.a
-libraryPaths = /opt/homebrew/Cellar/libgit2/1.5.0/lib
-compilerOpts = -I/opt/homebrew/Cellar/libgit2/1.5.0/include
-linkerOpts = -L/opt/homebrew/Cellar/libssh2/1.10.0/lib -lz -lssh2 -liconv
+staticLibraries = libgit2.a libssh2.a
+libraryPaths = /Users/bppleman/floater/kgit2/lib/libgit2/lib /Users/bppleman/floater/kgit2/lib/libssh2/lib
+compilerOpts = -I/Users/bppleman/floater/kgit2/lib/libgit2/include
+linkerOpts = -L/opt/homebrew/Cellar/openssl@3/3.0.5/lib -lssl -lcrypto -lz -liconv
