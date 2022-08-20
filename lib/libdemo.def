@@ -1,0 +1,4 @@
+headers = demo.h
+compilerOpts = -I/Users/bppleman/floater/kgit2/lib/demo
+staticLibraries = libdemo.a
+libraryPaths = /Users/bppleman/floater/kgit2/lib/demo

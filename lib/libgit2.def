@@ -1,0 +1,5 @@
+headers = git2.h
+staticLibraries = libgit2.a
+libraryPaths = /opt/homebrew/Cellar/libgit2/1.5.0/lib
+compilerOpts = -I/opt/homebrew/Cellar/libgit2/1.5.0/include
+linkerOpts = -L/opt/homebrew/Cellar/libssh2/1.10.0/lib -lz -lssh2 -liconv
