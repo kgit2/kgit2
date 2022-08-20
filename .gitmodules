@@ -4,6 +4,3 @@
 [submodule "lib/external/libssh2"]
 	path = lib/external/libssh2
 	url = https://github.com/libssh2/libssh2.git
-[submodule "lib/external/openssl"]
-	path = lib/external/openssl
-	url = https://github.com/openssl/openssl.git
