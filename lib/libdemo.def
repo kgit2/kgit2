@@ -2,3 +2,32 @@ headers = demo.h
 compilerOpts = -I/Users/bppleman/floater/kgit2/lib/demo
 staticLibraries = libdemo.a
 libraryPaths = /Users/bppleman/floater/kgit2/lib/demo
+
+---
+
+typedef struct {
+  int a;
+  double b;
+} MyStruct;
+
+void struct_by_value(MyStruct s) {}
+void struct_by_pointer(MyStruct* s) {}
+
+typedef union {
+  int a;
+  MyStruct b;
+  float c;
+} MyUnion;
+
+void union_by_value(MyUnion u) {}
+void union_by_pointer(MyUnion* u) {}
+
+int copy_string(char* str, int size) {
+  *str++ = 'C';
+  *str++ = ' ';
+  *str++ = 'K';
+  *str++ = '/';
+  *str++ = 'N';
+  *str++ = 0;
+  return 0;
+}

@@ -1,22 +1,12 @@
-import kotlinx.cinterop.*
-import libdemo.add
 import com.floater.git.KGit2
+import com.floater.git.config.Config
+import com.floater.git.repository.Repository
 
 fun main() {
-    println(KGit2().features())
-    // memScoped {
-    //     val c = alloc<IntVar>()
-    //     add(1, 1, c.ptr)
-    //     println(c.value)
-    // }
-    // val curl = curl_easy_init()
-    // if (curl != null) {
-    //     curl_easy_setopt(curl, CURLOPT_URL, "https://example.com")
-    //     curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L)
-    //     val res = curl_easy_perform(curl)
-    //     if (res != CURLE_OK) {
-    //         println("curl_easy_perform() failed ${curl_easy_strerror(res)?.toKString()}")
-    //     }
-    //     curl_easy_cleanup(curl)
-    // }
+    println("Hello Kotlin/Native!")
+    KGit2()
+    // val repository = Repository("./test_repo")
+    // repository.initRepository()
+    // val config = repository.config()
+    println(Config.findGlobal())
 }
