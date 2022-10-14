@@ -1,6 +1,5 @@
 headers = git2.h
-headerFilter = git2/** git2.h
-staticLibraries = libgit2.a libssh2.a
+staticLibraries = libgit2.a
 libraryPaths = /Users/bppleman/floater/kgit2/lib/libgit2/lib /Users/bppleman/floater/kgit2/lib/libssh2/lib
 compilerOpts = -I/Users/bppleman/floater/kgit2/lib/libgit2/include
-linkerOpts = -L/opt/homebrew/Cellar/openssl@3/3.0.5/lib -lssl -lcrypto -lz -liconv
+linkerOpts = -L/Users/bppleman/floater/kgit2/lib/libgit2/lib -L/Users/bppleman/floater/kgit2/lib/libssh2/lib -L/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/lib -lgit2 -framework CoreFoundation -framework Security -lssh2 -lz -liconv

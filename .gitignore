@@ -260,4 +260,22 @@ gradle-app.setting
 # Java heap dump
 *.hprof
 
+### CMake template
+CMakeLists.txt.user
+CMakeCache.txt
+CMakeFiles
+CMakeScripts
+Testing
+Makefile
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+_deps
+
+
 # End of https://www.toptal.com/developers/gitignore/api/macos,windows,linux,intellij+iml,kotlin,gradle,vim,visualstudiocode
+
+**/build
+lib/external/*.tar.gz
+lib/external/libssh2*
