@@ -279,3 +279,4 @@ _deps
 **/build
 lib/external/*.tar.gz
 lib/external/libssh2*
+test

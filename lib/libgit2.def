@@ -3,3 +3,7 @@ staticLibraries = libgit2.a
 libraryPaths = /Users/bppleman/floater/kgit2/lib/libgit2/lib /Users/bppleman/floater/kgit2/lib/libssh2/lib
 compilerOpts = -I/Users/bppleman/floater/kgit2/lib/libgit2/include
 linkerOpts = -L/Users/bppleman/floater/kgit2/lib/libgit2/lib -L/Users/bppleman/floater/kgit2/lib/libssh2/lib -L/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/lib -lgit2 -framework CoreFoundation -framework Security -lssh2 -lz -liconv
+
+#libraryPaths = /opt/homebrew/Cellar/libgit2/1.5.0/lib
+#compilerOpts = -I/opt/homebrew/Cellar/libgit2/1.5.0/include
+#linkerOpts = -L/opt/homebrew/Cellar/libgit2/1.5.0/lib -L/opt/homebrew/Cellar/libssh2/1.10.0/lib -L/Library/Developer/CommandLineTools/SDKs/MacOSX12.sdk/usr/lib -lgit2 -framework CoreFoundation -framework Security -lssh2 -lz -liconv

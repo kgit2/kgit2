@@ -3,7 +3,5 @@
   <component name="VcsDirectoryMappings">
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/lib/external/libgit2" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/lib/external/libssh2" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/lib/external/openssl" vcs="Git" />
   </component>
 </project>

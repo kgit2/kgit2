@@ -1,48 +1,29 @@
 package com.floater.git.repository
 
-import com.floater.git.common.errorCheck
+import cnames.structs.git_config
+import cnames.structs.git_repository
+import com.floater.git.common.option.GitRepositoryOpenFlag
+import com.floater.git.common.option.RepositoryInitOptions
+import com.floater.git.common.error.errorCheck
 import com.floater.git.config.Config
+import com.floater.git.exception.GitException
 import com.floater.git.model.GitBase
-import kotlinx.cinterop.Arena
-import kotlinx.cinterop.CPointer
-import kotlinx.cinterop.allocPointerTo
-import kotlinx.cinterop.cValue
-import kotlinx.cinterop.memScoped
-import kotlinx.cinterop.objcPtr
-import kotlinx.cinterop.ptr
-import kotlinx.cinterop.reinterpret
-import kotlinx.cinterop.value
+import com.floater.git.model.GitBuf
+import kotlinx.cinterop.*
 import libgit2.*
 
-class Repository(
-    val path: String
+open class Repository(
+    override var handler: CPointer<git_repository>,
+    open var path: String,
 ) : GitBase<CPointer<git_repository>> {
-
-    override var handler: CPointer<git_repository>? = null
     override val arena: Arena = Arena()
 
-    fun initRepository(bare: Boolean = false) {
-        handler = memScoped {
-            val pointer = allocPointerTo<git_repository>()
-            git_repository_init(pointer.ptr, path, if (bare) 1U else 0U).errorCheck()
-            pointer.value!!
-        }
-    }
-
-    fun openRepository() {
-        handler = memScoped {
-            val pointer = allocPointerTo<git_repository>()
-            git_repository_open(pointer.ptr, path).errorCheck()
-            pointer.value!!
-        }
-    }
-
-    fun free() {
+    open fun free() {
         git_repository_free(handler)
         arena.clear()
     }
 
-    fun config(): Config {
+    open fun config(): Config {
         val config = Config()
         config.handler = memScoped {
             val pointer = allocPointerTo<git_config>()
@@ -50,5 +31,43 @@ class Repository(
             pointer.value!!
         }
         return config
+    }
+
+    open fun isBare(): Boolean {
+        return git_repository_is_bare(handler) == 1
+    }
+
+    open fun isShallow(): Boolean {
+        return git_repository_is_shallow(handler) == 1
+    }
+
+    open fun isWorktree(): Boolean {
+        return git_repository_is_worktree(handler) == 1
+    }
+
+    /// Tests whether this repository is empty.
+    open fun isEmpty(): Boolean {
+        return when (git_repository_is_empty(handler)) {
+            1 -> true
+            0 -> false
+            else -> throw GitException()
+        }
+    }
+
+    /// Returns the path to the `.git` folder for normal repositories or the
+    /// repository itself for bare repositories.
+    open fun path(): String? {
+        return git_repository_path(handler)?.toKString()
+    }
+
+    open fun noteDefaultRef(): String {
+        lateinit var result: String
+        memScoped {
+            val buf = GitBuf(this@memScoped)
+            git_note_default_ref(buf.handler, handler).errorCheck()
+            result = buf.ptr!!
+            buf.dispose()
+        }
+        return result
     }
 }

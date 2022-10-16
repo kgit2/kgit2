@@ -5,21 +5,23 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
 class KGit2Test {
-    private val kGit2: KGit2 = KGit2()
-
     @Test
     fun version() {
-        val version = kGit2.version()
+        val version = KGit2.version()
         assertEquals(version.toString(), "1.5.0")
     }
 
     @Test
     fun preRelease() {
-        assertNull(kGit2.preRelease())
+        assertNull(KGit2.preRelease())
     }
 
     @Test
     fun features() {
-        assertEquals(kGit2.features(), 15)
+        assertEquals(KGit2.features(), 15)
+        assert(KGit2.enableHttpsFeature())
+        assert(KGit2.enableSSHFeature())
+        assert(KGit2.enableNSecFeature())
+        assert(KGit2.enableThreadsFeature())
     }
 }

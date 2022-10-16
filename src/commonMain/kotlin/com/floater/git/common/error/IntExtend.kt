@@ -1,4 +1,4 @@
-package com.floater.git.common
+package com.floater.git.common.error
 
 import com.floater.git.exception.GitException
 

@@ -2,25 +2,117 @@ package com.floater.git
 
 import com.floater.git.common.GitFeature
 import com.floater.git.common.GitOpts
+import com.floater.git.common.error.errorCheck
+import com.floater.git.common.option.GitRepositoryOpenFlag
+import com.floater.git.common.option.RepositoryInitOptions
+import com.floater.git.model.GitBuf
 import com.floater.git.model.Version
-import com.floater.git.model.impl.VersionImpl
-import kotlinx.cinterop.IntVar
-import kotlinx.cinterop.alloc
-import kotlinx.cinterop.memScoped
-import kotlinx.cinterop.ptr
-import kotlinx.cinterop.toKString
-import kotlinx.cinterop.value
-import libgit2.git_libgit2_features
-import libgit2.git_libgit2_init
-import libgit2.git_libgit2_opts
-import libgit2.git_libgit2_prerelease
-import libgit2.git_libgit2_shutdown
-import libgit2.git_libgit2_version
+import com.floater.git.repository.Repository
+import kotlinx.cinterop.*
+import libgit2.*
 
-class KGit2 {
+object KGit2 {
     init {
         git_libgit2_init()
     }
+
+    fun initRepository(path: String): Repository {
+        assert(path.isNotEmpty())
+        val handler = memScoped {
+            val pointer = allocPointerTo<git_repository>()
+            git_repository_init(pointer.ptr, path, 0U).errorCheck()
+            pointer.value!!
+        }
+        return Repository(handler, path)
+    }
+
+    fun initBare(path: String): Repository {
+        assert(path.isNotEmpty())
+        val handler = memScoped {
+            val pointer = allocPointerTo<git_repository>()
+            git_repository_init(pointer.ptr, path, 1U).errorCheck()
+            pointer.value!!
+        }
+        return Repository(handler, path)
+    }
+
+    fun initOpts(path: String, opts: RepositoryInitOptions): Repository {
+        assert(path.isNotEmpty())
+        val handler = memScoped {
+            val pointer = allocPointerTo<git_repository>()
+            git_repository_init_ext(pointer.ptr, path, opts.toRaw(this)).errorCheck()
+            pointer.value!!
+        }
+        return Repository(handler, path)
+    }
+
+    fun open(path: String): Repository {
+        assert(path.isNotEmpty())
+        val handler = memScoped {
+            val pointer = allocPointerTo<git_repository>()
+            git_repository_open(pointer.ptr, path).errorCheck()
+            pointer.value!!
+        }
+        return Repository(handler, path)
+    }
+
+    fun openBare(path: String): Repository {
+        assert(path.isNotEmpty())
+        val handler = memScoped {
+            val pointer = allocPointerTo<git_repository>()
+            git_repository_open_bare(pointer.ptr, path).errorCheck()
+            pointer.value!!
+        }
+        return Repository(handler, path)
+    }
+
+    fun openFromEnv(path: String): Repository {
+        assert(path.isNotEmpty())
+        val handler = memScoped {
+            val pointer = allocPointerTo<git_repository>()
+            git_repository_open_ext(pointer.ptr, path, GIT_REPOSITORY_OPEN_FROM_ENV, null).errorCheck()
+            pointer.value!!
+        }
+        return Repository(handler, path)
+    }
+
+    fun openExt(path: String, flags: GitRepositoryOpenFlag, ceilingDirs: String? = null): Repository {
+        assert(path.isNotEmpty())
+        val handler = memScoped {
+            val pointer = allocPointerTo<git_repository>()
+            git_repository_open_ext(pointer.ptr, path, flags.value, ceilingDirs).errorCheck()
+            pointer.value!!
+        }
+        return Repository(handler, path)
+    }
+
+    fun openFromWorktree(path: String): Repository {
+        assert(path.isNotEmpty())
+        val handler = memScoped {
+            val pointer = allocPointerTo<git_repository>()
+            // TODO()
+//            git_repository_open_from_worktree(pointer.ptr, path).errorCheck()
+            pointer.value!!
+        }
+        return Repository(handler, path)
+    }
+
+    fun discover(path: String): Repository {
+        return memScoped {
+            val buf = GitBuf(this@memScoped)
+            git_repository_discover(buf.handler, path, 1, null).errorCheck()
+            open(buf.ptr!!)
+        }
+    }
+
+    // TODO()
+    /*fun clone(url: String, localPath: String, bare: Boolean = false): Repository {
+        handler = memScoped {
+            val pointer = allocPointerTo<git_repository>()
+            pointer.value!!
+        }
+        return this
+    }*/
 
     fun shutDown() {
         git_libgit2_shutdown()
@@ -33,7 +125,7 @@ class KGit2 {
             val minor = alloc<IntVar>()
             val patch = alloc<IntVar>()
             git_libgit2_version(major.ptr, minor.ptr, patch.ptr)
-            version = VersionImpl(major.value, minor.value, patch.value)
+            version = Version(major.value, minor.value, patch.value)
         }
         return version
     }
@@ -112,7 +204,8 @@ class KGit2 {
             var mWindowMappedLimit: Int? = null
             memScoped {
                 val mWindowMappedLimitPtr = alloc<IntVar>()
-                val result = git_libgit2_opts(GitOpts.GIT_OPT_GET_MWINDOW_MAPPED_LIMIT.ordinal, mWindowMappedLimitPtr.ptr)
+                val result =
+                    git_libgit2_opts(GitOpts.GIT_OPT_GET_MWINDOW_MAPPED_LIMIT.ordinal, mWindowMappedLimitPtr.ptr)
                 if (result == 0) {
                     mWindowMappedLimit = mWindowMappedLimitPtr.value
                 }
@@ -139,7 +232,5 @@ class KGit2 {
         fun setMWindowFileLimit(limit: Int): Boolean {
             return git_libgit2_opts(GitOpts.GIT_OPT_SET_MWINDOW_FILE_LIMIT.ordinal, limit) == 0
         }
-
-
     }
 }

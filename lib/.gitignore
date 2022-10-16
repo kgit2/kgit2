@@ -1,4 +1,5 @@
-/libgit2
-/libssh2
+libgit2
+libssh2
 openssl
 libz
+test
