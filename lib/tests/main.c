@@ -1,63 +1,138 @@
 #include <stdio.h>
-#include "git2.h"
 #include <unistd.h>
 #include <memory.h>
+#include "git2.h"
+#include "common.h"
 
-int main() {
-    char *argv[] = {"sleep", "2", NULL};
-    int link[2];
-    char foo[4096];
-    if (pipe(link) == -1) {
-        perror("pipe");
+void print_error(int error_code) {
+    if (error_code == 0) return;
+    const git_error *error = giterr_last();
+    if (error) {
+        fprintf(stderr, "Error %d/%d: %s", error_code, error->klass, error->message);
+    }
+}
+
+typedef struct progress_data {
+    git_indexer_progress fetch_progress;
+    size_t completed_steps;
+    size_t total_steps;
+    const char *path;
+} progress_data;
+
+static void print_progress(const progress_data *pd) {
+    int network_percent = pd->fetch_progress.total_objects > 0 ?
+                          (100 * pd->fetch_progress.received_objects) / pd->fetch_progress.total_objects :
+                          0;
+    int index_percent = pd->fetch_progress.total_objects > 0 ?
+                        (100 * pd->fetch_progress.indexed_objects) / pd->fetch_progress.total_objects :
+                        0;
+
+    int checkout_percent = pd->total_steps > 0
+                           ? (int) ((100 * pd->completed_steps) / pd->total_steps)
+                           : 0;
+    size_t kbytes = pd->fetch_progress.received_bytes / 1024;
+
+    if (pd->fetch_progress.total_objects &&
+        pd->fetch_progress.received_objects == pd->fetch_progress.total_objects) {
+        printf("Resolving deltas %u/%u\r",
+               pd->fetch_progress.indexed_deltas,
+               pd->fetch_progress.total_deltas);
+    } else {
+        printf("net %3d%% (%4" PRIuZ " kb, %5u/%5u)  /  idx %3d%% (%5u/%5u)  /  chk %3d%% (%4" PRIuZ "/%4" PRIuZ")%s\n",
+               network_percent, kbytes,
+               pd->fetch_progress.received_objects, pd->fetch_progress.total_objects,
+               index_percent, pd->fetch_progress.indexed_objects, pd->fetch_progress.total_objects,
+               checkout_percent,
+               pd->completed_steps, pd->total_steps,
+               pd->path);
+    }
+}
+
+static int sideband_progress(const char *str, int len, void *payload) {
+    (void) payload; /* unused */
+
+    printf("remote: %.*s", len, str);
+    fflush(stdout);
+    return 0;
+}
+
+static int fetch_progress(const git_indexer_progress *stats, void *payload) {
+//    progress_data *pd = (progress_data *) payload;
+    printf("%d\n", payload == NULL);
+    progress_data *pd = malloc(sizeof(progress_data));
+    pd->fetch_progress = *stats;
+    print_progress(pd);
+    return 0;
+}
+
+static void checkout_progress(const char *path, size_t cur, size_t tot, void *payload) {
+//    progress_data *pd = (progress_data *) payload;
+//    printf("%s\n", path);
+    printf("%d\n", payload == NULL);
+    progress_data *pd = malloc(sizeof(progress_data));
+    pd->completed_steps = cur;
+    pd->total_steps = tot;
+    pd->path = path;
+    print_progress(pd);
+}
+
+
+int lg2_clone(git_repository *repo, int argc, char **argv) {
+    progress_data pd = {{0}};
+    git_repository *cloned_repo = NULL;
+    git_clone_options clone_opts = GIT_CLONE_OPTIONS_INIT;
+    git_checkout_options checkout_opts = GIT_CHECKOUT_OPTIONS_INIT;
+    const char *url = argv[1];
+    const char *path = argv[2];
+    int error;
+
+    (void) repo; /* unused */
+
+    /* Validate args */
+    if (argc < 3) {
+        printf("USAGE: %s <url> <path>\n", argv[0]);
         return -1;
     }
-    int child_status = 0;
-    pid_t child_pid = fork();
-    if(child_pid == 0) {
-//        pid_t pid = execvp(argv[0], argv);
-        dup2(link[1], STDOUT_FILENO);
-        close(link[0]);
-        close(link[1]);
-        time_t t0 = time(0);
-        while (1) {
-            time_t t1 = time(0);
-            double datetime_diff_ms = difftime(t1, t0) * 1000.;
-            printf("datetime_diff_ms = %lf\n", datetime_diff_ms - 1000);
-            if (datetime_diff_ms > 100000) {
-                break;
-            }
-            sleep(1);
-        }
-        exit(0);
-    }
-    else {
-        printf("child_pid = %d\n", child_pid);
-        close(link[1]);
-        int nbytes = 0;
-        while(0 != (nbytes = read(link[0], foo, sizeof(foo)))) {
-            printf("Output: (%.*s)\n", nbytes, foo);
-//            memset(foo, 0, 4096);
-        }
-        /* This is run by the parent.  Wait for the child
-           to terminate. */
-        struct rusage usage;
-        pid_t tpid = wait4(child_pid, &child_status, WUNTRACED, &usage);
-        printf("tpid = %d\n", tpid);
-        printf("child_status = %d\n", child_status);
-        if (WIFEXITED(child_status)) {
-            printf("child exited, status=%d\n", child_status);
-        }
-        if (WIFSIGNALED(child_status)) {
-            printf("child killed (signal %d)\n", WTERMSIG(child_status));
-        }
-        printf("ru_stime = %ld %d\n", usage.ru_stime.tv_sec, usage.ru_stime.tv_usec);
-        printf("ru_utime = %ld %d\n", usage.ru_utime.tv_sec, usage.ru_utime.tv_usec);
 
-        printf("Hello, World!\n");
-        int result = git_libgit2_init();
-        printf("init %d\n", result);
-        result = git_libgit2_shutdown();
-        printf("shutdown %d\n", result);
-        return 0;
-    }
+    /* Set up options */
+//    checkout_opts.checkout_strategy = GIT_CHECKOUT_SAFE;
+//    checkout_opts.progress_cb = checkout_progress;
+//    checkout_opts.progress_payload = &pd;
+//    clone_opts.checkout_opts = checkout_opts;
+    clone_opts.checkout_opts.checkout_strategy = GIT_CHECKOUT_SAFE;
+    clone_opts.checkout_opts.progress_cb = checkout_progress;
+//    clone_opts.checkout_opts.progress_payload = &pd;
+    clone_opts.fetch_opts.callbacks.sideband_progress = sideband_progress;
+    clone_opts.fetch_opts.callbacks.transfer_progress = &fetch_progress;
+    clone_opts.fetch_opts.callbacks.credentials = cred_acquire_cb;
+//    clone_opts.fetch_opts.callbacks.payload = &pd;
+
+    /* Do the clone */
+    error = git_clone(&cloned_repo, url, path, &clone_opts);
+    printf("\n");
+    if (error != 0) {
+        const git_error *err = git_error_last();
+        if (err) printf("ERROR %d: %s\n", err->klass, err->message);
+        else printf("ERROR %d: no detailed info\n", error);
+    } else if (cloned_repo) git_repository_free(cloned_repo);
+    return error;
+}
+
+int main() {
+    rmdir("/Users/bppleman/floater-test-repo");
+    printf("Hello, World!\n");
+    int result = git_libgit2_init();
+    printf("init %d\n", result);
+
+    git_repository *repo = NULL;
+    char *argv[] = {
+            "",
+            "https://github.com/BppleMan/floater_test_repo.git",
+            "/Users/bppleman/floater-test-repo"
+    };
+    lg2_clone(repo, 3, argv);
+
+    result = git_libgit2_shutdown();
+    printf("shutdown %d\n", result);
+    return 0;
 }

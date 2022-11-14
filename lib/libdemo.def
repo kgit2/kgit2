@@ -31,3 +31,17 @@ int copy_string(char* str, int size) {
   *str++ = 0;
   return 0;
 }
+
+int myFun(int i) {
+    return i+1;
+}
+
+typedef int (*MyFun)(int);
+
+int accept_fun(MyFun f) {
+    f(42);
+}
+
+MyFun supply_fun() {
+    return myFun;
+}
