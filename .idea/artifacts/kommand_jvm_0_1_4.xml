@@ -2,7 +2,7 @@
   <artifact type="jar" name="kommand-jvm-0.1.4">
     <output-path>$PROJECT_DIR$/../kommand/build/libs</output-path>
     <root id="archive" name="kommand-jvm-0.1.4.jar">
-      <element id="module-output" name="kgit2.kommand.jvmMain" />
+      <element id="module-output" name="kommand.jvmMain" />
     </root>
   </artifact>
 </component>

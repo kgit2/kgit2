@@ -124,13 +124,16 @@ int main() {
     int result = git_libgit2_init();
     printf("init %d\n", result);
 
-    git_repository *repo = NULL;
-    char *argv[] = {
-            "",
-            "https://github.com/BppleMan/floater_test_repo.git",
-            "/Users/bppleman/floater-test-repo"
-    };
-    lg2_clone(repo, 3, argv);
+    git_config *config;
+    git_config_open_ondisk(&config, "/private/var/folders/zf/wfd26sc12m574pzzjmx8v9fw0000gn/T/kgit2/7B13B9DA-16E0-4BCE-A24D-3BB5E311FC77/foo");
+    int bool;
+    result = git_config_get_bool(&bool, config, "foo.k1");
+    printf("%d %d\n", result, bool);
+    result = git_config_set_bool(config, "foo.k1", 1);
+    assert(result == 0);
+    result = git_config_get_bool(&bool, config, "foo.k1");
+    printf("%d %d\n", result, bool);
+    git_config_free(config);
 
     result = git_libgit2_shutdown();
     printf("shutdown %d\n", result);

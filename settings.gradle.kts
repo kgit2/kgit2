@@ -16,14 +16,14 @@ pluginManagement {
 
 rootProject.name = "kgit2"
 
-val bitmask = File(settingsDir,"../bitmask/library")
+include(":core")
+
+val bitmask = File(settingsDir,"../bitmask")
 if (bitmask.exists()) {
-    include(":bitmask-library")
-    project(":bitmask-library").projectDir = bitmask
+    includeBuild(bitmask)
 }
 
-val processor = File(settingsDir, "../bitmask/processor")
-if (processor.exists()) {
-    include(":bitmask-processor")
-    project(":bitmask-processor").projectDir = processor
+val kommand = File(settingsDir, "../kommand")
+if (kommand.exists()) {
+    includeBuild(kommand)
 }
