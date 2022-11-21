@@ -8,7 +8,7 @@ import com.kgit2.common.memory.Memory
 import com.kgit2.credential.Credential
 import com.kgit2.credential.CredentialType
 import com.kgit2.fetch.Direction
-import com.kgit2.memory.Binding
+import com.kgit2.memory.Raw
 import com.kgit2.memory.GitBase
 import com.kgit2.model.Oid
 import com.kgit2.transport.Transport
@@ -198,7 +198,7 @@ typealias RemoteCallbacksInitial = RemoteCallbacksSecondaryPointer.(Memory) -> U
 class RemoteCallbacksRaw(
     memory: Memory = Memory(),
     handler: CPointer<git_remote_callbacks> = memory.alloc<git_remote_callbacks>().ptr,
-) : Binding<git_remote_callbacks>(memory, handler) {
+) : Raw<git_remote_callbacks>(memory, handler) {
     init {
         runCatching {
             git_remote_init_callbacks(handler, GIT_REMOTE_CALLBACKS_VERSION)

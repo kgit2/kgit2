@@ -6,7 +6,7 @@ import com.kgit2.common.error.toBoolean
 import com.kgit2.common.error.toInt
 import com.kgit2.common.memory.Memory
 import com.kgit2.config.Config
-import com.kgit2.memory.Binding
+import com.kgit2.memory.Raw
 import com.kgit2.memory.GitBase
 import com.kgit2.model.toKString
 import com.kgit2.model.withGitBuf
@@ -24,7 +24,7 @@ typealias RepositoryInitial = RepositorySecondaryPointer.(Memory) -> Unit
 class RepositoryRaw(
     memory: Memory,
     handler: RepositoryPointer,
-) : Binding<git_repository>(memory, handler) {
+) : Raw<git_repository>(memory, handler) {
     constructor(
         memory: Memory = Memory(),
         handler: RepositorySecondaryPointer = memory.allocPointerTo(),

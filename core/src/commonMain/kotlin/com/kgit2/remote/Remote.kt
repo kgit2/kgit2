@@ -10,7 +10,7 @@ import com.kgit2.common.memory.memoryScoped
 import com.kgit2.common.option.mutually.AutoTagOption
 import com.kgit2.fetch.Direction
 import com.kgit2.fetch.FetchOptions
-import com.kgit2.memory.Binding
+import com.kgit2.memory.Raw
 import com.kgit2.memory.GitBase
 import com.kgit2.model.toKString
 import com.kgit2.model.toList
@@ -30,7 +30,7 @@ typealias RemoteInitial = RemoteSecondaryPointer.(Memory) -> Unit
 class RemoteRaw(
     memory: Memory,
     handler: RemotePointer,
-) : Binding<git_remote>(memory, handler) {
+) : Raw<git_remote>(memory, handler) {
     constructor(
         memory: Memory = Memory(),
         handler: RemoteSecondaryPointer = memory.allocPointerTo(),

@@ -3,7 +3,7 @@ package com.kgit2.signature
 import cnames.structs.git_mailmap
 import com.kgit2.common.error.errorCheck
 import com.kgit2.common.memory.Memory
-import com.kgit2.memory.Binding
+import com.kgit2.memory.Raw
 import com.kgit2.memory.GitBase
 import kotlinx.cinterop.*
 import libgit2.*
@@ -19,7 +19,7 @@ typealias MailMapInitial = CPointerVar<git_mailmap>.(Memory) -> Unit
 class MailMapRaw(
     memory: Memory,
     handler: MailMapPointer,
-) : Binding<git_mailmap>(memory, handler) {
+) : Raw<git_mailmap>(memory, handler) {
     constructor(
         memory: Memory = Memory(),
         handler: MailMapSecondaryPointer = memory.allocPointerTo<git_mailmap>(),

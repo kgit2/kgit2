@@ -3,12 +3,10 @@ package com.kgit2.credential
 import com.kgit2.common.error.errorCheck
 import com.kgit2.common.memory.Memory
 import com.kgit2.config.Config
-import com.kgit2.memory.Binding
+import com.kgit2.memory.Raw
 import com.kgit2.memory.GitBase
 import kotlinx.cinterop.*
 import libgit2.*
-import kotlin.native.internal.Cleaner
-import kotlin.native.internal.createCleaner
 
 typealias CredentialPointer = CPointer<git_credential>
 
@@ -19,7 +17,7 @@ typealias CredentialInitial = CredentialSecondaryPointer.(Memory) -> Unit
 class CredentialRaw(
     memory: Memory,
     handler: CredentialPointer,
-) : Binding<git_credential>(memory, handler) {
+) : Raw<git_credential>(memory, handler) {
     constructor(
         memory: Memory = Memory(),
         handler: CredentialSecondaryPointer = memory.allocPointerTo(),

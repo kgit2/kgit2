@@ -3,7 +3,7 @@ package com.kgit2.commit
 import cnames.structs.git_commit
 import com.kgit2.common.error.errorCheck
 import com.kgit2.common.memory.Memory
-import com.kgit2.memory.Binding
+import com.kgit2.memory.Raw
 import com.kgit2.memory.GitBase
 import com.kgit2.model.Oid
 import com.kgit2.`object`.Object
@@ -23,7 +23,7 @@ typealias CommitInitial = CommitSecondaryPointer.(Memory) -> Unit
 class CommitRaw(
     memory: Memory,
     handler: CommitPointer,
-) : Binding<git_commit>(memory, handler) {
+) : Raw<git_commit>(memory, handler) {
     constructor(
         memory: Memory = Memory(),
         handler: CommitSecondaryPointer = memory.allocPointerTo<git_commit>(),
@@ -122,7 +122,7 @@ class Commit(
     })
 
     fun asObject(): Object {
-        raw.freed.compareAndSet(expect = false, update = true)
+        raw.move()
         return Object(raw.memory, raw.handler.reinterpret())
     }
 }

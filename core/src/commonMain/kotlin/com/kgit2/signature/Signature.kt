@@ -1,7 +1,7 @@
 package com.kgit2.signature
 
 import com.kgit2.common.memory.Memory
-import com.kgit2.memory.Binding
+import com.kgit2.memory.Raw
 import com.kgit2.memory.GitBase
 import com.kgit2.time.Time
 import kotlinx.cinterop.*
@@ -21,7 +21,7 @@ typealias SignatureInitial = SignatureSecondaryPointer.(Memory) -> Unit
 class SignatureRaw(
     memory: Memory,
     handler: SignaturePointer,
-) : Binding<git_signature>(memory, handler) {
+) : Raw<git_signature>(memory, handler) {
     constructor(
         memory: Memory = Memory(),
         handler: SignatureSecondaryPointer,

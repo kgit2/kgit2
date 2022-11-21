@@ -2,13 +2,12 @@ package com.kgit2.repository
 
 import com.kgit2.common.error.errorCheck
 import com.kgit2.common.memory.Memory
-import com.kgit2.memory.Binding
+import com.kgit2.memory.Raw
 import com.kgit2.memory.GitBase
 import kotlinx.cinterop.*
 import libgit2.GIT_REPOSITORY_INIT_OPTIONS_VERSION
 import libgit2.git_repository_init_init_options
 import libgit2.git_repository_init_options
-import kotlin.test.assertEquals
 
 typealias RepositoryInitOptionsPointer = CPointer<git_repository_init_options>
 
@@ -19,7 +18,7 @@ typealias RepositoryInitOptionsInitial = RepositoryInitOptionsSecondaryPointer.(
 class RepositoryInitOptionsRaw(
     memory: Memory = Memory(),
     handler: RepositoryInitOptionsPointer = memory.alloc<git_repository_init_options>().ptr,
-) : Binding<git_repository_init_options>(memory, handler) {
+) : Raw<git_repository_init_options>(memory, handler) {
     init {
         runCatching {
             git_repository_init_init_options(handler, GIT_REPOSITORY_INIT_OPTIONS_VERSION).errorCheck()

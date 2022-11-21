@@ -2,7 +2,7 @@ package com.kgit2.transport
 
 import cnames.structs.git_transport
 import com.kgit2.common.memory.Memory
-import com.kgit2.memory.Binding
+import com.kgit2.memory.Raw
 import com.kgit2.memory.GitBase
 import com.kgit2.remote.Remote
 import kotlinx.cinterop.CPointer
@@ -19,7 +19,7 @@ typealias TransportInitial = TransportSecondaryPointer.(Memory) -> Unit
 class TransportRaw(
     memory: Memory,
     handler: TransportPointer,
-) : Binding<git_transport>(memory, handler) {
+) : Raw<git_transport>(memory, handler) {
     constructor(
         memory: Memory = Memory(),
         handler: TransportSecondaryPointer = memory.allocPointerTo(),

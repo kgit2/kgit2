@@ -1,12 +1,10 @@
 package com.kgit2.time
 
 import com.kgit2.common.memory.Memory
-import com.kgit2.memory.Binding
+import com.kgit2.memory.Raw
 import com.kgit2.memory.GitBase
 import kotlinx.cinterop.*
 import libgit2.git_time
-import kotlin.native.internal.Cleaner
-import kotlin.native.internal.createCleaner
 
 typealias TimeValue = CValue<git_time>
 
@@ -17,7 +15,7 @@ typealias TimeSecondaryPointer = CPointerVar<git_time>
 class TimeRaw(
     memory: Memory,
     handler: CPointer<git_time>,
-) : Binding<git_time>(memory, handler) {
+) : Raw<git_time>(memory, handler) {
     constructor(memory: Memory = Memory(), value: TimeValue) : this(memory, value.getPointer(memory))
 
     constructor(memory: Memory, value: git_time) : this(memory, value.ptr)

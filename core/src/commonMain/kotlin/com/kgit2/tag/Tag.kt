@@ -3,7 +3,7 @@ package com.kgit2.tag
 import cnames.structs.git_tag
 import com.kgit2.common.error.errorCheck
 import com.kgit2.common.memory.Memory
-import com.kgit2.memory.Binding
+import com.kgit2.memory.Raw
 import com.kgit2.memory.GitBase
 import com.kgit2.model.Oid
 import com.kgit2.`object`.Object
@@ -21,7 +21,7 @@ typealias TagInitial = TagSecondaryPointer.(Memory) -> Unit
 class TagRaw(
     memory: Memory,
     handler: TagPointer,
-) : Binding<git_tag>(memory, handler) {
+) : Raw<git_tag>(memory, handler) {
     constructor(
         memory: Memory = Memory(),
         handler: TagSecondaryPointer = memory.allocPointerTo(),
@@ -62,7 +62,7 @@ class Tag(raw: TagRaw) : GitBase<git_tag, TagRaw>(raw) {
     fun peel(): Object = Object() { git_tag_peel(this.ptr, raw.handler).errorCheck() }
 
     fun asObject(): Object {
-        raw.freed.compareAndSet(expect = false, update = true)
+        raw.move()
         return Object(raw.memory, raw.handler.reinterpret())
     }
 }

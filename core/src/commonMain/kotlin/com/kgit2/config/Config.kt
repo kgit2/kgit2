@@ -6,7 +6,7 @@ import com.kgit2.common.error.errorCheck
 import com.kgit2.common.error.toBoolean
 import com.kgit2.common.error.toInt
 import com.kgit2.common.memory.Memory
-import com.kgit2.memory.Binding
+import com.kgit2.memory.Raw
 import com.kgit2.memory.GitBase
 import com.kgit2.model.toKString
 import com.kgit2.model.withGitBuf
@@ -23,7 +23,7 @@ typealias ConfigInitial = ConfigSecondaryPointer.(Memory) -> Unit
 class ConfigRaw(
     memory: Memory = Memory(),
     handler: ConfigPointer = memory.allocPointerTo<git_config>().value!!,
-) : Binding<git_config>(memory, handler) {
+) : Raw<git_config>(memory, handler) {
     constructor(
         memory: Memory = Memory(),
         handler: ConfigSecondaryPointer = memory.allocPointerTo(),

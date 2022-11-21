@@ -9,7 +9,7 @@ import com.kgit2.common.memory.Memory
 import com.kgit2.common.option.mutually.FileMode
 import com.kgit2.common.option.mutually.FileOpenFlags
 import com.kgit2.diff.DiffFile
-import com.kgit2.memory.Binding
+import com.kgit2.memory.Raw
 import com.kgit2.memory.GitBase
 import com.kgit2.model.toList
 import kotlinx.cinterop.*
@@ -26,7 +26,7 @@ typealias CheckoutOptionsInitial = CheckoutOptionsPointer.(Memory) -> Unit
 class CheckoutOptionsRaw(
     memory: Memory = Memory(),
     handler: CheckoutOptionsPointer = memory.alloc<git_checkout_options>().ptr,
-) : Binding<git_checkout_options>(memory, handler) {
+) : Raw<git_checkout_options>(memory, handler) {
     init {
         runCatching {
             git_checkout_options_init(handler.getPointer(memory), GIT_CHECKOUT_OPTIONS_VERSION).errorCheck()

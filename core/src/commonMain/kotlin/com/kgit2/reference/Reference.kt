@@ -7,7 +7,7 @@ import com.kgit2.common.error.errorCheck
 import com.kgit2.common.error.toBoolean
 import com.kgit2.common.error.toInt
 import com.kgit2.common.memory.Memory
-import com.kgit2.memory.Binding
+import com.kgit2.memory.Raw
 import com.kgit2.memory.GitBase
 import com.kgit2.model.Oid
 import com.kgit2.`object`.Object
@@ -26,7 +26,7 @@ typealias ReferenceInitial = ReferenceSecondaryPointer.(Memory) -> Unit
 class ReferenceRaw(
     memory: Memory,
     handler: ReferencePointer,
-) : Binding<git_reference>(memory, handler) {
+) : Raw<git_reference>(memory, handler) {
     constructor(
         memory: Memory = Memory(),
         handler: ReferenceSecondaryPointer = memory.allocPointerTo(),
@@ -97,25 +97,25 @@ class Reference(
 
     fun peelToBlob(): Blob {
         val `object` = peel(ObjectType.Blob)
-        `object`.raw.freed.compareAndSet(expect = false, update = true)
+        `object`.raw.move()
         return Blob(`object`.raw.memory, `object`.raw.handler.reinterpret())
     }
 
     fun peelToCommit(): Commit {
         val `object` = peel(ObjectType.Blob)
-        `object`.raw.freed.compareAndSet(expect = false, update = true)
+        `object`.raw.move()
         return Commit(`object`.raw.memory, `object`.raw.handler.reinterpret())
     }
 
     fun peelToTree(): Tree {
         val `object` = peel(ObjectType.Blob)
-        `object`.raw.freed.compareAndSet(expect = false, update = true)
+        `object`.raw.move()
         return Tree(`object`.raw.memory, `object`.raw.handler.reinterpret())
     }
 
     fun peelToTag(): Tag {
         val `object` = peel(ObjectType.Blob)
-        `object`.raw.freed.compareAndSet(expect = false, update = true)
+        `object`.raw.move()
         return Tag(`object`.raw.memory, `object`.raw.handler.reinterpret())
     }
 

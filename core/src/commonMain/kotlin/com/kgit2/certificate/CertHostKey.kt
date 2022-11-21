@@ -1,7 +1,7 @@
 package com.kgit2.certificate
 
 import com.kgit2.common.memory.Memory
-import com.kgit2.memory.Binding
+import com.kgit2.memory.Raw
 import com.kgit2.memory.GitBase
 import kotlinx.cinterop.*
 import libgit2.git_cert_hostkey
@@ -15,7 +15,7 @@ typealias CertHostKeyInitial = CertHostKeySecondaryPointer.(Memory) -> Unit
 class CertHostKeyRaw(
     memory: Memory,
     handler: CertHostKeyPointer,
-) : Binding<git_cert_hostkey>(memory, handler) {
+) : Raw<git_cert_hostkey>(memory, handler) {
     constructor(
         memory: Memory = Memory(),
         handler: CertHostKeySecondaryPointer = memory.allocPointerTo(),

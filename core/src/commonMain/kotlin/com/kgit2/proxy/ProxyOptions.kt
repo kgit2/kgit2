@@ -1,7 +1,7 @@
 package com.kgit2.proxy
 
 import com.kgit2.common.memory.Memory
-import com.kgit2.memory.Binding
+import com.kgit2.memory.Raw
 import com.kgit2.memory.GitBase
 import kotlinx.cinterop.*
 import libgit2.GIT_PROXY_OPTIONS_VERSION
@@ -17,7 +17,7 @@ typealias ProxyOptionsInitial = ProxyOptionsSecondaryPointer.(Memory) -> Unit
 class ProxyOptionsRaw(
     memory: Memory = Memory(),
     handler: ProxyOptionsPointer = memory.alloc<git_proxy_options>().ptr,
-) : Binding<git_proxy_options>(memory, handler) {
+) : Raw<git_proxy_options>(memory, handler) {
     init {
         runCatching {
             git_proxy_options_init(handler, GIT_PROXY_OPTIONS_VERSION)

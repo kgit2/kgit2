@@ -3,7 +3,7 @@ package com.kgit2.model
 import com.kgit2.common.error.errorCheck
 import com.kgit2.common.error.toBoolean
 import com.kgit2.common.memory.Memory
-import com.kgit2.memory.Binding
+import com.kgit2.memory.Raw
 import com.kgit2.memory.GitBase
 import com.kgit2.`object`.ObjectType
 import kotlinx.cinterop.*
@@ -19,7 +19,7 @@ class OidRaw(
     memory: Memory = Memory(),
     handler: OidPointer = memory.alloc<git_oid>().ptr,
     initial: OidInitial? = null,
-) : Binding<git_oid>(memory, handler.apply {
+) : Raw<git_oid>(memory, handler.apply {
     runCatching {
         initial?.invoke(handler, memory)
     }.onFailure {

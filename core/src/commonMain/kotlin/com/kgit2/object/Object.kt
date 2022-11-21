@@ -5,7 +5,7 @@ import com.kgit2.blob.Blob
 import com.kgit2.commit.Commit
 import com.kgit2.common.error.errorCheck
 import com.kgit2.common.memory.Memory
-import com.kgit2.memory.Binding
+import com.kgit2.memory.Raw
 import com.kgit2.memory.GitBase
 import com.kgit2.model.Oid
 import com.kgit2.model.toKString
@@ -14,8 +14,6 @@ import com.kgit2.tag.Tag
 import com.kgit2.tree.Tree
 import kotlinx.cinterop.*
 import libgit2.*
-import kotlin.native.internal.Cleaner
-import kotlin.native.internal.createCleaner
 
 typealias ObjectPointer = CPointer<git_object>
 
@@ -26,7 +24,7 @@ typealias ObjectInitial = ObjectSecondaryPointer.(Memory) -> Unit
 class ObjectRaw(
     memory: Memory = Memory(),
     handler: ObjectPointer = memory.allocPointerTo<git_object>().value!!,
-) : Binding<git_object>(memory, handler) {
+) : Raw<git_object>(memory, handler) {
     constructor(
         memory: Memory = Memory(),
         handler: ObjectSecondaryPointer = memory.allocPointerTo<git_object>(),
@@ -73,25 +71,25 @@ class Object(
 
     fun peelToBlob(): Blob {
         val `object` = peel(ObjectType.Blob)
-        `object`.raw.freed.compareAndSet(expect = false, update = true)
+        `object`.raw.move()
         return Blob(`object`.raw.memory, `object`.raw.handler.reinterpret())
     }
 
     fun peelToCommit(): Commit {
         val `object` = peel(ObjectType.Commit)
-        `object`.raw.freed.compareAndSet(expect = false, update = true)
+        `object`.raw.move()
         return Commit(`object`.raw.memory, `object`.raw.handler.reinterpret())
     }
 
     fun peelToTag(): Tag {
         val `object` = peel(ObjectType.Tag)
-        `object`.raw.freed.compareAndSet(expect = false, update = true)
+        `object`.raw.move()
         return Tag(`object`.raw.memory, `object`.raw.handler.reinterpret())
     }
 
     fun peelToTree(): Tree {
         val `object` = peel(ObjectType.Tree)
-        `object`.raw.freed.compareAndSet(expect = false, update = true)
+        `object`.raw.move()
         return Tree(`object`.raw.memory, `object`.raw.handler.reinterpret())
     }
 }

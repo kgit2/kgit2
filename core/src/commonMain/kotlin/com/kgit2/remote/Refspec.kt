@@ -4,7 +4,7 @@ import cnames.structs.git_refspec
 import com.kgit2.common.error.errorCheck
 import com.kgit2.common.memory.Memory
 import com.kgit2.fetch.Direction
-import com.kgit2.memory.Binding
+import com.kgit2.memory.Raw
 import com.kgit2.memory.GitBase
 import com.kgit2.model.toKString
 import com.kgit2.model.withGitBuf
@@ -22,7 +22,7 @@ typealias RefspecInitial = RefspecSecondaryPointer.(Memory) -> Unit
 class RefspecRaw(
     memory: Memory,
     handler: RefspecPointer,
-) : Binding<git_refspec>(memory, handler) {
+) : Raw<git_refspec>(memory, handler) {
     override val beforeFree: () -> Unit = {
         git_refspec_free(handler)
     }
