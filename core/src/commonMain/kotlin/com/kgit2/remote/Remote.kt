@@ -3,117 +3,139 @@ package com.kgit2.remote
 import cnames.structs.git_remote
 import com.kgit2.callback.payload.IndexerProgress
 import com.kgit2.common.error.errorCheck
-import com.kgit2.proxy.ProxyOptions
+import com.kgit2.common.error.toBoolean
+import com.kgit2.common.error.toInt
+import com.kgit2.common.memory.Memory
+import com.kgit2.common.memory.memoryScoped
 import com.kgit2.common.option.mutually.AutoTagOption
 import com.kgit2.fetch.Direction
 import com.kgit2.fetch.FetchOptions
-import com.kgit2.model.*
+import com.kgit2.memory.Binding
+import com.kgit2.memory.GitBase
+import com.kgit2.model.toKString
+import com.kgit2.model.toList
+import com.kgit2.model.withGitBuf
+import com.kgit2.model.withGitStrArray
+import com.kgit2.proxy.ProxyOptions
 import com.kgit2.repository.Repository
 import kotlinx.cinterop.*
 import libgit2.*
 
-class Remote(
-    override val handler: CPointer<git_remote>,
-    override val arena: Arena,
-    val name: String,
-    val url: String,
-    var pushUrl: String,
-    val defaultBranch: String,
-) : AutoFreeGitBase<CPointer<git_remote>> {
-    companion object {
-        fun isValidName(remoteName: String): Boolean {
-            return git_remote_is_valid_name(remoteName) == 1
-        }
+typealias RemotePointer = CPointer<git_remote>
 
-        fun new(handler: CPointer<git_remote>, arena: Arena): Remote {
-            return Remote(
-                handler,
-                arena,
-                name = git_remote_name(handler)!!.toKString(),
-                url = git_remote_url(handler)!!.toKString(),
-                pushUrl = git_remote_pushurl(handler)!!.toKString(),
-                defaultBranch = withGitBuf { buf ->
-                    git_remote_default_branch(buf, handler).errorCheck()
-                    buf.toKString()!!
-                },
-            )
-        }
+typealias RemoteSecondaryPointer = CPointerVar<git_remote>
 
-        fun create(repository: Repository, name: String, url: String): Remote {
-            val remote = new(
-                memScoped {
-                    val pointer = allocPointerTo<git_remote>()
-                    git_remote_create(pointer.ptr, repository.handler, name, url).errorCheck()
-                    pointer.value!!
-                },
-                repository.arena
-            )
-            return remote
-        }
+typealias RemoteInitial = RemoteSecondaryPointer.(Memory) -> Unit
 
-        fun <T : CharSequence> createDetached(url: T): Remote {
-            val arena = Arena()
-            val remote = arena.allocPointerTo<git_remote>()
-            git_remote_create_detached(remote.ptr, url.toString()).errorCheck()
-            return new(remote.value!!, arena)
-        }
+class RemoteRaw(
+    memory: Memory,
+    handler: RemotePointer,
+) : Binding<git_remote>(memory, handler) {
+    constructor(
+        memory: Memory = Memory(),
+        handler: RemoteSecondaryPointer = memory.allocPointerTo(),
+        initial: RemoteInitial? = null,
+    ) : this(memory, handler.apply {
+        runCatching {
+            initial?.invoke(handler, memory)
+        }.onFailure {
+            git_remote_free(handler.value!!)
+            memory.free()
+        }.getOrThrow()
+    }.value!!)
 
-        fun createAnonymous(repository: Repository, url: String): Remote {
-            val arena = Arena()
-            val remote = arena.allocPointerTo<git_remote>()
-            git_remote_create_anonymous(remote.ptr, repository.handler, url).errorCheck()
-            return new(remote.value!!, arena)
-        }
+    override val beforeFree: () -> Unit = {
+        git_remote_free(handler)
+    }
+}
 
-        fun createWithFetchSpec(repository: Repository, name: String, url: String, fetch: String): Remote {
-            val arena = Arena()
-            val remote = arena.allocPointerTo<git_remote>()
-            git_remote_create_with_fetchspec(remote.ptr, repository.handler, name, url, fetch).errorCheck()
-            return new(remote.value!!, arena)
-        }
+class Remote(raw: RemoteRaw) : GitBase<git_remote, RemoteRaw>(raw) {
+    constructor(memory: Memory, handler: RemotePointer) : this(RemoteRaw(memory, handler))
+
+    constructor(
+        memory: Memory = Memory(),
+        handler: RemoteSecondaryPointer = memory.allocPointerTo(),
+        initial: RemoteInitial? = null,
+    ) : this(RemoteRaw(memory, handler, initial))
+
+    /**
+     * @param repository if null, will create a detached remote
+     * @param fetch if nonnull, will create remote with the given fetch refspec
+     * @param name if null, will create an anonymous remote, else will create a named remote
+     */
+    constructor(
+        url: String,
+        repository: Repository? = null,
+        fetch: String? = null,
+        name: String? = null,
+    ) : this(initial = {
+        when {
+            repository == null -> git_remote_create_detached(this.ptr, url)
+            fetch != null -> git_remote_create_with_fetchspec(this.ptr, repository.raw.handler, name, url, fetch)
+            name != null -> git_remote_create(this.ptr, repository.raw.handler, name, url)
+            else -> git_remote_create_anonymous(this.ptr, repository.raw.handler, url)
+        }.errorCheck()
+    })
+
+    val name: String = git_remote_name(raw.handler)!!.toKString()
+
+    val url: String = git_remote_url(raw.handler)!!.toKString()
+
+    var pushUrl: String = git_remote_pushurl(raw.handler)!!.toKString()
+
+    val defaultBranch: String = withGitBuf { buf ->
+        git_remote_default_branch(buf, raw.handler).errorCheck()
+        buf.toKString()!!
     }
 
-    override fun free() {
-        git_remote_free(handler)
-        super.free()
+    companion object {
+        fun isValidName(remoteName: String): Boolean {
+            return git_remote_is_valid_name(remoteName).toBoolean()
+        }
     }
 
     fun connect(direction: Direction, callbacks: RemoteCallbacks? = null, proxy: ProxyOptions? = null) {
-        git_remote_connect(handler, direction.value, callbacks?.handler, proxy?.handler, null).errorCheck()
+        git_remote_connect(
+            raw.handler,
+            direction.value,
+            callbacks?.raw?.handler,
+            proxy?.raw?.handler,
+            null
+        ).errorCheck()
     }
 
     fun connected(): Boolean {
-        return git_remote_connected(handler) == 1
+        return git_remote_connected(raw.handler).toBoolean()
     }
 
     fun disconnect() {
-        git_remote_disconnect(handler)
+        git_remote_disconnect(raw.handler).errorCheck()
     }
 
     fun download(refspecs: List<String>, option: FetchOptions? = null) {
-        autoFreeScoped {
+        memoryScoped {
             val refspecsArray = alloc<git_strarray>()
             refspecsArray.strings = refspecs.toCStringArray(this)
             refspecsArray.count = refspecs.size.convert()
-            git_remote_download(handler, refspecsArray.ptr, option?.handler).errorCheck()
+            git_remote_download(raw.handler, refspecsArray.ptr, option?.raw?.handler).errorCheck()
         }
     }
 
     fun stop() {
-        git_remote_stop(handler).errorCheck()
+        git_remote_stop(raw.handler).errorCheck()
     }
 
     fun refspecs(): MutableList<Refspec> {
-        val count = git_remote_refspec_count(handler)
+        val count = git_remote_refspec_count(raw.handler)
         return MutableList(count.convert()) { index ->
-            val refspec = git_remote_get_refspec(handler, index.convert())!!
-            Refspec(refspec, Arena())
+            val refspec = git_remote_get_refspec(raw.handler, index.convert())!!
+            Refspec(Memory(), refspec)
         }
     }
 
     fun fetch(refspecs: List<String>, option: FetchOptions? = null, reflogMessage: String? = null) {
         withGitStrArray { refspecsArray ->
-            git_remote_fetch(handler, refspecsArray, option?.handler, reflogMessage).errorCheck()
+            git_remote_fetch(raw.handler, refspecsArray, option?.raw?.handler, reflogMessage).errorCheck()
         }
     }
 
@@ -124,9 +146,9 @@ class Remote(
         message: String? = null,
     ) {
         git_remote_update_tips(
-            handler,
-            callbacks.handler,
-            if (updateFetched) 1 else 0,
+            raw.handler,
+            callbacks.raw.handler,
+            updateFetched.toInt(),
             downloadTags.value,
             message
         ).errorCheck()
@@ -134,38 +156,39 @@ class Remote(
 
     fun push(refspecs: Collection<String>, option: PushOptions? = null) {
         withGitStrArray { refspecsArray ->
-            git_remote_push(handler, refspecsArray, option?.handler).errorCheck()
+            git_remote_push(raw.handler, refspecsArray, option?.raw?.handler).errorCheck()
         }
     }
 
     fun stats(): IndexerProgress {
-        val indexerProgress = git_remote_stats(handler)!!
+        val indexerProgress = git_remote_stats(raw.handler)!!
         return IndexerProgress.fromHandler(indexerProgress.pointed)
     }
 
     fun list(): List<RemoteHead> {
-        val remoteHead = arena.allocPointerTo<CPointerVar<git_remote_head>>()
-        val size = arena.alloc<ULongVar>()
-        git_remote_ls(remoteHead.ptr, size.ptr, handler).errorCheck()
+        val memory = Memory()
+        val remoteHead = memory.allocPointerTo<RemoteHeadSecondaryPointer>()
+        val size = memory.alloc<ULongVar>()
+        git_remote_ls(remoteHead.ptr, size.ptr, raw.handler).errorCheck()
         return List(size.value.convert()) { i ->
-            RemoteHead(remoteHead.value!![i]!!, arena)
+            RemoteHead(Memory(), remoteHead.value!![i]!!)
         }
     }
 
     fun prune(callbacks: RemoteCallbacks) {
-        git_remote_prune(handler, callbacks.handler).errorCheck()
+        git_remote_prune(raw.handler, callbacks.raw.handler).errorCheck()
     }
 
     fun fetchRefspecs(): List<String> {
         return withGitStrArray { refspecsArray ->
-            git_remote_get_fetch_refspecs(refspecsArray, handler).errorCheck()
+            git_remote_get_fetch_refspecs(refspecsArray, raw.handler).errorCheck()
             refspecsArray.toList()
         }
     }
 
     fun pushRefspecs(): List<String> {
         return withGitStrArray { refspecsArray ->
-            git_remote_get_push_refspecs(refspecsArray, handler).errorCheck()
+            git_remote_get_push_refspecs(refspecsArray, raw.handler).errorCheck()
             refspecsArray.toList()
         }
     }

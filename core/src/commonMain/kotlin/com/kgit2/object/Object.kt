@@ -1,104 +1,97 @@
 package com.kgit2.`object`
 
-import cnames.structs.git_blob
-import cnames.structs.git_commit
 import cnames.structs.git_object
-import cnames.structs.git_tag
-import cnames.structs.git_tree
+import com.kgit2.blob.Blob
+import com.kgit2.commit.Commit
 import com.kgit2.common.error.errorCheck
-import com.kgit2.model.AutoFreeGitBase
+import com.kgit2.common.memory.Memory
+import com.kgit2.memory.Binding
+import com.kgit2.memory.GitBase
 import com.kgit2.model.Oid
 import com.kgit2.model.toKString
 import com.kgit2.model.withGitBuf
+import com.kgit2.tag.Tag
+import com.kgit2.tree.Tree
 import kotlinx.cinterop.*
 import libgit2.*
-import kotlin.String
-import kotlin.TODO
-import kotlin.Unit
+import kotlin.native.internal.Cleaner
+import kotlin.native.internal.createCleaner
 
-sealed class ObjectBase<T : CPointed>(
-    override val handler: CPointer<T>,
-    override val arena: Arena,
-) : AutoFreeGitBase<CPointer<T>>
+typealias ObjectPointer = CPointer<git_object>
+
+typealias ObjectSecondaryPointer = CPointerVar<git_object>
+
+typealias ObjectInitial = ObjectSecondaryPointer.(Memory) -> Unit
+
+class ObjectRaw(
+    memory: Memory = Memory(),
+    handler: ObjectPointer = memory.allocPointerTo<git_object>().value!!,
+) : Binding<git_object>(memory, handler) {
+    constructor(
+        memory: Memory = Memory(),
+        handler: ObjectSecondaryPointer = memory.allocPointerTo<git_object>(),
+        initial: ObjectInitial? = null,
+    ) : this(memory, handler.apply {
+        runCatching {
+            initial?.invoke(handler, memory)
+        }.onFailure {
+            git_object_free(handler.value!!)
+            memory.free()
+        }.getOrThrow()
+    }.value!!)
+
+    override val beforeFree: () -> Unit = {
+        git_object_free(handler)
+    }
+}
 
 class Object(
-    handler: CPointer<git_object>,
-    arena: Arena,
-) : ObjectBase<git_object>(handler, arena) {
-    override fun free() {
-        git_object_free(handler)
-        super.free()
-    }
+    raw: ObjectRaw,
+) : GitBase<git_object, ObjectRaw>(raw) {
+    constructor(memory: Memory, handler: ObjectPointer) : this(ObjectRaw(memory, handler))
 
-    val oid: Oid = Oid(git_object_id(handler)!!, arena)
+    constructor(
+        memory: Memory = Memory(),
+        handler: ObjectSecondaryPointer = memory.allocPointerTo(),
+        initial: ObjectInitial? = null
+    ) : this(ObjectRaw(memory, handler, initial))
+
+    val oid: Oid = Oid(Memory(), git_object_id(raw.handler)!!)
 
     val shortId: String = withGitBuf { buf ->
-        git_object_short_id(buf, handler).errorCheck()
+        git_object_short_id(buf, raw.handler).errorCheck()
         buf.toKString()!!
     }
 
-    val type: ObjectType = ObjectType.fromRaw(git_object_type(handler))
+    val type: ObjectType = ObjectType.fromRaw(git_object_type(raw.handler))
 
-    fun peel(targetType: ObjectType): Object {
-        val arena = Arena()
-        val obj = arena.allocPointerTo<git_object>()
-        git_object_peel(obj.ptr, handler, targetType.value).errorCheck()
-        return Object(obj.value!!, arena)
+    fun peel(targetType: ObjectType, memory: Memory = Memory()): Object {
+        val obj = memory.allocPointerTo<git_object>()
+        git_object_peel(obj.ptr, raw.handler, targetType.value).errorCheck()
+        return Object(memory, obj.value!!)
     }
 
-    fun peelToBlob() {
-        val arena = Arena()
-        val obj = arena.allocPointerTo<git_object>()
-        git_object_peel(obj.ptr, handler, ObjectType.Blob.value).errorCheck()
-        val target = obj.ptr.reinterpret<git_blob>()
-        TODO("Not yet implemented")
+    fun peelToBlob(): Blob {
+        val `object` = peel(ObjectType.Blob)
+        `object`.raw.freed.compareAndSet(expect = false, update = true)
+        return Blob(`object`.raw.memory, `object`.raw.handler.reinterpret())
     }
 
-    fun peelToCommit() {
-        val arena = Arena()
-        val obj = arena.allocPointerTo<git_object>()
-        git_object_peel(obj.ptr, handler, ObjectType.Commit.value).errorCheck()
-        val target = obj.ptr.reinterpret<git_commit>()
-        TODO("Not yet implemented")
+    fun peelToCommit(): Commit {
+        val `object` = peel(ObjectType.Commit)
+        `object`.raw.freed.compareAndSet(expect = false, update = true)
+        return Commit(`object`.raw.memory, `object`.raw.handler.reinterpret())
     }
 
-    fun peelToTag() {
-        val arena = Arena()
-        val obj = arena.allocPointerTo<git_object>()
-        git_object_peel(obj.ptr, handler, ObjectType.Tag.value).errorCheck()
-        val target = obj.ptr.reinterpret<git_tag>()
-        TODO("Not yet implemented")
+    fun peelToTag(): Tag {
+        val `object` = peel(ObjectType.Tag)
+        `object`.raw.freed.compareAndSet(expect = false, update = true)
+        return Tag(`object`.raw.memory, `object`.raw.handler.reinterpret())
     }
 
-    fun peelToTree() {
-        val arena = Arena()
-        val obj = arena.allocPointerTo<git_object>()
-        git_object_peel(obj.ptr, handler, ObjectType.Tree.value).errorCheck()
-        val target = obj.ptr.reinterpret<git_tree>()
-        TODO("Not yet implemented")
-    }
-
-    fun asBlob(): Unit? {
-        if (type != ObjectType.Blob) return null
-        val target = handler.reinterpret<git_blob>()
-        TODO("Not yet implemented")
-    }
-
-    fun asCommit(): Unit? {
-        if (type != ObjectType.Commit) return null
-        val target = handler.reinterpret<git_commit>()
-        TODO("Not yet implemented")
-    }
-
-    fun asTag(): Unit? {
-        if (type != ObjectType.Tag) return null
-        val target = handler.reinterpret<git_tag>()
-        TODO("Not yet implemented")
-    }
-
-    fun asTree(): Unit? {
-        if (type != ObjectType.Tree) return null
-        val target = handler.reinterpret<git_tree>()
-        TODO("Not yet implemented")
+    fun peelToTree(): Tree {
+        val `object` = peel(ObjectType.Tree)
+        `object`.raw.freed.compareAndSet(expect = false, update = true)
+        return Tree(`object`.raw.memory, `object`.raw.handler.reinterpret())
     }
 }

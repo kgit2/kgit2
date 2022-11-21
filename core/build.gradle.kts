@@ -33,6 +33,7 @@ kotlin {
     sourceSets {
         all {
             languageSettings.optIn("kotlinx.coroutines.ExperimentalCoroutinesApi")
+            languageSettings.optIn("kotlin.ExperimentalStdlibApi")
         }
 
         val commonMain by getting {

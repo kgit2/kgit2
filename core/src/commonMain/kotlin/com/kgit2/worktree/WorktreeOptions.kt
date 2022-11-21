@@ -1,30 +1,45 @@
 package com.kgit2.worktree
 
-import com.kgit2.common.error.toBoolean
-import com.kgit2.common.error.toInt
-import com.kgit2.common.option.BaseMultiple
-import com.kgit2.model.AutoFreeGitBase
-import com.kgit2.reference.Reference
+import com.kgit2.common.error.errorCheck
+import com.kgit2.common.memory.Memory
+import com.kgit2.memory.Binding
+import com.kgit2.memory.GitBase
 import kotlinx.cinterop.*
 import libgit2.*
 
-class WorktreePruneOptions(
-    override val handler: CPointer<git_worktree_prune_options>,
-    override val arena: Arena,
-) : AutoFreeGitBase<CPointer<git_worktree_prune_options>> {
-    companion object {
-        fun initialize(): WorktreePruneOptions {
-            val arena = Arena()
-            val handler = arena.allocPointerTo<git_worktree_prune_options>()
-            git_worktree_prune_options_init(handler.value, GIT_WORKTREE_PRUNE_OPTIONS_VERSION)
-            return WorktreePruneOptions(handler.value!!, arena)
-        }
+typealias WorktreePruneOptionsPointer = CPointer<git_worktree_prune_options>
+
+typealias WorktreePruneOptionsSecondaryPointer = CPointerVar<git_worktree_prune_options>
+
+typealias WorktreePruneOptionsInitial = WorktreePruneOptionsSecondaryPointer.(Memory) -> Unit
+
+class WorktreePruneOptionsRaw(
+    memory: Memory = Memory(),
+    handler: WorktreePruneOptionsPointer = memory.alloc<git_worktree_prune_options>().ptr,
+) : Binding<git_worktree_prune_options>(memory, handler) {
+    init {
+        git_worktree_prune_options_init(handler, GIT_WORKTREE_PRUNE_OPTIONS_VERSION).errorCheck()
     }
+    // constructor(
+    //     memory: Memory = Memory(),
+    //     handler: WorktreePruneOptionsSecondaryPointer = memory.allocPointerTo(),
+    //     initial: WorktreePruneOptionsInitial? = null,
+    // ) : this(memory, handler.apply {
+    //     runCatching {
+    //         initial?.invoke(handler, memory)
+    //     }.onFailure {
+    //         memory.free()
+    //     }.getOrThrow()
+    // }.value!!)
+}
+
+class WorktreePruneOptions(raw: WorktreePruneOptionsRaw) : GitBase<git_worktree_prune_options, WorktreePruneOptionsRaw>(raw) {
+    constructor(memory: Memory, handler: WorktreePruneOptionsPointer) : this(WorktreePruneOptionsRaw(memory, handler))
 
     private fun flag(flag: WorktreePruneOptionsFlag, on: Boolean): WorktreePruneOptions {
         when (on) {
-            true -> handler.pointed.flags = handler.pointed.flags or flag.value
-            false -> handler.pointed.flags = handler.pointed.flags and flag.value.inv()
+            true -> raw.handler.pointed.flags = raw.handler.pointed.flags or flag.value
+            false -> raw.handler.pointed.flags = raw.handler.pointed.flags and flag.value.inv()
         }
         return this
     }
@@ -33,43 +48,5 @@ class WorktreePruneOptions(
 
     fun locked(locked: Boolean): WorktreePruneOptions = flag(WorktreePruneOptionsFlag.Locked, locked)
 
-    fun workingTree(workingTree: Boolean): WorktreePruneOptions =
-        flag(WorktreePruneOptionsFlag.WorkingTree, workingTree)
-}
-
-data class WorktreePruneOptionsFlag(val value: git_worktree_prune_t) : BaseMultiple<WorktreePruneOptionsFlag>() {
-    companion object {
-        val Valid = WorktreePruneOptionsFlag(GIT_WORKTREE_PRUNE_VALID)
-        val Locked = WorktreePruneOptionsFlag(GIT_WORKTREE_PRUNE_LOCKED)
-        val WorkingTree = WorktreePruneOptionsFlag(GIT_WORKTREE_PRUNE_WORKING_TREE)
-    }
-
-    override val longValue: ULong
-        get() = value.toULong()
-}
-
-class WorktreeAddOptions(
-    override val handler: CPointer<git_worktree_add_options>,
-    override val arena: Arena,
-) : AutoFreeGitBase<CPointer<git_worktree_add_options>> {
-    companion object {
-        fun initialize(): WorktreeAddOptions {
-            val arena = Arena()
-            val handler = arena.allocPointerTo<git_worktree_add_options>()
-            git_worktree_add_options_init(handler.value, GIT_WORKTREE_ADD_OPTIONS_VERSION)
-            return WorktreeAddOptions(handler.value!!, arena)
-        }
-    }
-
-    var lock: Boolean = handler.pointed.lock.toBoolean()
-        set(value) {
-            field = value
-            handler.pointed.lock = lock.toInt()
-        }
-
-    var reference: Reference? = handler.pointed.ref?.let { Reference(it, arena) }
-        set(value) {
-            field = value
-            handler.pointed.ref = reference?.handler
-        }
+    fun workingTree(workingTree: Boolean): WorktreePruneOptions = flag(WorktreePruneOptionsFlag.WorkingTree, workingTree)
 }

@@ -4,11 +4,12 @@ import com.kgit2.callback.*
 import com.kgit2.callback.payload.IndexerProgress
 import com.kgit2.callback.payload.PushUpdate
 import com.kgit2.certificate.Cert
-import com.kgit2.common.error.errorCheck
+import com.kgit2.common.memory.Memory
 import com.kgit2.credential.Credential
 import com.kgit2.credential.CredentialType
 import com.kgit2.fetch.Direction
-import com.kgit2.model.AutoFreeGitBase
+import com.kgit2.memory.Binding
+import com.kgit2.memory.GitBase
 import com.kgit2.model.Oid
 import com.kgit2.transport.Transport
 import kotlinx.cinterop.*
@@ -188,20 +189,31 @@ import libgit2.git_remote_init_callbacks
 //     }
 // }
 
-class RemoteCallbacks(
-    override val handler: CPointer<git_remote_callbacks>,
-    override val arena: Arena,
-) : AutoFreeGitBase<CPointer<git_remote_callbacks>> {
-    companion object {
-        fun initialized(): RemoteCallbacks {
-            val arena = Arena()
-            val raw = arena.alloc<git_remote_callbacks>()
-            git_remote_init_callbacks(raw.ptr, GIT_REMOTE_CALLBACKS_VERSION).errorCheck()
-            val callbacks = RemoteCallbacks(raw.ptr, arena)
-            raw.payload = StableRef.create(callbacks).asCPointer()
-            return callbacks
-        }
+typealias RemoteCallbacksPointer = CPointer<git_remote_callbacks>
+
+typealias RemoteCallbacksSecondaryPointer = CPointerVar<git_remote_callbacks>
+
+typealias RemoteCallbacksInitial = RemoteCallbacksSecondaryPointer.(Memory) -> Unit
+
+class RemoteCallbacksRaw(
+    memory: Memory = Memory(),
+    handler: CPointer<git_remote_callbacks> = memory.alloc<git_remote_callbacks>().ptr,
+) : Binding<git_remote_callbacks>(memory, handler) {
+    init {
+        runCatching {
+            git_remote_init_callbacks(handler, GIT_REMOTE_CALLBACKS_VERSION)
+            handler.pointed.payload = StableRef.create(this).asCPointer()
+        }.onFailure {
+            memory.free()
+        }.getOrThrow()
     }
+}
+
+
+class RemoteCallbacks(
+    raw: RemoteCallbacksRaw = RemoteCallbacksRaw(),
+) : GitBase<git_remote_callbacks, RemoteCallbacksRaw>(raw) {
+    constructor(memory: Memory, handler: CPointer<git_remote_callbacks>) : this(RemoteCallbacksRaw(memory, handler))
 
     /**
      * Textual progress from the remote. Text send over the
@@ -211,7 +223,7 @@ class RemoteCallbacks(
     var sidebandProgress: TransportMessageCallback? = null
         set(value) {
             field = value
-            handler.pointed.sideband_progress = value?.let {
+            raw.handler.pointed.sideband_progress = value?.let {
                 staticCFunction { message, _, payload ->
                     val callback = payload!!.asStableRef<TransportMessageCallback>().get()
                     val result = callback.transportMessage(message!!.toKString())
@@ -227,10 +239,10 @@ class RemoteCallbacks(
     var completion: RemoteCompletionCallback? = null
         set(value) {
             field = value
-            handler.pointed.push_transfer_progress = value?.let {
-                staticCFunction { current, total, bytes, payload ->
-                    val callback = payload!!.asStableRef<PushTransferProgressCallback>().get()
-                    callback.pushTransferProgress(current, total, bytes)
+            raw.handler.pointed.completion = value?.let {
+                staticCFunction { type, payload ->
+                    val callback = payload!!.asStableRef<RemoteCompletionCallback>().get()
+                    callback.remoteCompletion(RemoteCompletionType.fromRaw(type))
                 }
             }
         }
@@ -245,10 +257,10 @@ class RemoteCallbacks(
     var credentials: CredentialAcquireCallback? = null
         set(value) {
             field = value
-            handler.pointed.credentials = value?.let {
+            raw.handler.pointed.credentials = value?.let {
                 staticCFunction { cred, url, usernameFromUrl, allowedTypes, payload ->
                     val callback = payload!!.asStableRef<CredentialAcquireCallback>().get()
-                    val credential = Credential(cred!!.pointed.value!!, Arena())
+                    val credential = Credential(Memory(), cred!!.pointed.value!!)
                     callback.credentialAcquire(
                         credential,
                         url!!.toKString(),
@@ -268,10 +280,10 @@ class RemoteCallbacks(
     var certificateCheck: CertificateCheckCallback? = null
         set(value) {
             field = value
-            handler.pointed.certificate_check = value?.let {
+            raw.handler.pointed.certificate_check = value?.let {
                 staticCFunction { cert, valid, host, payload ->
                     val callback = payload!!.asStableRef<CertificateCheckCallback>().get()
-                    callback.certificateCheck(Cert(cert!!), valid == 1, host!!.toKString())
+                    callback.certificateCheck(Cert(Memory(), cert!!), valid == 1, host!!.toKString())
                 }
             }
         }
@@ -284,7 +296,7 @@ class RemoteCallbacks(
     var transferProgress: IndexerProgressCallback? = null
         set(value) {
             field = value
-            handler.pointed.transfer_progress = value?.let {
+            raw.handler.pointed.transfer_progress = value?.let {
                 staticCFunction { stats, payload ->
                     val callback = payload!!.asStableRef<IndexerProgressCallback>().get()
                     val progress = IndexerProgress(
@@ -308,10 +320,10 @@ class RemoteCallbacks(
     var updateTips: UpdateTipsCallback? = null
         set(value) {
             field = value
-            handler.pointed.update_tips = value?.let {
+            raw.handler.pointed.update_tips = value?.let {
                 staticCFunction { refname, a, b, payload ->
                     val callback = payload!!.asStableRef<UpdateTipsCallback>().get()
-                    callback.updateTips(refname!!.toKString(), Oid(a!!, Arena()), Oid(b!!, Arena()))
+                    callback.updateTips(refname!!.toKString(), Oid(Memory(), a!!), Oid(Memory(), b!!))
                 }
             }
         }
@@ -325,7 +337,7 @@ class RemoteCallbacks(
     var pushTransferProgress: PushTransferProgressCallback? = null
         set(value) {
             field = value
-            handler.pointed.push_transfer_progress = value?.let {
+            raw.handler.pointed.push_transfer_progress = value?.let {
                 staticCFunction { current, total, bytes, payload ->
                     val callback = payload!!.asStableRef<PushTransferProgressCallback>().get()
                     callback.pushTransferProgress(current, total, bytes)
@@ -336,7 +348,7 @@ class RemoteCallbacks(
     var pushUpdateReference: PushUpdateReferenceCallback? = null
         set(value) {
             field = value
-            handler.pointed.push_update_reference = value?.let {
+            raw.handler.pointed.push_update_reference = value?.let {
                 staticCFunction { refname, status, payload ->
                     val callback = payload!!.asStableRef<PushUpdateReferenceCallback>().get()
                     callback.pushUpdateReference(refname!!.toKString(), status!!.toKString()).value
@@ -351,7 +363,7 @@ class RemoteCallbacks(
     var pushNegotiation: PushNegotiationCallback? = null
         set(value) {
             field = value
-            handler.pointed.push_negotiation = value?.let {
+            raw.handler.pointed.push_negotiation = value?.let {
                 staticCFunction { updates, size, payload ->
                     val callback = payload!!.asStableRef<PushNegotiationCallback>().get()
                     val updateList = MutableList(size.toInt()) {
@@ -359,8 +371,8 @@ class RemoteCallbacks(
                         PushUpdate(
                             update.src_refname!!.toKString(),
                             update.dst_refname!!.toString(),
-                            Oid(update.src.ptr, Arena()),
-                            Oid(update.dst.ptr, Arena())
+                            Oid(Memory(), update.src.ptr),
+                            Oid(Memory(), update.dst.ptr)
                         )
                     }
                     callback.pushNegotiation(updateList)
@@ -375,12 +387,12 @@ class RemoteCallbacks(
     var transport: TransportCallback? = null
         set(value) {
             field = value
-            handler.pointed.transport = value?.let {
+            raw.handler.pointed.transport = value?.let {
                 staticCFunction { transport, remote, payload ->
                     val callback = payload!!.asStableRef<TransportCallback>().get()
                     callback.transport(
-                        Transport(transport!!.pointed.value!!, Arena()),
-                        Remote.new(remote!!, Arena())
+                        Transport(Memory(), transport!!.pointed.value!!),
+                        Remote(Memory(), remote!!)
                     )
                 }
             }
@@ -392,10 +404,10 @@ class RemoteCallbacks(
     var remoteReady: RemoteReadyCallback? = null
         set(value) {
             field = value
-            handler.pointed.remote_ready = value?.let {
+            raw.handler.pointed.remote_ready = value?.let {
                 staticCFunction { remote, direction, payload ->
                     val callback = payload!!.asStableRef<RemoteReadyCallback>().get()
-                    callback.remoteReady(Remote.new(remote!!, Arena()), Direction.fromRaw(direction.toUInt()))
+                    callback.remoteReady(Remote(Memory(), remote!!), Direction.fromRaw(direction.toUInt()))
                 }
             }
         }

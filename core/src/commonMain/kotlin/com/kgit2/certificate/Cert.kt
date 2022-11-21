@@ -1,35 +1,65 @@
 package com.kgit2.certificate
 
-import com.kgit2.model.GitBase
+import com.kgit2.common.memory.Memory
+import com.kgit2.memory.Binding
+import com.kgit2.memory.GitBase
 import kotlinx.cinterop.*
 import libgit2.git_cert
-import libgit2.git_cert_hostkey
-import libgit2.git_cert_x509
+import kotlin.native.internal.Cleaner
+import kotlin.native.internal.createCleaner
 
-sealed class BaseCert<T : CPointed, B>(
-    val parent: BaseCert<*, *>?,
-    override val handler: CPointer<T>,
-) : GitBase<CPointer<T>>
+typealias CertPointer = CPointer<git_cert>
+
+typealias CertSecondaryPointer = CPointerVar<git_cert>
+
+typealias CertInitial = CertSecondaryPointer.(Memory) -> Unit
+
+class CertRaw(
+    memory: Memory,
+    handler: CertPointer,
+) : Binding<git_cert>(memory, handler) {
+    constructor(
+        memory: Memory = Memory(),
+        handler: CertSecondaryPointer = memory.allocPointerTo(),
+        initial: CertInitial? = null,
+    ) : this(memory, handler.apply {
+        runCatching {
+            initial?.invoke(handler, memory)
+        }.onFailure {
+            memory.free()
+        }.getOrThrow()
+    }.value!!)
+}
 
 class Cert(
-    handler: CPointer<git_cert>,
-) : BaseCert<git_cert, Unit>(null, handler) {
-    var certType: CertType = CertType.fromRaw(handler.pointed.cert_type)
+    raw: CertRaw,
+) : GitBase<git_cert, CertRaw>(raw) {
+    constructor(memory: Memory, handler: CertPointer) : this(CertRaw(memory, handler))
+
+    constructor(memory: Memory, handler: CertSecondaryPointer, initial: CertInitial?) : this(CertRaw(memory, handler.reinterpret(), initial))
+
+    var certType: CertType = CertType.fromRaw(raw.handler.pointed.cert_type)
         set(value) {
             field = value
-            handler.pointed.cert_type = value.value
+            raw.handler.pointed.cert_type = value.value
         }
 
     fun asHostKey(): CertHostKey? {
         return when (certType) {
-            CertType.LIBSSH2 -> CertHostKey(this, handler.pointed.reinterpret<git_cert_hostkey>().ptr)
+            CertType.LIBSSH2 -> {
+                raw.freed.compareAndSet(expect = false, update = true)
+                CertHostKey(raw.memory, raw.handler.reinterpret())
+            }
             else -> null
         }
     }
 
     fun asX509(): CertX509? {
         return when (certType) {
-            CertType.X509 -> CertX509(this, handler.pointed.reinterpret<git_cert_x509>().ptr)
+            CertType.X509 -> {
+                raw.freed.compareAndSet(expect = false, update = true)
+                CertX509(raw.memory, raw.handler.reinterpret())
+            }
             else -> null
         }
     }

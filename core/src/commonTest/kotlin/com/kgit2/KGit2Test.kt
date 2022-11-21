@@ -1,9 +1,5 @@
 package com.kgit2
 
-import kotlinx.coroutines.test.TestScope
-import kotlinx.coroutines.test.runTest
-import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -32,11 +28,8 @@ class KGit2Test {
     }
 }
 
-fun kgitRunTest(
-    context: CoroutineContext = EmptyCoroutineContext,
-    testBody: suspend TestScope.() -> Unit
-) = runTest {
+fun kgitRunTest(testBody: () -> Unit) {
     KGit2.initial()
-    testBody.invoke(this)
+    testBody.invoke()
     KGit2.shutdown()
 }

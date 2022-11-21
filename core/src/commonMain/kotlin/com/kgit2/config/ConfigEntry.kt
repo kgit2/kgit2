@@ -13,14 +13,10 @@ data class ConfigEntry(
     val level: ConfigLevel? = null,
     val includeDepth: UInt? = null,
 ) {
-    companion object {
-        fun fromPointer(pointer: git_config_entry): ConfigEntry {
-            return ConfigEntry(
-                pointer.name?.toKString(),
-                pointer.value?.toKString(),
-                ConfigLevel.fromRaw(pointer.level),
-                pointer.include_depth
-            )
-        }
-    }
+    constructor(handler: git_config_entry) : this(
+        name = handler.name?.toKString(),
+        value = handler.value?.toKString(),
+        level = ConfigLevel.fromRaw(handler.level),
+        includeDepth = handler.include_depth,
+    )
 }

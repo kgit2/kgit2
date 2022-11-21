@@ -1,73 +1,82 @@
 package com.kgit2.credential
 
 import com.kgit2.common.error.errorCheck
+import com.kgit2.common.memory.Memory
 import com.kgit2.config.Config
-import com.kgit2.model.AutoFreeGitBase
+import com.kgit2.memory.Binding
+import com.kgit2.memory.GitBase
 import kotlinx.cinterop.*
 import libgit2.*
+import kotlin.native.internal.Cleaner
+import kotlin.native.internal.createCleaner
 
-open class Credential(
-    override val handler: CPointer<git_credential>,
-    override val arena: Arena,
-) : AutoFreeGitBase<CPointer<git_credential>> {
+typealias CredentialPointer = CPointer<git_credential>
 
-    override fun free() {
-        git_cred_free(handler)
-        super.free()
+typealias CredentialSecondaryPointer = CPointerVar<git_credential>
+
+typealias CredentialInitial = CredentialSecondaryPointer.(Memory) -> Unit
+
+class CredentialRaw(
+    memory: Memory,
+    handler: CredentialPointer,
+) : Binding<git_credential>(memory, handler) {
+    constructor(
+        memory: Memory = Memory(),
+        handler: CredentialSecondaryPointer = memory.allocPointerTo(),
+        initial: CredentialInitial? = null,
+    ) : this(memory, handler.apply {
+        runCatching {
+            initial?.invoke(this, memory)
+        }.onFailure {
+            git_credential_free(handler.value)
+            memory.free()
+        }.getOrThrow()
+    }.value!!)
+
+    override val beforeFree: () -> Unit = {
+        git_credential_free(handler)
     }
+}
 
-    companion object {
-        fun new(): Credential {
-            val arena = Arena()
-            val pointer = arena.allocPointerTo<git_credential>()
-            git_cred_default_new(pointer.ptr).errorCheck()
-            return Credential(pointer.value!!, arena)
-        }
+class Credential(
+    raw: CredentialRaw,
+) : GitBase<git_credential, CredentialRaw>(raw) {
+    constructor(memory: Memory, handler: CredentialPointer) : this(CredentialRaw(memory, handler))
 
-        fun sshKeyFromAgent(username: String): Credential {
-            val arena = Arena()
-            val pointer = arena.allocPointerTo<git_credential>()
-            git_cred_ssh_key_from_agent(pointer.ptr, username).errorCheck()
-            return Credential(pointer.value!!, arena)
-        }
+    constructor() : this(CredentialRaw(initial = { git_credential_default_new(this.ptr) }))
 
-        fun sshKey(username: String, publicKey: String?, privateKey: String, passphrase: String?): Credential {
-            val arena = Arena()
-            val pointer = arena.allocPointerTo<git_credential>()
-            git_cred_ssh_key_new(pointer.ptr, username, publicKey, privateKey, passphrase).errorCheck()
-            return Credential(pointer.value!!, arena)
-        }
+    constructor(
+        memory: Memory = Memory(),
+        handler: CredentialSecondaryPointer = memory.allocPointerTo(),
+        initial: CredentialInitial? = null,
+    ) : this(CredentialRaw(memory, handler, initial))
 
-        fun sshKeyFromMemory(
-            username: String,
-            publicKey: String?,
-            privateKey: String,
-            passphrase: String?,
-        ): Credential {
-            val arena = Arena()
-            val pointer = arena.allocPointerTo<git_credential>()
-            git_cred_ssh_key_memory_new(pointer.ptr, username, publicKey, privateKey, passphrase).errorCheck()
-            pointer.value!!
-            return Credential(pointer.value!!, arena)
-        }
+    constructor(username: String, password: String? = null, fromAgent: Boolean = false) : this(CredentialRaw(initial = {
+        when {
+            password != null -> git_credential_userpass_plaintext_new(this.ptr, username, password)
+            fromAgent -> git_credential_ssh_key_from_agent(this.ptr, username)
+            else -> git_credential_username_new(this.ptr, username)
+        }.errorCheck()
+    }))
 
-        fun userPassPlaintext(username: String, password: String): Credential {
-            val arena = Arena()
-            val pointer = arena.allocPointerTo<git_credential>()
-            git_cred_userpass_plaintext_new(pointer.ptr, username, password).errorCheck()
-            return Credential(pointer.value!!, arena)
-        }
+    constructor(
+        username: String,
+        publicKey: String?,
+        privateKey: String,
+        passphrase: String?,
+        fromMemory: Boolean = false,
+    ) : this(CredentialRaw(initial = {
+        when (fromMemory) {
+            true -> git_cred_ssh_key_memory_new(this.ptr, username, publicKey, privateKey, passphrase)
+            false -> git_cred_ssh_key_new(this.ptr, username, publicKey, privateKey, passphrase)
+        }.errorCheck()
+    }))
 
-        fun credentialHelper(
-            config: Config,
-            url: String,
-            username: String?,
-        ): Credential {
-            val (u, p) = CredentialHelper(url)
-                .setUsername(username)
-                .execute()!!
-            return userPassPlaintext(u, p)
-        }
-    }
+    constructor(
+        config: Config,
+        url: String,
+        username: String?,
+        result: Pair<String, String> = CredentialHelper(url).config(config).setUsername(username).execute()!!,
+    ) : this(result.first, result.second)
 }
 

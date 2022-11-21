@@ -1,43 +1,52 @@
 package com.kgit2.diff
 
+import com.kgit2.common.memory.Memory
 import com.kgit2.common.option.mutually.FileMode
-import com.kgit2.model.AutoFreeGitBase
 import com.kgit2.model.Oid
-import kotlinx.cinterop.Arena
-import kotlinx.cinterop.CPointer
+import kotlinx.cinterop.convert
 import kotlinx.cinterop.ptr
 import kotlinx.cinterop.toKString
 import libgit2.git_diff_file
+
+// typealias DiffFilePointer = CPointer<git_diff_file>
+//
+// typealias DiffFileSecondaryPointer = CPointerVar<git_diff_file>
+//
+// typealias DiffFileInitial = DiffFilePointer.(Memory) -> Unit
+//
+// class DiffFileRaw(
+//     memory: Memory,
+//     handler: DiffFilePointer,
+// ) : Binding<git_diff_file>(memory, handler) {
+//     constructor(
+//         memory: Memory = Memory(),
+//         handler: DiffFileSecondaryPointer = memory.allocPointerTo(),
+//         initial: DiffFileInitial? = null,
+//     ) : this(memory, handler.apply {
+//         runCatching {
+//             initial?.invoke(handler, memory)
+//         }.onFailure {
+//             memory.free()
+//         }.getOrThrow()
+//     }.value!!)
+// }
 
 data class DiffFile(
     val id: Oid,
     val path: String?,
     val size: ULong,
     val flag: DiffFlag,
-    val isBinary: Boolean,
-    val isNotBinary: Boolean,
-    val isValidId: Boolean,
-    val exists: Boolean,
     val mod: FileMode,
-    override val handler: CPointer<git_diff_file>,
-    override val arena: Arena,
-) : AutoFreeGitBase<CPointer<git_diff_file>> {
-    companion object {
-        fun fromHandler(handler: git_diff_file, arena: Arena): DiffFile {
-            val flag = DiffFlag(handler.flags)
-            return DiffFile(
-                Oid(handler.id.ptr, arena),
-                handler.path?.toKString(),
-                handler.size,
-                flag,
-                flag in DiffFlag.Binary,
-                flag in DiffFlag.NotBinary,
-                flag in DiffFlag.ValidID,
-                flag in DiffFlag.Exists,
-                FileMode.fromRaw(handler.mode.toUInt()),
-                handler.ptr,
-                arena,
-            )
-        }
-    }
+    val isBinary: Boolean = flag in DiffFlag.Binary,
+    val isNotBinary: Boolean = flag in DiffFlag.NotBinary,
+    val isValidId: Boolean = flag in DiffFlag.ValidID,
+    val exists: Boolean = flag in DiffFlag.Exists,
+) {
+    constructor(handler: git_diff_file) : this(
+        id = Oid(Memory(), handler.id.ptr),
+        path = handler.path?.toKString(),
+        size = handler.size,
+        flag = DiffFlag(handler.flags),
+        mod = FileMode.fromRaw(handler.mode.convert()),
+    )
 }

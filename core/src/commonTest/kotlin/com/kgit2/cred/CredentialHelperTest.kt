@@ -24,7 +24,6 @@ class CredentialHelperTest {
             val (username, password) = helper.execute()!!
             assertEquals("a", username)
             assertEquals("b", password)
-            config.free()
         }
     }
 
@@ -34,7 +33,6 @@ class CredentialHelperTest {
             val config = tempConfig(it)
             val helper = CredentialHelper("https://example.com/foo/bar").config(config)
             assertNull(helper.execute())
-            config.free()
         }
     }
 
@@ -51,7 +49,6 @@ class CredentialHelperTest {
             val (username, password) = helper.execute()!!
             assertEquals("c", username)
             assertEquals("b", password)
-            config.free()
         }
     }
 
@@ -75,7 +72,6 @@ class CredentialHelperTest {
             val (username, password) = helper.execute()!!
             assertEquals("c", username)
             assertEquals("b", password)
-            config.free()
         }
     }
 
@@ -103,7 +99,6 @@ class CredentialHelperTest {
             val (username, password) = helper.execute()!!
             assertEquals("c", username)
             assertEquals("b", password)
-            config.free()
         }
     }
 
@@ -116,7 +111,6 @@ class CredentialHelperTest {
 
             val helper = CredentialHelper("https://example.com/foo/bar").config(config)
             assertNull(helper.execute())
-            config.free()
         }
     }
 
@@ -138,7 +132,6 @@ class CredentialHelperTest {
             val (username, password) = helper.execute()!!
             assertEquals("a", username)
             assertEquals("b", password)
-            config.free()
         }
     }
 
@@ -151,7 +144,6 @@ class CredentialHelperTest {
             config.setBool("credential.useHttpPath", true)
             val helper = CredentialHelper("https://example.com/foo/bar").config(config)
             assertEquals("foo/bar", helper.path)
-            config.free()
         }
     }
 
@@ -166,16 +158,15 @@ class CredentialHelperTest {
             val (username, password) = helper.execute()!!
             assertEquals("a", username)
             assertEquals("b", password)
-            config.free()
         }
     }
 
     @Test
     fun sshKeyFromMemory() = kgitRunTest {
-        val credential = Credential.sshKeyFromMemory(
-            "test",
-            "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDByAO8uj+kXicj6C2ODMspgmUoVyl5eaw8vR6a1yEnFuJFzevabNlN6Ut+CPT3TRnYk5BW73pyXBtnSL2X95BOnbjMDXc4YIkgs3YYHWnxbqsD4Pj/RoGqhf+gwhOBtL0poh8tT8WqXZYxdJQKLQC7oBqf3ykCEYulE4oeRUmNh4IzEE+skD/zDkaJ+S1HRD8D8YCiTO01qQnSmoDFdmIZTi8MS8Cw+O/Qhym1271ThMlhD6PubSYJXfE6rVbE7A9RzH73A6MmKBlzK8VTb4SlNSrr/DOk+L0uq+wPkv+pm+D9WtxoqQ9yl6FaK1cPawa3+7yRNle3m+72KCtyMkQv",
-            """
+        val credential = Credential(
+            username = "test",
+            publicKey = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDByAO8uj+kXicj6C2ODMspgmUoVyl5eaw8vR6a1yEnFuJFzevabNlN6Ut+CPT3TRnYk5BW73pyXBtnSL2X95BOnbjMDXc4YIkgs3YYHWnxbqsD4Pj/RoGqhf+gwhOBtL0poh8tT8WqXZYxdJQKLQC7oBqf3ykCEYulE4oeRUmNh4IzEE+skD/zDkaJ+S1HRD8D8YCiTO01qQnSmoDFdmIZTi8MS8Cw+O/Qhym1271ThMlhD6PubSYJXfE6rVbE7A9RzH73A6MmKBlzK8VTb4SlNSrr/DOk+L0uq+wPkv+pm+D9WtxoqQ9yl6FaK1cPawa3+7yRNle3m+72KCtyMkQv",
+            privateKey = """
                 -----BEGIN RSA PRIVATE KEY-----
                 Proc-Type: 4,ENCRYPTED
                 DEK-Info: AES-128-CBC,818C7722D3B01F2161C2ACF6A5BBAAE8
@@ -207,9 +198,9 @@ class CredentialHelperTest {
                 8l5dq/LI/3G5sZXwUHKOcuQWTj7Saq7Q6gkKoMfqt0wC5bpZ1m17GHPoMz6GtX9O
                 -----END RSA PRIVATE KEY-----
             """.trimIndent(),
-            "test123"
+            passphrase = "test123",
+            fromMemory = true,
         )
         assertNotNull(credential)
-        credential.free()
     }
 }

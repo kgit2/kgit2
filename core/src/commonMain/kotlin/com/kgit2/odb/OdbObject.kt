@@ -1,28 +1,40 @@
 package com.kgit2.odb
 
 import cnames.structs.git_odb_object
-import com.kgit2.`object`.ObjectType
-import com.kgit2.model.AutoFreeGitBase
+import com.kgit2.common.memory.Memory
+import com.kgit2.memory.Binding
+import com.kgit2.memory.GitBase
 import com.kgit2.model.Oid
-import kotlinx.cinterop.Arena
+import com.kgit2.`object`.ObjectType
 import kotlinx.cinterop.CPointer
+import kotlinx.cinterop.CPointerVar
 import kotlinx.cinterop.readBytes
 import libgit2.*
 
-class OdbObject(
-    override val handler: CPointer<git_odb_object>,
-    override val arena: Arena,
-) : AutoFreeGitBase<CPointer<git_odb_object>> {
-    override fun free() {
+typealias OdbObjectPointer = CPointer<git_odb_object>
+
+typealias OdbObjectSecondaryPointer = CPointerVar<git_odb_object>
+
+typealias OdbObjectInitial = OdbObjectSecondaryPointer.(Memory) -> Unit
+
+class OdbObjectRaw(
+    memory: Memory,
+    handler: OdbObjectPointer,
+) : Binding<git_odb_object>(memory, handler) {
+    override val beforeFree: () -> Unit = {
         git_odb_object_free(handler)
-        super.free()
     }
+}
 
-    val oid: Oid = Oid(git_odb_object_id(handler)!!, arena)
 
-    val size: Int = git_odb_object_size(handler).toInt()
+class OdbObject(
+    raw: OdbObjectRaw,
+) : GitBase<git_odb_object, OdbObjectRaw>(raw) {
+    val oid: Oid = Oid(Memory(), git_odb_object_id(raw.handler)!!)
 
-    val data: ByteArray = git_odb_object_data(handler)!!.readBytes(size)
+    val size: Int = git_odb_object_size(raw.handler).toInt()
 
-    val type: ObjectType = ObjectType.fromRaw(git_odb_object_type(handler))
+    val data: ByteArray = git_odb_object_data(raw.handler)!!.readBytes(size)
+
+    val type: ObjectType = ObjectType.fromRaw(git_odb_object_type(raw.handler))
 }

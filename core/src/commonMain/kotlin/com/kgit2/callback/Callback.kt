@@ -96,7 +96,7 @@ interface RemoteCompletionCallback {
      * Completion is called when different parts of the download
      * process are done (currently unused).
      */
-    fun remoteCompletion(type: RemoteCompletionType)
+    fun remoteCompletion(type: RemoteCompletionType): Int
 }
 
 interface PushTransferProgressCallback {

@@ -118,12 +118,17 @@ int lg2_clone(git_repository *repo, int argc, char **argv) {
     return error;
 }
 
+typedef struct c_oid {
+    unsigned char id[20];
+} c_oid;
+
 int main() {
     rmdir("/Users/bppleman/floater-test-repo");
     printf("Hello, World!\n");
     int result = git_libgit2_init();
     printf("init %d\n", result);
 
+    printf("%ld\n", sizeof(c_oid));
     git_config *config;
     git_config_open_ondisk(&config, "/private/var/folders/zf/wfd26sc12m574pzzjmx8v9fw0000gn/T/kgit2/7B13B9DA-16E0-4BCE-A24D-3BB5E311FC77/foo");
     int bool;

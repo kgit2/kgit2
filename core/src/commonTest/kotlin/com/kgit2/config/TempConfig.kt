@@ -18,7 +18,7 @@ class TempConfig(
     operator fun invoke(block: (TempConfig.() -> Unit)? = null): TempConfig {
         block?.invoke(this)
         val configPath = tempPath / ".gitconfig"
-        config = Config.new()
+        config = Config()
         config.addFile(null, configPath.toString(), ConfigLevel.Highest, false)
         for ((key, value) in configList) {
             config.setString(key, value)
@@ -34,5 +34,5 @@ fun tempConfig(tempPath: Path, block: (TempConfig.() -> Unit)? = null): Config {
 fun openConfig(tempPath: Path, name: String, block: (TempConfig.() -> Unit)? = null): Config {
     val configPath = tempPath / name
     FileSystem.SYSTEM.openReadWrite(configPath, mustCreate = true, mustExist = false).close()
-    return Config.open(configPath.toString())
+    return Config(configPath.toString())
 }

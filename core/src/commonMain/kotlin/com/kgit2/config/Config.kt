@@ -5,54 +5,74 @@ import cnames.structs.git_config_iterator
 import com.kgit2.common.error.errorCheck
 import com.kgit2.common.error.toBoolean
 import com.kgit2.common.error.toInt
-import com.kgit2.model.AutoFreeGitBase
-import com.kgit2.model.autoFreeScoped
+import com.kgit2.common.memory.Memory
+import com.kgit2.memory.Binding
+import com.kgit2.memory.GitBase
 import com.kgit2.model.toKString
 import com.kgit2.model.withGitBuf
 import com.kgit2.repository.Repository
 import kotlinx.cinterop.*
 import libgit2.*
 
-open class Config(
-    override val handler: CPointer<git_config>,
-    override val arena: Arena,
-) : AutoFreeGitBase<CPointer<git_config>> {
+typealias ConfigPointer = CPointer<git_config>
+
+typealias ConfigSecondaryPointer = CPointerVar<git_config>
+
+typealias ConfigInitial = ConfigSecondaryPointer.(Memory) -> Unit
+
+class ConfigRaw(
+    memory: Memory = Memory(),
+    handler: ConfigPointer = memory.allocPointerTo<git_config>().value!!,
+) : Binding<git_config>(memory, handler) {
+    constructor(
+        memory: Memory = Memory(),
+        handler: ConfigSecondaryPointer = memory.allocPointerTo(),
+        initial: ConfigInitial? = null,
+    ) : this(memory, handler.apply {
+        runCatching {
+            initial?.invoke(handler, memory)
+        }.onFailure {
+            git_config_free(handler.value!!)
+            memory.free()
+        }.getOrThrow()
+    }.value!!)
+
+    override val beforeFree: () -> Unit = {
+        git_config_free(handler)
+    }
+}
+
+class Config(
+    raw: ConfigRaw,
+) : GitBase<git_config, ConfigRaw>(raw) {
+    constructor(memory: Memory, handler: ConfigPointer) : this(ConfigRaw(memory, handler))
+
+    constructor(
+        memory: Memory = Memory(),
+        handler: ConfigSecondaryPointer = memory.allocPointerTo(),
+        initial: ConfigInitial?,
+    ) : this(ConfigRaw(memory, handler, initial))
+
+    constructor(path: String) : this(initial = {
+        git_config_open_ondisk(this.ptr, path).errorCheck()
+    })
+
+    constructor(default: Boolean = false) : this(initial = {
+        when (default) {
+            true -> git_config_open_default(this.ptr).errorCheck()
+            false -> git_config_new(this.ptr).errorCheck()
+        }
+    })
+
+    fun openGlobal(): Config = Config() {
+        git_config_open_global(this.ptr, raw.handler).errorCheck()
+    }
+
+    fun openLevel(level: ConfigLevel): Config = Config() {
+        git_config_open_level(this.ptr, raw.handler, level.value).errorCheck()
+    }
+
     companion object {
-        fun new(): Config {
-            val arena = Arena()
-            val pointer = arena.allocPointerTo<git_config>()
-            git_config_new(pointer.ptr).errorCheck()
-            return Config(pointer.value!!, arena)
-        }
-
-        fun open(path: String): Config {
-            val arena = Arena()
-            val pointer = arena.allocPointerTo<git_config>()
-            git_config_open_ondisk(pointer.ptr, path).errorCheck()
-            return Config(pointer.value!!, arena)
-        }
-
-        fun openDefault(): Config {
-            val arena = Arena()
-            val pointer = arena.allocPointerTo<git_config>()
-            git_config_open_default(pointer.ptr).errorCheck()
-            return Config(pointer.value!!, arena)
-        }
-
-        fun openGlobal(): Config {
-            val arena = Arena()
-            val pointer = arena.allocPointerTo<git_config>()
-            git_config_open_global(pointer.ptr, pointer.value).errorCheck()
-            return Config(pointer.value!!, arena)
-        }
-
-        fun openLevel(level: ConfigLevel): Config {
-            val arena = Arena()
-            val pointer = arena.allocPointerTo<git_config>()
-            git_config_open_level(pointer.ptr, pointer.value, level.value).errorCheck()
-            return Config(pointer.value!!, arena)
-        }
-
         fun findGlobal(): String = withGitBuf { buf ->
             git_config_find_global(buf).errorCheck()
             buf.toKString()!!
@@ -118,68 +138,62 @@ open class Config(
         }
     }
 
-    override fun free() {
-        git_config_free(handler)
-        super.free()
-    }
-
     fun addFile(repository: Repository?, path: String?, level: ConfigLevel, force: Boolean = false) {
-        git_config_add_file_ondisk(handler, path, level.value, repository?.handler, if (force) 1 else 0).errorCheck()
+        git_config_add_file_ondisk(raw.handler, path, level.value, repository?.raw?.handler, force.toInt()).errorCheck()
     }
 
     fun removeEntry(name: String) {
-        git_config_delete_entry(handler, name).errorCheck()
+        git_config_delete_entry(raw.handler, name).errorCheck()
     }
 
     fun removeMultiVar(name: String, regexp: String) {
-        git_config_delete_multivar(handler, name, regexp).errorCheck()
+        git_config_delete_multivar(raw.handler, name, regexp).errorCheck()
     }
 
     fun setBool(name: String, value: Boolean) {
         if (name.isEmpty()) throw IllegalArgumentException("name is empty")
-        git_config_set_bool(handler, name, value.toInt()).errorCheck()
+        git_config_set_bool(raw.handler, name, value.toInt()).errorCheck()
     }
 
     fun getBool(name: String): Boolean {
         if (name.isEmpty()) throw IllegalArgumentException("name is empty")
         return memScoped {
             val out = alloc<IntVar>()
-            git_config_get_bool(out.ptr, handler, name).errorCheck()
+            git_config_get_bool(out.ptr, raw.handler, name).errorCheck()
             out.value.toBoolean()
         }
     }
 
     fun setInt32(name: String, value: Int) {
         if (name.isEmpty()) throw IllegalArgumentException("name is empty")
-        git_config_set_int32(handler, name, value).errorCheck()
+        git_config_set_int32(raw.handler, name, value).errorCheck()
     }
 
     fun getInt32(name: String): Int {
         if (name.isEmpty()) throw IllegalArgumentException("name is empty")
         return memScoped {
             val out = alloc<IntVar>()
-            git_config_get_int32(out.ptr, handler, name).errorCheck()
+            git_config_get_int32(out.ptr, raw.handler, name).errorCheck()
             out.value
         }
     }
 
     fun setInt64(name: String, value: Long) {
         if (name.isEmpty()) throw IllegalArgumentException("name is empty")
-        git_config_set_int64(handler, name, value).errorCheck()
+        git_config_set_int64(raw.handler, name, value).errorCheck()
     }
 
     fun getInt64(name: String): Long {
         if (name.isEmpty()) throw IllegalArgumentException("name is empty")
         return memScoped {
             val out = alloc<LongVar>()
-            git_config_get_int64(out.ptr, handler, name).errorCheck()
+            git_config_get_int64(out.ptr, raw.handler, name).errorCheck()
             out.value
         }
     }
 
     fun setString(name: String, value: String) {
-        // if (value.isEmpty() || value.isEmpty()) throw IllegalArgumentException("name or value is empty")
-        git_config_set_string(handler, name, value).errorCheck()
+        git_config_set_string(raw.handler, name, value).errorCheck()
     }
 
     /**
@@ -197,7 +211,7 @@ open class Config(
         if (name.isEmpty()) throw IllegalArgumentException("name is empty")
         return memScoped {
             val out = allocPointerTo<ByteVar>()
-            git_config_get_string(out.ptr, handler, name).errorCheck()
+            git_config_get_string(out.ptr, raw.handler, name).errorCheck()
             out.value!!.toKString()
         }
     }
@@ -214,7 +228,7 @@ open class Config(
     fun getStringBuf(name: String): String {
         if (name.isEmpty()) throw IllegalArgumentException("name is empty")
         return withGitBuf { buf ->
-            git_config_get_string_buf(buf, handler, name).errorCheck()
+            git_config_get_string_buf(buf, raw.handler, name).errorCheck()
             buf.toKString()!!
         }
     }
@@ -223,7 +237,7 @@ open class Config(
         if (name.isEmpty()) return null
         return runCatching {
             withGitBuf { buf ->
-                git_config_get_path(buf, handler, name).errorCheck()
+                git_config_get_path(buf, raw.handler, name).errorCheck()
                 buf.toKString()
             }
         }.getOrNull()
@@ -231,12 +245,12 @@ open class Config(
 
     fun setMultiVar(name: String, regexp: String, value: String) {
         if (name.isEmpty() || value.isEmpty() || regexp.isEmpty()) return
-        git_config_set_multivar(handler, name, regexp, value).errorCheck()
+        git_config_set_multivar(raw.handler, name, regexp, value).errorCheck()
     }
 
     fun deleteMultiVar(name: String?, regexp: String?) {
         if (name == null || regexp == null) return
-        git_config_delete_multivar(handler, name, regexp).errorCheck()
+        git_config_delete_multivar(raw.handler, name, regexp).errorCheck()
     }
 
     fun getMultiVar(name: String, regexp: String? = null): List<ConfigEntry> {
@@ -246,8 +260,8 @@ open class Config(
     fun getEntry(name: String): ConfigEntry {
         return memScoped {
             val entry = allocPointerTo<git_config_entry>()
-            git_config_get_entry(entry.ptr, handler, name).errorCheck()
-            val configEntry = ConfigEntry.fromPointer(entry.pointed!!)
+            git_config_get_entry(entry.ptr, raw.handler, name).errorCheck()
+            val configEntry = ConfigEntry(entry.pointed!!)
             git_config_entry_free(entry.value)
             configEntry
         }
@@ -266,15 +280,9 @@ open class Config(
         memScoped {
             val pointer = allocPointerTo<git_config_iterator>()
             when {
-                !glob.isNullOrEmpty() -> git_config_iterator_glob_new(pointer.ptr, handler, glob).errorCheck()
-                !name.isNullOrEmpty() -> git_config_multivar_iterator_new(
-                    pointer.ptr,
-                    handler,
-                    name,
-                    regexp
-                ).errorCheck()
-
-                else -> git_config_iterator_new(pointer.ptr, handler).errorCheck()
+                !glob.isNullOrEmpty() -> git_config_iterator_glob_new(pointer.ptr, raw.handler, glob).errorCheck()
+                !name.isNullOrEmpty() -> git_config_multivar_iterator_new(pointer.ptr, raw.handler, name, regexp).errorCheck()
+                else -> git_config_iterator_new(pointer.ptr, raw.handler).errorCheck()
             }
             val iterator = pointer.value!!
             try {
@@ -284,7 +292,7 @@ open class Config(
                         GIT_ITEROVER -> break
                         else -> errorCode.errorCheck()
                     }
-                    entries.add(ConfigEntry.fromPointer(entry.pointed!!))
+                    entries.add(ConfigEntry(entry.pointed!!))
                 }
             } finally {
                 git_config_iterator_free(iterator)
@@ -294,13 +302,10 @@ open class Config(
     }
 
     fun deleteEntry(name: String?) {
-        git_config_delete_entry(handler, name).errorCheck()
+        git_config_delete_entry(raw.handler, name).errorCheck()
     }
 
-    fun snapshot(): Config {
-        val arena = Arena()
-        val pointer = arena.allocPointerTo<git_config>()
-        git_config_snapshot(pointer.ptr, handler).errorCheck()
-        return Config(pointer.value!!, arena)
+    fun snapshot(): Config = Config() {
+        git_config_snapshot(this.ptr, raw.handler).errorCheck()
     }
 }

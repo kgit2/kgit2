@@ -1,6 +1,5 @@
 package com.kgit2.config
 
-import com.kgit2.KGit2
 import com.kgit2.kgitRunTest
 import com.kgit2.utils.withTempDir
 import kotlin.test.*
@@ -8,8 +7,7 @@ import kotlin.test.*
 class ConfigTest {
     @Test
     fun smoke() = kgitRunTest {
-        val config = Config.new()
-        config.free()
+        val config = Config()
         var path = Config.findGlobal()
         path = Config.findSystem()
         path = Config.findXDG()
@@ -32,10 +30,9 @@ class ConfigTest {
             config.setInt32("foo.k2", 1)
             config.setInt64("foo.k3", 2)
             config.setString("foo.k4", "bar")
-            config.snapshot().free()
-            config.free()
+            config.snapshot()
 
-            config = Config.open((it / "foo").toString())
+            config = Config((it / "foo").toString())
             var snapshot = config.snapshot()
             assertTrue(config.getBool("foo.k1"))
             assertEquals(1, config.getInt32("foo.k2"))
@@ -44,13 +41,9 @@ class ConfigTest {
 
             val entries = config.getEntries()
             assertEquals(4, entries.size)
-            snapshot.free()
 
             snapshot = config.snapshot()
             assertEquals("bar", snapshot.getString("foo.k4"))
-            snapshot.free()
-
-            config.free()
         }
     }
 
@@ -77,7 +70,6 @@ class ConfigTest {
             config.removeMultiVar("foo.bar", ".*")
             assertEquals(0, config.getEntries("foo.bar").size)
             assertEquals(0, config.getMultiVar("foo.bar").size)
-            config.free()
         }
     }
 

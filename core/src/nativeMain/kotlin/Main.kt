@@ -1,6 +1,7 @@
 import com.kgit2.KGit2
 import com.kgit2.config.Config
 import com.kgit2.utils.withTempDir
+import kotlin.native.internal.createCleaner
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
@@ -23,8 +24,8 @@ fun main(args: Array<String>) {
         config.snapshot()
         // config.free()
 
-        config = Config.open((it / "foo").toString()).snapshot()
-        assertTrue(config.getBool("foo.k1")!!)
+        config = Config((it / "foo").toString()).snapshot()
+        assertTrue(config.getBool("foo.k1"))
         assertEquals(1, config.getInt32("foo.k2"))
         assertEquals(2L, config.getInt64("foo.k3"))
         assertEquals("bar", config.getStringBuf("foo.k4"))

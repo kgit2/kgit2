@@ -13,7 +13,6 @@ class RepositoryTest {
             val opts = RepositoryInitOptions().bare(true)
             val repository = Repository.initialExt(repoPath.toString(), opts)
             assertTrue(repository.isBare)
-            repository.free()
         }
     }
 
@@ -22,7 +21,6 @@ class RepositoryTest {
         withTempDir { repoPath ->
             val repository = Repository.initial(repoPath.toString())
             assertEquals(repoPath.toString(), repository.path?.replace("/.git/", "")?.replace("/private", ""))
-            repository.free()
         }
     }
 
@@ -32,7 +30,6 @@ class RepositoryTest {
             val repository = Repository.initial(repoPath.toString())
             val noteDefaultRef = repository.noteDefaultRef
             assertEquals("refs/notes/commits", noteDefaultRef)
-            repository.free()
         }
     }
 }

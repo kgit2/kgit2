@@ -1,34 +1,46 @@
 package com.kgit2.remote
 
-import com.kgit2.model.AutoFreeGitBase
+import com.kgit2.common.memory.Memory
+import com.kgit2.memory.Binding
+import com.kgit2.memory.GitBase
 import com.kgit2.proxy.ProxyOptions
 import kotlinx.cinterop.*
 import libgit2.GIT_PUSH_OPTIONS_VERSION
 import libgit2.git_push_options
 import libgit2.git_push_options_init
 
-class PushOptions(
-    override val handler: CPointer<git_push_options>,
-    override val arena: Arena,
-) : AutoFreeGitBase<CPointer<git_push_options>> {
-    companion object {
-        fun initialized(): PushOptions {
-            val arena = Arena()
-            val handler = arena.alloc<git_push_options>()
-            git_push_options_init(handler.ptr, GIT_PUSH_OPTIONS_VERSION)
-            return PushOptions(handler.ptr, arena)
-        }
+typealias PushOptionsPointer = CPointer<git_push_options>
+
+typealias PushOptionsSecondaryPointer = CPointerVar<git_push_options>
+
+typealias PushOptionsInitial = PushOptionsSecondaryPointer.(Memory) -> Unit
+
+class PushOptionsRaw(
+    memory: Memory = Memory(),
+    handler: PushOptionsPointer = memory.alloc<git_push_options>().ptr,
+) : Binding<git_push_options>(memory, handler) {
+    init {
+        runCatching {
+            git_push_options_init(handler, GIT_PUSH_OPTIONS_VERSION)
+        }.onFailure {
+            memory.free()
+        }.getOrThrow()
     }
+}
+
+class PushOptions(
+    raw: PushOptionsRaw = PushOptionsRaw(),
+) : GitBase<git_push_options, PushOptionsRaw>(raw) {
 
     /**
      * Callbacks to use for this push operation
      */
-    val callbacks: RemoteCallbacks = RemoteCallbacks(handler.pointed.callbacks.ptr, arena)
+    val callbacks: RemoteCallbacks = RemoteCallbacks(Memory(), raw.handler.pointed.callbacks.ptr)
 
     /**
      * Proxy options to use for this push operation
      */
-    val proxy: ProxyOptions = ProxyOptions(handler.pointed.proxy_opts.ptr, arena)
+    val proxy: ProxyOptions = ProxyOptions(Memory(), raw.handler.pointed.proxy_opts.ptr)
 
     /**
      * If the transport being used to push to the remote requires the creation
@@ -38,15 +50,15 @@ class PushOptions(
      * If set to 0, the packbuilder will auto-detect the number of threads
      * to create. The default value is 1.
      */
-    var pbParallelism: UInt = handler.pointed.pb_parallelism
+    var pbParallelism: UInt = raw.handler.pointed.pb_parallelism
         set(value) {
             field = value
-            handler.pointed.pb_parallelism = value
+            raw.handler.pointed.pb_parallelism = value
         }
 
-    var followRedirects: RemoteRedirect = RemoteRedirect.fromRaw(handler.pointed.follow_redirects)
+    var followRedirects: RemoteRedirect = RemoteRedirect.fromRaw(raw.handler.pointed.follow_redirects)
         set(value) {
             field = value
-            handler.pointed.follow_redirects = value.value
+            raw.handler.pointed.follow_redirects = value.value
         }
 }

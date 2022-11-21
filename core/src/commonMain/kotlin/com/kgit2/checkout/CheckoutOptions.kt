@@ -2,44 +2,60 @@ package com.kgit2.checkout
 
 import com.kgit2.callback.CheckoutNotifyCallback
 import com.kgit2.callback.CheckoutProgressCallback
+import com.kgit2.common.error.errorCheck
+import com.kgit2.common.error.toBoolean
+import com.kgit2.common.error.toInt
+import com.kgit2.common.memory.Memory
 import com.kgit2.common.option.mutually.FileMode
 import com.kgit2.common.option.mutually.FileOpenFlags
 import com.kgit2.diff.DiffFile
-import com.kgit2.model.AutoFreeGitBase
+import com.kgit2.memory.Binding
+import com.kgit2.memory.GitBase
 import com.kgit2.model.toList
 import kotlinx.cinterop.*
 import libgit2.GIT_CHECKOUT_OPTIONS_VERSION
 import libgit2.git_checkout_options
 import libgit2.git_checkout_options_init
 
-class CheckoutOptions(
-    override val handler: CPointer<git_checkout_options>,
-    override val arena: Arena,
-) : AutoFreeGitBase<CPointer<git_checkout_options>> {
-    companion object {
-        fun initialized(): CheckoutOptions {
-            val arena = Arena()
-            val handler = arena.alloc<git_checkout_options>()
-            git_checkout_options_init(handler.ptr, GIT_CHECKOUT_OPTIONS_VERSION)
-            return CheckoutOptions(handler.ptr, arena)
-        }
+typealias CheckoutOptionsPointer = CPointer<git_checkout_options>
+
+typealias CheckoutOptionsSecondaryPointer = CPointerVar<git_checkout_options>
+
+typealias CheckoutOptionsInitial = CheckoutOptionsPointer.(Memory) -> Unit
+
+class CheckoutOptionsRaw(
+    memory: Memory = Memory(),
+    handler: CheckoutOptionsPointer = memory.alloc<git_checkout_options>().ptr,
+) : Binding<git_checkout_options>(memory, handler) {
+    init {
+        runCatching {
+            git_checkout_options_init(handler.getPointer(memory), GIT_CHECKOUT_OPTIONS_VERSION).errorCheck()
+        }.onFailure {
+            memory.free()
+        }.getOrThrow()
     }
+}
 
-    var strategy: CheckoutStrategyOpts = CheckoutStrategyOpts(handler.pointed.checkout_strategy)
+class CheckoutOptions(
+    raw: CheckoutOptionsRaw = CheckoutOptionsRaw(),
+) : GitBase<git_checkout_options, CheckoutOptionsRaw>(raw) {
+    constructor(memory: Memory, handler: CheckoutOptionsPointer) : this(CheckoutOptionsRaw(memory, handler))
+
+    var strategy: CheckoutStrategyOpts = CheckoutStrategyOpts(raw.handler.pointed.checkout_strategy)
         set(value) {
             field = value
-            handler.pointed.checkout_strategy = value.value
+            raw.handler.pointed.checkout_strategy = value.value
         }
 
-    var disableFilters: Boolean = handler.pointed.disable_filters == 1
+    var disableFilters: Boolean = raw.handler.pointed.disable_filters.toBoolean()
         set(value) {
             field = value
-            handler.pointed.disable_filters = if (value) 1 else 0
+            raw.handler.pointed.disable_filters = value.toInt()
         }
 
-    var dirMode: String = kotlin.run {
+    var dirMode: String = run {
         val modeString = CharArray(3)
-        var mod = handler.pointed.dir_mode.toInt()
+        var mod = raw.handler.pointed.dir_mode.toInt()
         modeString[2] = Char(mod and 7 + '0'.code)
         mod = mod shr 3
         modeString[1] = Char(mod and 7 + '0'.code)
@@ -56,16 +72,16 @@ class CheckoutOptions(
             }
         }
 
-    var fileMode: FileMode = FileMode.fromRaw(handler.pointed.file_mode)
+    var fileMode: FileMode = FileMode.fromRaw(raw.handler.pointed.file_mode)
         set(value) {
             field = value
-            handler.pointed.file_mode = value.value
+            raw.handler.pointed.file_mode = value.value
         }
 
-    var fileOpenFlags: FileOpenFlags = FileOpenFlags.fromRaw(handler.pointed.file_open_flags)
+    var fileOpenFlags: FileOpenFlags = FileOpenFlags.fromRaw(raw.handler.pointed.file_open_flags)
         set(value) {
             field = value
-            handler.pointed.file_open_flags = value.value
+            raw.handler.pointed.file_open_flags = value.value
         }
 
     /**
@@ -75,14 +91,14 @@ class CheckoutOptions(
     var notifyCallback: CheckoutNotifyCallback? = null
         set(value) {
             field = value
-            handler.pointed.notify_payload = StableRef.create(value as Any).asCPointer()
-            handler.pointed.notify_cb = staticCFunction { why, path, baseline, target, workdir, payload ->
+            raw.handler.pointed.notify_payload = StableRef.create(value as Any).asCPointer()
+            raw.handler.pointed.notify_cb = staticCFunction { why, path, baseline, target, workdir, payload ->
                 payload?.asStableRef<CheckoutNotifyCallback>()?.get()?.checkoutNotify(
                     CheckoutNotificationType.fromRaw(why),
                     path?.toKString(),
-                    DiffFile.fromHandler(baseline!!.pointed, Arena()),
-                    DiffFile.fromHandler(target!!.pointed, Arena()),
-                    DiffFile.fromHandler(workdir!!.pointed, Arena()),
+                    DiffFile(baseline!!.pointed),
+                    DiffFile(target!!.pointed),
+                    DiffFile(workdir!!.pointed),
                 )?.value ?: -1
             }
         }
@@ -94,8 +110,8 @@ class CheckoutOptions(
     var progressCallback: CheckoutProgressCallback? = null
         set(value) {
             field = value
-            handler.pointed.progress_payload = StableRef.create(value as Any).asCPointer()
-            handler.pointed.progress_cb = staticCFunction { path, completedSteps, totalSteps, payload ->
+            raw.handler.pointed.progress_payload = StableRef.create(value as Any).asCPointer()
+            raw.handler.pointed.progress_cb = staticCFunction { path, completedSteps, totalSteps, payload ->
                 payload?.asStableRef<CheckoutProgressCallback>()?.get()?.checkoutProgress(
                     path!!.toKString(),
                     completedSteps,
@@ -104,15 +120,15 @@ class CheckoutOptions(
             }
         }
 
-    private val paths: MutableList<String> = handler.pointed.paths.ptr.toList().toMutableList()
+    private val paths: MutableList<String> = raw.handler.pointed.paths.ptr.toList().toMutableList()
 
     fun paths(): List<String> = paths
 
     fun paths(processor: MutableList<String>.() -> Unit) {
         paths.processor()
         memScoped {
-            handler.pointed.paths.strings = paths.toCStringArray(this)
+            raw.handler.pointed.paths.strings = paths.toCStringArray(this)
         }
-        handler.pointed.paths.count = paths.size.convert()
+        raw.handler.pointed.paths.count = paths.size.convert()
     }
 }

@@ -16,18 +16,14 @@ object KGit2 {
     fun initial() {
         git_libgit2_init()
         if (initialized.compareAndSet(expect = false, update = true)) {
+            Platform.isCleanersLeakCheckerActive = true
+            Platform.isMemoryLeakCheckerActive = true
             Napier.base(DebugAntilog())
         }
-        // if (initialized.compareAndSet(expect = false, update = true)) {
-        //     println("Initializing libgit2")
-        // }
     }
 
     fun shutdown() {
         git_libgit2_shutdown()
-        // if (initialized.compareAndSet(expect = true, update = false)) {
-        //     git_libgit2_shutdown()
-        // }
     }
 
     fun version(): Version {

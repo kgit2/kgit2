@@ -1,9 +1,10 @@
 package com.kgit2.commit
 
 import cnames.structs.git_commit
-import cnames.structs.git_tree
 import com.kgit2.common.error.errorCheck
-import com.kgit2.model.AutoFreeGitBase
+import com.kgit2.common.memory.Memory
+import com.kgit2.memory.Binding
+import com.kgit2.memory.GitBase
 import com.kgit2.model.Oid
 import com.kgit2.`object`.Object
 import com.kgit2.signature.MailMap
@@ -13,68 +14,87 @@ import com.kgit2.tree.Tree
 import kotlinx.cinterop.*
 import libgit2.*
 
-class Commit(
-    override val handler: CPointer<git_commit>,
-    override val arena: Arena,
-) : AutoFreeGitBase<CPointer<git_commit>> {
-    override fun free() {
+typealias CommitPointer = CPointer<git_commit>
+
+typealias CommitSecondaryPointer = CPointerVar<git_commit>
+
+typealias CommitInitial = CommitSecondaryPointer.(Memory) -> Unit
+
+class CommitRaw(
+    memory: Memory,
+    handler: CommitPointer,
+) : Binding<git_commit>(memory, handler) {
+    constructor(
+        memory: Memory = Memory(),
+        handler: CommitSecondaryPointer = memory.allocPointerTo<git_commit>(),
+        initial: CommitInitial? = null,
+    ) : this(memory, handler.apply {
+        runCatching {
+            initial?.invoke(handler, memory)
+        }.onFailure {
+            git_commit_free(handler.value!!)
+            memory.free()
+        }.getOrThrow()
+    }.value!!)
+
+    override val beforeFree: () -> Unit = {
         git_commit_free(handler)
-        super.free()
+    }
+}
+
+class Commit(
+    raw: CommitRaw,
+) : GitBase<git_commit, CommitRaw>(raw) {
+    constructor(memory: Memory, handler: CommitPointer) : this(CommitRaw(memory, handler))
+
+    constructor(
+        memory: Memory = Memory(),
+        handler: CommitSecondaryPointer = memory.allocPointerTo<git_commit>(),
+        initial: CommitInitial? = null
+    ) : this(CommitRaw(memory, handler, initial))
+
+    val id: Oid = Oid(Memory(), git_commit_id(raw.handler)!!)
+
+    val treeId: Oid = Oid(Memory(), git_commit_tree_id(raw.handler)!!)
+
+    val tree: Tree = Tree() {
+        git_commit_tree(this.ptr, raw.handler).errorCheck()
     }
 
-    val id: Oid = Oid(git_commit_id(handler)!!, arena)
+    val messageEncoding: String = git_commit_message_encoding(raw.handler)!!.toKString()
 
-    val treeId: Oid = Oid(git_commit_tree_id(handler)!!, arena)
+    val message: String = git_commit_message(raw.handler)!!.toKString()
 
-    val tree: Tree = run {
-        val arena = Arena()
-        val handler = arena.allocPointerTo<git_tree>()
-        git_commit_tree(handler.ptr, this.handler).errorCheck()
-        Tree(handler.value!!, arena)
-    }
+    val rawMessage: String = git_commit_message_raw(raw.handler)!!.toKString()
 
-    val messageEncoding: String = git_commit_message_encoding(handler)!!.toKString()
+    val rawHeader: String = git_commit_raw_header(raw.handler)!!.toKString()
 
-    val message: String = git_commit_message(handler)!!.toKString()
+    val summary: String = git_commit_summary(raw.handler)!!.toKString()
 
-    val rawMessage: String = git_commit_message_raw(handler)!!.toKString()
+    val body: String = git_commit_body(raw.handler)!!.toKString()
 
-    val rawHeader: String = git_commit_raw_header(handler)!!.toKString()
+    val time: Time = Time(raw.memory, git_commit_time(raw.handler), git_commit_time_offset(raw.handler))
 
-    val summary: String = git_commit_summary(handler)!!.toKString()
-
-    val body: String = git_commit_body(handler)!!.toKString()
-
-    val time: Time = Time.new(git_commit_time(handler), git_commit_time_offset(handler))
-
-    val parentCount: UInt = git_commit_parentcount(handler)
+    val parentCount: UInt = git_commit_parentcount(raw.handler)
 
     val parents: List<Commit> = run {
         (0 until parentCount.convert()).fold(mutableListOf()) { prev, i ->
-            val arena = Arena()
-            val commit = arena.allocPointerTo<git_commit>()
-            git_commit_parent(commit.ptr, handler, i.toUInt()).errorCheck()
-            prev.add(Commit(commit.value!!, arena))
+            val commit = CommitRaw() { git_commit_parent(this.ptr, raw.handler, i.convert()).errorCheck() }
+            prev.add(Commit(commit))
             prev
         }
     }
 
-    val author: Signature = Signature.fromHandler(git_commit_author(handler)!!, arena)
+    val author: Signature = Signature(Memory(), git_commit_author(raw.handler)!!)
 
-    fun authorWithMailMap(mailMap: MailMap): Signature {
-        val arena = Arena()
-        val signature = arena.allocPointerTo<git_signature>()
-        git_commit_author_with_mailmap(signature.ptr, handler, mailMap.handler).errorCheck()
-        return Signature.fromHandler(signature.value!!, arena)
+    fun authorWithMailMap(mailMap: MailMap): Signature = Signature() {
+        git_commit_author_with_mailmap(this.ptr, raw.handler, mailMap.raw.handler).errorCheck()
     }
 
-    val committer: Signature = Signature.fromHandler(git_commit_committer(handler)!!, arena)
+    val committer: Signature = Signature(Memory(), git_commit_committer(raw.handler)!!)
 
-    fun committerWithMailMap(mailMap: MailMap): Signature {
-        val arena = Arena()
-        val signature = arena.allocPointerTo<git_signature>()
-        git_commit_committer_with_mailmap(signature.ptr, handler, mailMap.handler).errorCheck()
-        return Signature.fromHandler(signature.value!!, arena)
+    fun committerWithMailMap(mailMap: MailMap) = Signature() {
+        git_commit_committer_with_mailmap(ptr, raw.handler, mailMap.raw.handler).errorCheck()
     }
 
     fun amend(
@@ -84,25 +104,25 @@ class Commit(
         messageEncoding: String,
         message: String,
         tree: Tree,
-    ): Oid {
-        val arena = Arena()
-        val oid = arena.alloc<git_oid>()
-        git_commit_amend(
-            oid.ptr,
-            handler,
-            updateRef,
-            author.handler,
-            committer.handler,
-            messageEncoding,
-            message,
-            tree.handler,
-        ).errorCheck()
-        return Oid(oid.ptr, arena)
-    }
+    ): Oid = Oid(initial = { memory ->
+        runCatching {
+            git_commit_amend(
+                this,
+                raw.handler,
+                updateRef,
+                author.raw.handler,
+                committer.raw.handler,
+                messageEncoding,
+                message,
+                tree.raw.handler,
+            ).errorCheck()
+        }.onFailure {
+            memory.free()
+        }.getOrThrow()
+    })
 
     fun asObject(): Object {
-        val arena = Arena()
-        val `object` = handler.reinterpret<git_object>()
-        return Object(`object`, arena)
+        raw.freed.compareAndSet(expect = false, update = true)
+        return Object(raw.memory, raw.handler.reinterpret())
     }
 }

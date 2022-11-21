@@ -1,36 +1,46 @@
 package com.kgit2.time
 
-import com.kgit2.model.GitBase
-import kotlinx.cinterop.CPointer
-import kotlinx.cinterop.cValue
-import kotlinx.cinterop.memScoped
-import kotlinx.cinterop.pointed
+import com.kgit2.common.memory.Memory
+import com.kgit2.memory.Binding
+import com.kgit2.memory.GitBase
+import kotlinx.cinterop.*
 import libgit2.git_time
+import kotlin.native.internal.Cleaner
+import kotlin.native.internal.createCleaner
 
-data class Time(
-    val seconds: Long,
-    val offset: Int,
-    override val handler: CPointer<git_time>,
-) : GitBase<CPointer<git_time>> {
+typealias TimeValue = CValue<git_time>
+
+typealias TimePointer = CPointer<git_time>
+
+typealias TimeSecondaryPointer = CPointerVar<git_time>
+
+class TimeRaw(
+    memory: Memory,
+    handler: CPointer<git_time>,
+) : Binding<git_time>(memory, handler) {
+    constructor(memory: Memory = Memory(), value: TimeValue) : this(memory, value.getPointer(memory))
+
+    constructor(memory: Memory, value: git_time) : this(memory, value.ptr)
+}
+
+class Time(raw: TimeRaw) : GitBase<git_time, TimeRaw>(raw) {
+    constructor(memory: Memory, handler: TimePointer) : this(TimeRaw(memory, handler))
+
+    constructor(memory: Memory, value: TimeValue) : this(TimeRaw(memory, value))
+
+    constructor(memory: Memory, value: git_time) : this(TimeRaw(memory, value))
+
+    constructor(memory: Memory = Memory(), seconds: Long, offset: Int) : this(memory, cValue<git_time> {
+        this.time = seconds.convert()
+        this.offset = offset.convert()
+    })
+
+    val seconds: Long = raw.handler.pointed.time
+
+    val offset: Int = raw.handler.pointed.offset
+
     val sign: Char = when {
         offset < 0 -> '-'
         else -> '+'
-    }
-
-    companion object {
-        fun new(seconds: Long, offset: Int): Time {
-            return Time(seconds, offset, memScoped {
-                cValue<git_time> {
-                    this.time = seconds
-                    this.offset = offset
-                    this.sign = when {
-                        offset < 0 -> '-'.code.toByte()
-                        else -> '+'.code.toByte()
-                    }
-                }.ptr
-            })
-        }
-
-        fun fromHandler(handler: CPointer<git_time>): Time = Time(handler.pointed.time, handler.pointed.offset, handler)
     }
 }

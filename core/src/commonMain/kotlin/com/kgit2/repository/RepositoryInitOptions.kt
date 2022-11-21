@@ -1,22 +1,83 @@
 package com.kgit2.repository
 
+import com.kgit2.common.error.errorCheck
+import com.kgit2.common.memory.Memory
+import com.kgit2.memory.Binding
+import com.kgit2.memory.GitBase
 import kotlinx.cinterop.*
 import libgit2.GIT_REPOSITORY_INIT_OPTIONS_VERSION
 import libgit2.git_repository_init_init_options
 import libgit2.git_repository_init_options
 import kotlin.test.assertEquals
 
-data class RepositoryInitOptions(
+typealias RepositoryInitOptionsPointer = CPointer<git_repository_init_options>
+
+typealias RepositoryInitOptionsSecondaryPointer = CPointerVar<git_repository_init_options>
+
+typealias RepositoryInitOptionsInitial = RepositoryInitOptionsSecondaryPointer.(Memory) -> Unit
+
+class RepositoryInitOptionsRaw(
+    memory: Memory = Memory(),
+    handler: RepositoryInitOptionsPointer = memory.alloc<git_repository_init_options>().ptr,
+) : Binding<git_repository_init_options>(memory, handler) {
+    init {
+        runCatching {
+            git_repository_init_init_options(handler, GIT_REPOSITORY_INIT_OPTIONS_VERSION).errorCheck()
+        }.onFailure {
+            memory.free()
+        }.getOrThrow()
+    }
+}
+
+class RepositoryInitOptions(
+    raw: RepositoryInitOptionsRaw = RepositoryInitOptionsRaw(),
+) : GitBase<git_repository_init_options, RepositoryInitOptionsRaw>(raw) {
+    constructor(memory: Memory, handler: RepositoryInitOptionsPointer) : this(RepositoryInitOptionsRaw(memory, handler))
+
     var flags: UInt = RepositoryInitFlat.MkDir.value
         .and(RepositoryInitFlat.MkPath.value)
-        .and(RepositoryInitFlat.ExternalTemplate.value),
-    var mode: UInt = 0u,
-    var workdir_path: String? = null,
-    var description: String? = null,
-    var template_path: String? = null,
-    var initial_head: String? = null,
-    var origin_url: String? = null,
-) {
+        .and(RepositoryInitFlat.ExternalTemplate.value)
+        private set(value) {
+            field = value
+            raw.handler.pointed.flags = value
+        }
+
+    var mode: UInt = raw.handler.pointed.mode
+        private set(value) {
+            field = value
+            raw.handler.pointed.mode = value
+        }
+
+    var workdir_path: String? = raw.handler.pointed.workdir_path?.toKString()
+        private set(value) {
+            field = value
+            raw.handler.pointed.workdir_path = value?.cstr?.getPointer(raw.memory)
+        }
+
+    var description: String? = raw.handler.pointed.description?.toKString()
+        private set(value) {
+            field = value
+            raw.handler.pointed.description = value?.cstr?.getPointer(raw.memory)
+        }
+
+    var template_path: String? = raw.handler.pointed.template_path?.toKString()
+        private set(value) {
+            field = value
+            raw.handler.pointed.template_path = value?.cstr?.getPointer(raw.memory)
+        }
+
+    var initial_head: String? = raw.handler.pointed.initial_head?.toKString()
+        private set(value) {
+            field = value
+            raw.handler.pointed.initial_head = value?.cstr?.getPointer(raw.memory)
+        }
+
+    var origin_url: String? = raw.handler.pointed.origin_url?.toKString()
+        private set(value) {
+            field = value
+            raw.handler.pointed.origin_url = value?.cstr?.getPointer(raw.memory)
+        }
+
     fun flag(
         flag: RepositoryInitFlat,
         on: Boolean,
@@ -86,16 +147,16 @@ data class RepositoryInitOptions(
         return this
     }
 
-    fun toRaw(arena: ArenaBase): CValuesRef<git_repository_init_options> {
-        val opts = arena.alloc<git_repository_init_options>()
-        assertEquals(git_repository_init_init_options(opts.ptr, GIT_REPOSITORY_INIT_OPTIONS_VERSION), 0)
-        opts.flags = this@RepositoryInitOptions.flags
-        opts.mode = this@RepositoryInitOptions.mode
-        opts.workdir_path = this@RepositoryInitOptions.workdir_path?.cstr?.getPointer(arena)
-        opts.description = this@RepositoryInitOptions.description?.cstr?.getPointer(arena)
-        opts.template_path = this@RepositoryInitOptions.template_path?.cstr?.getPointer(arena)
-        opts.initial_head = this@RepositoryInitOptions.initial_head?.cstr?.getPointer(arena)
-        opts.origin_url = this@RepositoryInitOptions.origin_url?.cstr?.getPointer(arena)
-        return opts.ptr
-    }
+    // fun toRaw(memory: Memory): CValuesRef<git_repository_init_options> {
+    //     val opts = memory.alloc<git_repository_init_options>()
+    //     assertEquals(git_repository_init_init_options(opts.ptr, GIT_REPOSITORY_INIT_OPTIONS_VERSION), 0)
+    //     opts.flags = this@RepositoryInitOptions.flags
+    //     opts.mode = this@RepositoryInitOptions.mode
+    //     opts.workdir_path = this@RepositoryInitOptions.workdir_path?.cstr?.getPointer(memory)
+    //     opts.description = this@RepositoryInitOptions.description?.cstr?.getPointer(memory)
+    //     opts.template_path = this@RepositoryInitOptions.template_path?.cstr?.getPointer(memory)
+    //     opts.initial_head = this@RepositoryInitOptions.initial_head?.cstr?.getPointer(memory)
+    //     opts.origin_url = this@RepositoryInitOptions.origin_url?.cstr?.getPointer(memory)
+    //     return opts.ptr
+    // }
 }
