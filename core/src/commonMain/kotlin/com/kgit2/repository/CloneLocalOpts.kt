@@ -18,4 +18,15 @@ enum class CloneLocalOpts(val value: git_clone_local_t) {
 
     /// Bypass the git-aware transport, but don't try to use hardlinks.
     LocalNoLinks(GIT_CLONE_LOCAL_NO_LINKS),
+    ;
+    companion object {
+        fun fromRaw(value: git_clone_local_t): CloneLocalOpts {
+            return when (value) {
+                GIT_CLONE_LOCAL_AUTO -> LocalAuto
+                GIT_CLONE_LOCAL -> Local
+                GIT_CLONE_NO_LOCAL -> NoLocal
+                GIT_CLONE_LOCAL_NO_LINKS -> LocalNoLinks
+            }
+        }
+    }
 }
