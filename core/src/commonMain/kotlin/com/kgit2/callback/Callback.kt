@@ -33,7 +33,7 @@ interface RepositoryCreateCallback {
      * @param bare whether the repository is bare. This is the value from the clone options
      * @return 0, or a negative value to indicate error
      */
-    fun repositoryCreate(repository: Repository, path: String, bare: Boolean)
+    fun repositoryCreate(repository: Repository, path: String, bare: Boolean): Int
 }
 
 interface RemoteCreateCallback {

@@ -6,8 +6,8 @@ import com.kgit2.common.error.toBoolean
 import com.kgit2.common.error.toInt
 import com.kgit2.common.memory.Memory
 import com.kgit2.config.Config
-import com.kgit2.memory.Raw
 import com.kgit2.memory.GitBase
+import com.kgit2.memory.Raw
 import com.kgit2.model.toKString
 import com.kgit2.model.withGitBuf
 import com.kgit2.submodule.Submodule
@@ -88,9 +88,17 @@ class Repository(raw: RepositoryRaw) : GitBase<git_repository, RepositoryRaw>(ra
             return open(discoverPath)
         }
 
-        // TODO()
-        // fun clone(url: String, localPath: String, bare: Boolean = false): Repository {
-        // }
+        fun clone(url: String, localPath: String, cloneOptions: CloneOptions): Repository = Repository() {
+            git_clone(this.ptr, url, localPath, cloneOptions.raw.handler).errorCheck()
+        }
+
+        fun cloneRecursive(url: String, localPath: String, cloneOptions: CloneOptions): Repository {
+            val repository = Repository() {
+                git_clone(this.ptr, url, localPath, cloneOptions.raw.handler).errorCheck()
+            }
+            repository.updateSubmodules()
+            return repository
+        }
     }
 
     val path: String?
@@ -128,7 +136,26 @@ class Repository(raw: RepositoryRaw) : GitBase<git_repository, RepositoryRaw>(ra
             0
         }
         val submodules = mutableListOf<Submodule>()
-        git_submodule_foreach(raw.handler, gitCallback, StableRef.create(raw.handler to submodules).asCPointer()).errorCheck()
+        git_submodule_foreach(
+            raw.handler,
+            gitCallback,
+            StableRef.create(raw.handler to submodules).asCPointer()
+        ).errorCheck()
         return submodules
+    }
+
+    fun updateSubmodules() {
+        fun addSubRepos(repo: Repository, list: MutableList<Repository>) {
+            for (subm in repo.submodules()) {
+                subm.update(true)
+                list.add(subm.open())
+            }
+        }
+        val list = mutableListOf<Repository>()
+        addSubRepos(this, list)
+        while (list.isNotEmpty()) {
+            val repo = list.removeAt(0)
+            addSubRepos(repo, list)
+        }
     }
 }
