@@ -8,11 +8,11 @@ import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.CValues
 import kotlinx.cinterop.CVariable
 
-abstract class Binding<T: CPointed> (
+abstract class Raw<T: CPointed> (
     val memory: Memory,
     val handler: CPointer<T>,
 ) : FreeAble {
-    val freed: AtomicBoolean = atomic(false)
+    protected val freed: AtomicBoolean = atomic(false)
 
     open val beforeFree: (() -> Unit)? = null
 
@@ -23,6 +23,12 @@ abstract class Binding<T: CPointed> (
         }
     }
 
+    fun move() {
+        freed.compareAndSet(expect = false, update = true)
+    }
+
+    fun isFreed(): Boolean = freed.value
+
     val <T : CVariable> CValues<T>.ptr: CPointer<T>
-        get() = this@ptr.getPointer(this@Binding.memory)
+        get() = this@ptr.getPointer(this@Raw.memory)
 }

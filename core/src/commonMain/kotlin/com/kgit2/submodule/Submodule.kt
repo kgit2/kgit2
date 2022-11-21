@@ -4,7 +4,7 @@ import cnames.structs.git_submodule
 import com.kgit2.common.error.errorCheck
 import com.kgit2.common.error.toInt
 import com.kgit2.common.memory.Memory
-import com.kgit2.memory.Binding
+import com.kgit2.memory.Raw
 import com.kgit2.memory.GitBase
 import com.kgit2.model.Oid
 import com.kgit2.repository.Repository
@@ -20,7 +20,7 @@ typealias SubmoduleInitial = SubmoduleSecondaryPointer.(Memory) -> Unit
 class SubmoduleRaw(
     memory: Memory,
     handler: SubmodulePointer,
-) : Binding<git_submodule>(memory, handler) {
+) : Raw<git_submodule>(memory, handler) {
     constructor(
         memory: Memory = Memory(),
         handler: SubmoduleSecondaryPointer = memory.allocPointerTo(),

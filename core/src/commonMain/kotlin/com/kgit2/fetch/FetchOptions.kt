@@ -2,7 +2,7 @@ package com.kgit2.fetch
 
 import com.kgit2.common.memory.Memory
 import com.kgit2.common.option.mutually.AutoTagOption
-import com.kgit2.memory.Binding
+import com.kgit2.memory.Raw
 import com.kgit2.memory.GitBase
 import com.kgit2.model.toList
 import com.kgit2.proxy.ProxyOptions
@@ -12,8 +12,6 @@ import kotlinx.cinterop.*
 import libgit2.GIT_FETCH_OPTIONS_VERSION
 import libgit2.git_fetch_options
 import libgit2.git_fetch_options_init
-import kotlin.native.internal.Cleaner
-import kotlin.native.internal.createCleaner
 
 typealias FetchOptionsPointer = CPointer<git_fetch_options>
 
@@ -24,7 +22,7 @@ typealias FetchOptionsInitial = FetchOptionsSecondaryPointer.(Memory) -> Unit
 class FetchOptionsRaw(
     memory: Memory = Memory(),
     handler: FetchOptionsPointer = memory.alloc<git_fetch_options>().ptr,
-) : Binding<git_fetch_options>(memory, handler) {
+) : Raw<git_fetch_options>(memory, handler) {
     init {
         runCatching {
             git_fetch_options_init(handler, GIT_FETCH_OPTIONS_VERSION)

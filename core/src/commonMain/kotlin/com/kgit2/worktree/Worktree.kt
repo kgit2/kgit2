@@ -3,7 +3,7 @@ package com.kgit2.worktree
 import cnames.structs.git_worktree
 import com.kgit2.common.error.errorCheck
 import com.kgit2.common.memory.Memory
-import com.kgit2.memory.Binding
+import com.kgit2.memory.Raw
 import com.kgit2.memory.GitBase
 import com.kgit2.model.toKString
 import com.kgit2.model.withGitBuf
@@ -20,7 +20,7 @@ typealias WorktreeInitial = WorktreeSecondaryPointer.(Memory) -> Unit
 class WorktreeRaw(
     memory: Memory,
     handler: WorktreePointer,
-) : Binding<git_worktree>(memory, handler) {
+) : Raw<git_worktree>(memory, handler) {
     constructor(
         memory: Memory = Memory(),
         handler: WorktreeSecondaryPointer = memory.allocPointerTo(),

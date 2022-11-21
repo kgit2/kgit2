@@ -1,12 +1,10 @@
 package com.kgit2.certificate
 
 import com.kgit2.common.memory.Memory
-import com.kgit2.memory.Binding
+import com.kgit2.memory.Raw
 import com.kgit2.memory.GitBase
 import kotlinx.cinterop.*
 import libgit2.git_cert
-import kotlin.native.internal.Cleaner
-import kotlin.native.internal.createCleaner
 
 typealias CertPointer = CPointer<git_cert>
 
@@ -17,7 +15,7 @@ typealias CertInitial = CertSecondaryPointer.(Memory) -> Unit
 class CertRaw(
     memory: Memory,
     handler: CertPointer,
-) : Binding<git_cert>(memory, handler) {
+) : Raw<git_cert>(memory, handler) {
     constructor(
         memory: Memory = Memory(),
         handler: CertSecondaryPointer = memory.allocPointerTo(),
@@ -47,7 +45,7 @@ class Cert(
     fun asHostKey(): CertHostKey? {
         return when (certType) {
             CertType.LIBSSH2 -> {
-                raw.freed.compareAndSet(expect = false, update = true)
+                raw.move()
                 CertHostKey(raw.memory, raw.handler.reinterpret())
             }
             else -> null
@@ -57,7 +55,7 @@ class Cert(
     fun asX509(): CertX509? {
         return when (certType) {
             CertType.X509 -> {
-                raw.freed.compareAndSet(expect = false, update = true)
+                raw.move()
                 CertX509(raw.memory, raw.handler.reinterpret())
             }
             else -> null

@@ -17,6 +17,7 @@ import com.kgit2.remote.Remote
 import com.kgit2.repository.Repository
 import com.kgit2.submodule.Submodule
 import com.kgit2.transport.Transport
+import com.kgit2.tree.TreeEntry
 
 interface RepositoryCreateCallback {
     /**
@@ -234,4 +235,15 @@ interface SubmoduleCallback {
      * @return 0 on success or error code
      */
     fun submodule(submodule: Submodule, name: String): Int
+}
+
+interface TreeWalkCallback {
+    /**
+     * Function pointer to receive each entry in a tree
+     *
+     * @param root The root of the tree
+     * @param entry The current entry
+     * @return 0 on success or error code
+     */
+    fun treeWalk(root: String, entry: TreeEntry): Int
 }

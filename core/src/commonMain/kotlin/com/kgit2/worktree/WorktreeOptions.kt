@@ -2,7 +2,7 @@ package com.kgit2.worktree
 
 import com.kgit2.common.error.errorCheck
 import com.kgit2.common.memory.Memory
-import com.kgit2.memory.Binding
+import com.kgit2.memory.Raw
 import com.kgit2.memory.GitBase
 import kotlinx.cinterop.*
 import libgit2.*
@@ -16,7 +16,7 @@ typealias WorktreePruneOptionsInitial = WorktreePruneOptionsSecondaryPointer.(Me
 class WorktreePruneOptionsRaw(
     memory: Memory = Memory(),
     handler: WorktreePruneOptionsPointer = memory.alloc<git_worktree_prune_options>().ptr,
-) : Binding<git_worktree_prune_options>(memory, handler) {
+) : Raw<git_worktree_prune_options>(memory, handler) {
     init {
         git_worktree_prune_options_init(handler, GIT_WORKTREE_PRUNE_OPTIONS_VERSION).errorCheck()
     }

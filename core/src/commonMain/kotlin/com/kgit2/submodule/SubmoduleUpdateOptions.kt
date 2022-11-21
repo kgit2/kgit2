@@ -4,7 +4,7 @@ import com.kgit2.checkout.CheckoutOptions
 import com.kgit2.common.error.toInt
 import com.kgit2.common.memory.Memory
 import com.kgit2.fetch.FetchOptions
-import com.kgit2.memory.Binding
+import com.kgit2.memory.Raw
 import com.kgit2.memory.GitBase
 import kotlinx.cinterop.*
 import libgit2.GIT_SUBMODULE_UPDATE_OPTIONS_VERSION
@@ -18,7 +18,7 @@ typealias SubmoduleUpdateOptionsSecondaryPointer = CPointerVar<git_submodule_upd
 class SubmoduleUpdateOptionsRaw(
     memory: Memory = Memory(),
     handler: SubmoduleUpdateOptionsPointer = memory.alloc<git_submodule_update_options>().ptr,
-) : Binding<git_submodule_update_options>(memory, handler) {
+) : Raw<git_submodule_update_options>(memory, handler) {
     init {
         git_submodule_update_options_init(handler, GIT_SUBMODULE_UPDATE_OPTIONS_VERSION)
     }

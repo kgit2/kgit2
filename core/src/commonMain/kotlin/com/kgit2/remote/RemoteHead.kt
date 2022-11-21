@@ -2,7 +2,7 @@ package com.kgit2.remote
 
 import com.kgit2.common.error.toBoolean
 import com.kgit2.common.memory.Memory
-import com.kgit2.memory.Binding
+import com.kgit2.memory.Raw
 import com.kgit2.memory.GitBase
 import com.kgit2.model.Oid
 import kotlinx.cinterop.*
@@ -17,7 +17,7 @@ typealias RemoteHeadInitial = RemoteHeadSecondaryPointer.(Memory) -> Unit
 class RemoteHeadRaw(
     memory: Memory,
     handler: RemoteHeadPointer,
-) : Binding<git_remote_head>(memory, handler) {
+) : Raw<git_remote_head>(memory, handler) {
     constructor(
         memory: Memory = Memory(),
         handler: RemoteHeadSecondaryPointer = memory.allocPointerTo(),

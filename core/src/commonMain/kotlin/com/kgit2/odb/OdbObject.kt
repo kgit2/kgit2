@@ -2,7 +2,7 @@ package com.kgit2.odb
 
 import cnames.structs.git_odb_object
 import com.kgit2.common.memory.Memory
-import com.kgit2.memory.Binding
+import com.kgit2.memory.Raw
 import com.kgit2.memory.GitBase
 import com.kgit2.model.Oid
 import com.kgit2.`object`.ObjectType
@@ -20,7 +20,7 @@ typealias OdbObjectInitial = OdbObjectSecondaryPointer.(Memory) -> Unit
 class OdbObjectRaw(
     memory: Memory,
     handler: OdbObjectPointer,
-) : Binding<git_odb_object>(memory, handler) {
+) : Raw<git_odb_object>(memory, handler) {
     override val beforeFree: () -> Unit = {
         git_odb_object_free(handler)
     }
