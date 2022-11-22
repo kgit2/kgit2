@@ -10,7 +10,7 @@ fun Int.errorCheck() {
 
 
 fun Int.toBoolean(): Boolean {
-    return this == 1
+    return this != 0
 }
 
 fun Boolean.toInt(): Int {
