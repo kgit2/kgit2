@@ -72,7 +72,7 @@ class Oid(
         return git_oid_is_zero(raw.handler).toBoolean()
     }
 
-    fun copy(): Oid = Oid(initial = { git_oid_cpy(this, raw.handler).errorCheck() })
+    fun copy(): Oid = Oid() { git_oid_cpy(this, raw.handler).errorCheck() }
 
     operator fun compareTo(other: Oid): Int {
         return git_oid_cmp(raw.handler, other.raw.handler)

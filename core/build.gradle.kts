@@ -97,8 +97,19 @@ tasks {
             val child = pb.start()
             val pkgResult = child.inputStream.bufferedReader().readText()
             child.waitFor()
+            val headers = mutableListOf("git2.h")
+            File(libgit2Dir, "include/git2").listFiles()?.forEach {
+                if (it.extension == "h") {
+                    headers.add("git2/${it.name}")
+                }
+            }
+            File(libgit2Dir, "include/git2/sys").listFiles()?.forEach {
+                if (it.extension == "h") {
+                    headers.add("git2/sys/${it.name}")
+                }
+            }
             val template = """
-                |headers = git2.h
+                |headers = ${headers.joinToString(" ")}
                 |staticLibraries = libgit2.a
                 |libraryPaths = ${File(libgit2Dir, "lib").normalize().absolutePath} ${File(libssh2Dir, "lib").normalize().absolutePath}
                 |compilerOpts = -I${File(libgit2Dir, "include").normalize().absolutePath}
