@@ -30,7 +30,7 @@ class ConfigIteratorRaw(
         }.onFailure {
             git_config_iterator_free(handler.value)
             memory.free()
-        }
+        }.getOrThrow()
     }.value!!)
 
     override val beforeFree: BeforeFree = {
@@ -48,7 +48,7 @@ class ConfigIterator(raw: ConfigIteratorRaw) : IteratorBase<git_config_iterator,
     ) : this(ConfigIteratorRaw(memory, handler, initializer))
 
     override fun nextRaw(): Result<ConfigEntry> = runCatching {
-        ConfigEntry() {
+        ConfigEntry(shouldFreeOnFailure = false) {
             git_config_next(this.ptr, raw.handler).errorCheck()
         }
     }.onSuccess {

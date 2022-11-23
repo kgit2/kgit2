@@ -42,7 +42,7 @@ kotlin {
                 implementation("io.ktor:ktor-client-core:2.1.2")
                 implementation("io.github.aakira:napier:2.6.1")
                 implementation("com.kgit2:kommand:$kommandVersion")
-                implementation("com.kgit2:bitmask-library:$bitmaskVersion")
+                // implementation("com.kgit2:bitmask-library:$bitmaskVersion")
             }
         }
         val commonTest by getting {
@@ -77,10 +77,10 @@ kotlin {
     }
 }
 
-dependencies {
-    add("kspCommonMainMetadata", "com.kgit2:bitmask-processor:$kspVersion")
-    add("kspNative", "com.kgit2:bitmask-processor:$kspVersion")
-}
+// dependencies {
+//     add("kspCommonMainMetadata", "com.kgit2:bitmask-processor:$kspVersion")
+//     add("kspNative", "com.kgit2:bitmask-processor:$kspVersion")
+// }
 
 tasks {
     val generateDef by registering {

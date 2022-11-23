@@ -16,6 +16,8 @@ import com.kgit2.common.error.toInt
 import com.kgit2.common.memory.Memory
 import com.kgit2.common.memory.memoryScoped
 import com.kgit2.config.Config
+import com.kgit2.exception.GitErrorCode
+import com.kgit2.exception.GitError
 import com.kgit2.memory.GitBase
 import com.kgit2.memory.Raw
 import com.kgit2.model.*
@@ -150,13 +152,14 @@ class Repository(raw: RepositoryRaw) : GitBase<git_repository, RepositoryRaw>(ra
     val state: RepositoryState
         get() = RepositoryState.fromInt(git_repository_state(raw.handler).convert())
 
-    var workDir: String = git_repository_workdir(raw.handler)!!.toKString()
+    val workDir: String?
+        get() = git_repository_workdir(raw.handler)?.toKString()
 
     fun setWorkDir(path: String, updateGitLink: Boolean = false) {
         git_repository_set_workdir(raw.handler, path, updateGitLink.toInt()).errorCheck()
     }
 
-    var namespace: String = git_repository_get_namespace(raw.handler)!!.toKString()
+    var namespace: String? = git_repository_get_namespace(raw.handler)?.toKString()
         set(value) {
             git_repository_set_namespace(raw.handler, value).errorCheck()
             field = value
@@ -166,9 +169,13 @@ class Repository(raw: RepositoryRaw) : GitBase<git_repository, RepositoryRaw>(ra
         git_repository_set_namespace(raw.handler, null).errorCheck()
     }
 
-    val message: String = withGitBuf { buf ->
-        git_repository_message(buf, raw.handler).errorCheck()
-        buf.toKString()!!
+    val message: String? = withGitBuf { buf ->
+        runCatching {
+            git_repository_message(buf, raw.handler).errorCheck()
+        }.onFailure {
+            if (it is GitError && it.code == GitErrorCode.NotFound) return@withGitBuf null
+        }.getOrThrow()
+        buf.toKString()
     }
 
     fun removeMessage() {

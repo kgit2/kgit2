@@ -263,7 +263,7 @@ class Config(
     fun getEntries(glob: String? = null): ConfigIterator = ConfigIterator() {
         when {
             glob != null -> git_config_iterator_glob_new(this.ptr, raw.handler, glob)
-            else -> git_config_iterator_glob_new(this.ptr, raw.handler, glob)
+            else -> git_config_iterator_new(this.ptr, raw.handler)
         }.errorCheck()
     }
 
