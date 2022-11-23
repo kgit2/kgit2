@@ -35,5 +35,23 @@ enum class RepositoryState(val value: git_repository_state_t) {
                 else -> throw IllegalArgumentException("Unknown value: $value")
             }
         }
+
+        fun fromInt(value: UInt): RepositoryState {
+            return when (value) {
+                git_repository_state_t.GIT_REPOSITORY_STATE_NONE.value -> None
+                git_repository_state_t.GIT_REPOSITORY_STATE_MERGE.value -> Merge
+                git_repository_state_t.GIT_REPOSITORY_STATE_REVERT.value -> Revert
+                git_repository_state_t.GIT_REPOSITORY_STATE_REVERT_SEQUENCE.value -> RevertSequence
+                git_repository_state_t.GIT_REPOSITORY_STATE_CHERRYPICK.value -> CherryPick
+                git_repository_state_t.GIT_REPOSITORY_STATE_CHERRYPICK_SEQUENCE.value -> CherryPickSequence
+                git_repository_state_t.GIT_REPOSITORY_STATE_BISECT.value -> Bisect
+                git_repository_state_t.GIT_REPOSITORY_STATE_REBASE.value -> Rebase
+                git_repository_state_t.GIT_REPOSITORY_STATE_REBASE_INTERACTIVE.value -> RebaseInteractive
+                git_repository_state_t.GIT_REPOSITORY_STATE_REBASE_MERGE.value -> RebaseMerge
+                git_repository_state_t.GIT_REPOSITORY_STATE_APPLY_MAILBOX.value -> ApplyMailbox
+                git_repository_state_t.GIT_REPOSITORY_STATE_APPLY_MAILBOX_OR_REBASE.value -> ApplyMailboxOrRebase
+                else -> throw IllegalArgumentException("Unknown value: $value")
+            }
+        }
     }
 }

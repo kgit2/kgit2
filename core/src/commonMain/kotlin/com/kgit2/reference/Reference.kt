@@ -140,24 +140,3 @@ class Reference(
         this.raw.free()
     }
 }
-
-fun CPointerVar<git_reference_iterator>.toList(): MutableList<Reference> {
-    val list = mutableListOf<Reference>()
-    var iteratorNotOver = true
-    while (iteratorNotOver) {
-        runCatching {
-            Reference() {
-                git_reference_next(this.ptr, this@toList.value).errorCheck()
-            }
-        }.onSuccess {
-            list.add(it)
-        }.onFailure {
-            if (it !is GitException) throw it
-            when (it.errorCode) {
-                GitErrorCode.GIT_ITEROVER -> iteratorNotOver = false
-                else -> throw it
-            }
-        }
-    }
-    return list
-}

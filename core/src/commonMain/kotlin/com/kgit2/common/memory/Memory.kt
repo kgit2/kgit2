@@ -5,8 +5,12 @@ import kotlinx.atomicfu.atomic
 import kotlinx.cinterop.*
 
 open class Memory : AutofreeScope(), FreeAble {
-    val arena = Arena()
-    val isFreed = atomic(false)
+    private val arenaInitialized = atomic(false)
+    private val arena by lazy {
+        arenaInitialized.compareAndSet(expect = false, update = true)
+        Arena()
+    }
+    private val isFreed = atomic(false)
 
     override fun alloc(size: Long, align: Int): NativePointed {
         return arena.alloc(size, align)
@@ -14,7 +18,9 @@ open class Memory : AutofreeScope(), FreeAble {
 
     override fun free() {
         if (isFreed.compareAndSet(expect = false, update = true)) {
-            arena.clear()
+            if (arenaInitialized.value) {
+                arena.clear()
+            }
         }
     }
 

@@ -1,7 +1,6 @@
 import com.kgit2.KGit2
 import com.kgit2.config.Config
 import com.kgit2.utils.withTempDir
-import kotlin.native.internal.createCleaner
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
@@ -31,7 +30,7 @@ fun main(args: Array<String>) {
         assertEquals("bar", config.getStringBuf("foo.k4"))
 
         val entries = config.getEntries()
-        assertEquals(4, entries.size)
+        assertEquals(4, entries.list.size)
 
         val snapshot = config.snapshot()
         assertEquals("bar", snapshot.getString("foo.k4"))
