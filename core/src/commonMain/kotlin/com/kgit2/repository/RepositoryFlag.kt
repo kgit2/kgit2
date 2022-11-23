@@ -2,7 +2,7 @@ package com.kgit2.repository
 
 import libgit2.*
 
-enum class RepositoryOpenFlag(val value: git_repository_open_flag_t) {
+enum class RepositoryOpenFlags(val value: git_repository_open_flag_t) {
     OpenNoSearch(GIT_REPOSITORY_OPEN_NO_SEARCH),
     OpenCrossFS(GIT_REPOSITORY_OPEN_CROSS_FS),
     OpenBare(GIT_REPOSITORY_OPEN_BARE),
@@ -11,7 +11,7 @@ enum class RepositoryOpenFlag(val value: git_repository_open_flag_t) {
     ;
 
     companion object {
-        fun fromRaw(value: git_repository_open_flag_t): RepositoryOpenFlag {
+        fun fromRaw(value: git_repository_open_flag_t): RepositoryOpenFlags {
             return when (value) {
                 GIT_REPOSITORY_OPEN_NO_SEARCH -> OpenNoSearch
                 GIT_REPOSITORY_OPEN_CROSS_FS -> OpenCrossFS

@@ -99,7 +99,8 @@ enum class GitErrorCode(val value: git_error_code) {
     GIT_EAPPLYFAIL(-35),
 
     /**< The object is not owned by the current user */
-    GIT_EOWNER(-36);
+    GIT_EOWNER(-36),
+    ;
 
     companion object {
         fun fromRaw(raw: git_error_code): GitErrorCode {
@@ -135,7 +136,7 @@ enum class GitErrorCode(val value: git_error_code) {
                 GIT_EINDEXDIRTY.value -> GIT_EINDEXDIRTY
                 GIT_EAPPLYFAIL.value -> GIT_EAPPLYFAIL
                 GIT_EOWNER.value -> GIT_EOWNER
-                else -> error("Unknown error type: $raw")
+                else -> throw IllegalArgumentException("Unknown error type: $raw")
             }
         }
     }

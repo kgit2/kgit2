@@ -7,6 +7,9 @@ import com.kgit2.common.error.errorCheck
 import com.kgit2.common.error.toBoolean
 import com.kgit2.common.error.toInt
 import com.kgit2.common.memory.Memory
+import com.kgit2.common.memory.memoryScoped
+import com.kgit2.exception.GitErrorCode
+import com.kgit2.exception.GitException
 import com.kgit2.memory.Raw
 import com.kgit2.memory.GitBase
 import com.kgit2.model.Oid
@@ -136,4 +139,25 @@ class Reference(
         git_reference_delete(raw.handler).errorCheck()
         this.raw.free()
     }
+}
+
+fun CPointerVar<git_reference_iterator>.toList(): MutableList<Reference> {
+    val list = mutableListOf<Reference>()
+    var iteratorNotOver = true
+    while (iteratorNotOver) {
+        runCatching {
+            Reference() {
+                git_reference_next(this.ptr, this@toList.value).errorCheck()
+            }
+        }.onSuccess {
+            list.add(it)
+        }.onFailure {
+            if (it !is GitException) throw it
+            when (it.errorCode) {
+                GitErrorCode.GIT_ITEROVER -> iteratorNotOver = false
+                else -> throw it
+            }
+        }
+    }
+    return list
 }
