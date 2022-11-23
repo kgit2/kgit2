@@ -40,7 +40,7 @@ class ConfigTest {
             assertEquals("bar", config.getStringBuf("foo.k4"))
 
             val entries = config.getEntries()
-            assertEquals(4, entries.size)
+            assertEquals(4, entries.list.size)
 
             snapshot = config.snapshot()
             assertEquals("bar", snapshot.getString("foo.k4"))
@@ -56,20 +56,20 @@ class ConfigTest {
             config.setMultiVar("foo.bar", "^$", "quux")
             config.setMultiVar("foo.baz", "^$", "oki")
 
-            val entries = config.getEntries("foo.bar").map(ConfigEntry::value)
+            val entries = config.getEntries("foo.bar").list.map(ConfigEntry::value)
             val expectList = listOf("baz", "qux", "quux")
             assertEquals(expectList, entries)
 
-            val multiVar = config.getMultiVar("foo.bar").map(ConfigEntry::value)
+            val multiVar = config.getMultiVar("foo.bar").list.map(ConfigEntry::value)
             assertEquals(expectList, multiVar)
 
-            val multiVar2 = config.getMultiVar("foo.bar", "qu.*x").map(ConfigEntry::value)
+            val multiVar2 = config.getMultiVar("foo.bar", "qu.*x").list.map(ConfigEntry::value)
             val expectList2 = listOf("qux", "quux")
             assertEquals(expectList2, multiVar2)
 
             config.removeMultiVar("foo.bar", ".*")
-            assertEquals(0, config.getEntries("foo.bar").size)
-            assertEquals(0, config.getMultiVar("foo.bar").size)
+            assertEquals(0, config.getEntries("foo.bar").list.size)
+            assertEquals(0, config.getMultiVar("foo.bar").list.size)
         }
     }
 

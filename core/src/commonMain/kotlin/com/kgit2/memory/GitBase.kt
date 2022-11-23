@@ -1,6 +1,12 @@
 package com.kgit2.memory
 
+import com.kgit2.common.memory.Memory
+import com.kgit2.exception.GitErrorCode
+import com.kgit2.exception.GitException
 import kotlinx.cinterop.CPointed
+import kotlinx.cinterop.CPointer
+import kotlinx.cinterop.CPointerVar
+import kotlinx.cinterop.allocPointerTo
 import kotlin.native.internal.Cleaner
 import kotlin.native.internal.createCleaner
 

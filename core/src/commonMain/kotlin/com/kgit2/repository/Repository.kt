@@ -3,9 +3,13 @@
 package com.kgit2.repository
 
 import cnames.structs.git_repository
+import com.kgit2.branch.Branch
+import com.kgit2.branch.BranchIterator
+import com.kgit2.branch.BranchType
 import com.kgit2.checkout.CheckoutOptions
 import com.kgit2.checkout.ResetType
 import com.kgit2.commit.AnnotatedCommit
+import com.kgit2.commit.Commit
 import com.kgit2.common.error.errorCheck
 import com.kgit2.common.error.toBoolean
 import com.kgit2.common.error.toInt
@@ -18,7 +22,7 @@ import com.kgit2.model.*
 import com.kgit2.`object`.Object
 import com.kgit2.odb.Odb
 import com.kgit2.reference.Reference
-import com.kgit2.reference.toList
+import com.kgit2.reference.ReferenceIterator
 import com.kgit2.remote.Remote
 import com.kgit2.status.Status
 import com.kgit2.status.StatusList
@@ -144,7 +148,7 @@ class Repository(raw: RepositoryRaw) : GitBase<git_repository, RepositoryRaw>(ra
         }
 
     val state: RepositoryState
-        get() = RepositoryState.fromRaw(git_repository_state(raw.handler).convert())
+        get() = RepositoryState.fromInt(git_repository_state(raw.handler).convert())
 
     var workDir: String = git_repository_workdir(raw.handler)!!.toKString()
 
@@ -262,16 +266,32 @@ class Repository(raw: RepositoryRaw) : GitBase<git_repository, RepositoryRaw>(ra
     val Reference = ReferenceModule()
 
     inner class ReferenceModule {
-        fun referenceList(): List<Reference> = memoryScoped {
-            val referenceIterator = allocPointerTo<git_reference_iterator>()
-            git_reference_iterator_new(referenceIterator.ptr, raw.handler).errorCheck()
-            referenceIterator.toList()
+        fun references(): ReferenceIterator = ReferenceIterator() {
+            git_reference_iterator_new(this.ptr, raw.handler).errorCheck()
         }
 
-        fun referenceGlobList(glob: String): List<Reference> = memoryScoped {
-            val referenceIterator = allocPointerTo<git_reference_iterator>()
-            git_reference_iterator_glob_new(referenceIterator.ptr, raw.handler, glob).errorCheck()
-            referenceIterator.toList()
+        fun globReferences(glob: String): ReferenceIterator = ReferenceIterator() {
+            git_reference_iterator_glob_new(this.ptr, raw.handler, glob).errorCheck()
+        }
+    }
+
+    val Branch = BranchModule()
+
+    inner class BranchModule {
+        fun createBranch(branchName: String, target: Commit, force: Boolean = false): Branch = Branch() {
+            git_branch_create(this.ptr, raw.handler, branchName, target.raw.handler, force.toInt()).errorCheck()
+        }
+
+        fun createBranchFromAnnotated(branchName: String, annotatedCommit: AnnotatedCommit, force: Boolean = false): Branch = Branch() {
+            git_branch_create_from_annotated(this.ptr, raw.handler, branchName, annotatedCommit.raw.handler, force.toInt()).errorCheck()
+        }
+
+        fun branches(listType: BranchType): BranchIterator = BranchIterator() {
+            git_branch_iterator_new(this.ptr, raw.handler, listType.value).errorCheck()
+        }
+
+        fun findBranch(name: String, branchType: BranchType): Branch = Branch() {
+            git_branch_lookup(this.ptr, raw.handler, name, branchType.value).errorCheck()
         }
     }
 

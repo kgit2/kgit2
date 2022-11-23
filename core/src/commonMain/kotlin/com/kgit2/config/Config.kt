@@ -1,13 +1,12 @@
 package com.kgit2.config
 
 import cnames.structs.git_config
-import cnames.structs.git_config_iterator
 import com.kgit2.common.error.errorCheck
 import com.kgit2.common.error.toBoolean
 import com.kgit2.common.error.toInt
 import com.kgit2.common.memory.Memory
-import com.kgit2.memory.Raw
 import com.kgit2.memory.GitBase
+import com.kgit2.memory.Raw
 import com.kgit2.model.toKString
 import com.kgit2.model.withGitBuf
 import com.kgit2.repository.Repository
@@ -253,52 +252,19 @@ class Config(
         git_config_delete_multivar(raw.handler, name, regexp).errorCheck()
     }
 
-    fun getMultiVar(name: String, regexp: String? = null): List<ConfigEntry> {
-        return entryList(name = name, regexp = regexp)
+    fun getMultiVar(name: String, regexp: String? = null): ConfigIterator = ConfigIterator() {
+        git_config_multivar_iterator_new(this.ptr, raw.handler, name, regexp).errorCheck()
     }
 
-    fun getEntry(name: String): ConfigEntry {
-        return memScoped {
-            val entry = allocPointerTo<git_config_entry>()
-            git_config_get_entry(entry.ptr, raw.handler, name).errorCheck()
-            val configEntry = ConfigEntry(entry.pointed!!)
-            git_config_entry_free(entry.value)
-            configEntry
-        }
+    fun getEntry(name: String): ConfigEntry = ConfigEntry() {
+        git_config_get_entry(this.ptr, raw.handler, name).errorCheck()
     }
 
-    fun getEntries(glob: String? = null): List<ConfigEntry> {
-        return entryList(glob)
-    }
-
-    private fun entryList(
-        glob: String? = null,
-        name: String? = null,
-        regexp: String? = null,
-    ): MutableList<ConfigEntry> {
-        val entries = mutableListOf<ConfigEntry>()
-        memScoped {
-            val pointer = allocPointerTo<git_config_iterator>()
-            when {
-                !glob.isNullOrEmpty() -> git_config_iterator_glob_new(pointer.ptr, raw.handler, glob).errorCheck()
-                !name.isNullOrEmpty() -> git_config_multivar_iterator_new(pointer.ptr, raw.handler, name, regexp).errorCheck()
-                else -> git_config_iterator_new(pointer.ptr, raw.handler).errorCheck()
-            }
-            val iterator = pointer.value!!
-            try {
-                val entry = allocPointerTo<git_config_entry>()
-                while (true) {
-                    when (val errorCode = git_config_next(entry.ptr, iterator)) {
-                        GIT_ITEROVER -> break
-                        else -> errorCode.errorCheck()
-                    }
-                    entries.add(ConfigEntry(entry.pointed!!))
-                }
-            } finally {
-                git_config_iterator_free(iterator)
-            }
-        }
-        return entries
+    fun getEntries(glob: String? = null): ConfigIterator = ConfigIterator() {
+        when {
+            glob != null -> git_config_iterator_glob_new(this.ptr, raw.handler, glob)
+            else -> git_config_iterator_glob_new(this.ptr, raw.handler, glob)
+        }.errorCheck()
     }
 
     fun deleteEntry(name: String?) {
