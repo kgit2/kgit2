@@ -200,3 +200,4 @@ gradle-app.setting
 lib/external/*.tar.gz
 lib/external/libssh2*
 test
+build-cache

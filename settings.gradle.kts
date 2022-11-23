@@ -14,16 +14,23 @@ pluginManagement {
     }
 }
 
+buildCache {
+    local {
+        directory = File(rootDir, "build-cache")
+        removeUnusedEntriesAfterDays = 30
+    }
+}
+
 rootProject.name = "kgit2"
 
 include(":core")
 
-val bitmask = File(settingsDir,"../bitmask")
-if (bitmask.exists()) {
-    includeBuild(bitmask)
-}
+// val bitmask = File(settingsDir,"../bitmask")
+// if (bitmask.exists()) {
+//     includeBuild(bitmask)
+// }
 
-val kommand = File(settingsDir, "../kommand")
-if (kommand.exists()) {
-    includeBuild(kommand)
-}
+// val kommand = File(settingsDir, "../kommand")
+// if (kommand.exists()) {
+//     includeBuild(kommand)
+// }

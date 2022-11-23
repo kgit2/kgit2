@@ -10,6 +10,7 @@ import com.kgit2.model.Oid
 import com.kgit2.`object`.Object
 import kotlinx.cinterop.*
 import libgit2.*
+import kotlin.reflect.*
 
 typealias TreePointer = CPointer<git_tree>
 

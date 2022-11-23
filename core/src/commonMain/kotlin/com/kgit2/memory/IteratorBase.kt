@@ -1,7 +1,7 @@
 package com.kgit2.memory
 
 import com.kgit2.exception.GitErrorCode
-import com.kgit2.exception.GitException
+import com.kgit2.exception.GitError
 import kotlinx.cinterop.CPointed
 
 abstract class IteratorBase<T: CPointed, R: Raw<T>, E>(raw: R) : GitBase<T, R>(raw), Iterator<E> {
@@ -13,7 +13,7 @@ abstract class IteratorBase<T: CPointed, R: Raw<T>, E>(raw: R) : GitBase<T, R>(r
         nextRaw().onSuccess {
             this.next = it
         }.onFailure {
-            if (it !is GitException || it.errorCode != GitErrorCode.GIT_ITEROVER) {
+            if (it !is GitError || it.code != GitErrorCode.IterOver) {
                 throw it
             }
             next = null

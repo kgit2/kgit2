@@ -1,6 +1,7 @@
 package com.kgit2.memory
 
 import com.kgit2.common.memory.Memory
+import io.github.aakira.napier.Napier
 import kotlinx.atomicfu.AtomicBoolean
 import kotlinx.atomicfu.atomic
 import kotlinx.cinterop.CPointed
@@ -20,6 +21,7 @@ abstract class Raw<T: CPointed> (
 
     override fun free() {
         if (freed.compareAndSet(expect = false, update = true)) {
+            Napier.v("Freeing ${this::class.simpleName} with handler $handler")
             beforeFree?.invoke()
             memory.free()
         }
