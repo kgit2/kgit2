@@ -16,8 +16,8 @@ import com.kgit2.common.error.toInt
 import com.kgit2.common.memory.Memory
 import com.kgit2.common.memory.memoryScoped
 import com.kgit2.config.Config
-import com.kgit2.exception.GitErrorCode
 import com.kgit2.exception.GitError
+import com.kgit2.exception.GitErrorCode
 import com.kgit2.memory.GitBase
 import com.kgit2.memory.Raw
 import com.kgit2.model.*
@@ -289,8 +289,18 @@ class Repository(raw: RepositoryRaw) : GitBase<git_repository, RepositoryRaw>(ra
             git_branch_create(this.ptr, raw.handler, branchName, target.raw.handler, force.toInt()).errorCheck()
         }
 
-        fun createBranchFromAnnotated(branchName: String, annotatedCommit: AnnotatedCommit, force: Boolean = false): Branch = Branch() {
-            git_branch_create_from_annotated(this.ptr, raw.handler, branchName, annotatedCommit.raw.handler, force.toInt()).errorCheck()
+        fun createBranchFromAnnotated(
+            branchName: String,
+            annotatedCommit: AnnotatedCommit,
+            force: Boolean = false,
+        ): Branch = Branch() {
+            git_branch_create_from_annotated(
+                this.ptr,
+                raw.handler,
+                branchName,
+                annotatedCommit.raw.handler,
+                force.toInt()
+            ).errorCheck()
         }
 
         fun branches(listType: BranchType): BranchIterator = BranchIterator() {
@@ -303,6 +313,7 @@ class Repository(raw: RepositoryRaw) : GitBase<git_repository, RepositoryRaw>(ra
     }
 
     val Status = StatusModule()
+
     inner class StatusModule {
         fun statusList(options: StatusOptions): StatusList = StatusList() {
             git_status_list_new(this.ptr, raw.handler, options.raw.handler).errorCheck()
