@@ -10,6 +10,10 @@ abstract class BaseMultiple<T : BaseMultiple<T>>() {
     }
 }
 
-inline infix fun <T: BaseMultiple<T>> T.or(flag: T): T {
-    return flag
-}
+// inline infix fun <T: BaseMultiple<T>> T.or(flag: T): T {
+//     return flag
+// }
+//
+// inline infix fun <T: BaseMultiple<T>> T.and(flag: T): T {
+//     return flag
+// }

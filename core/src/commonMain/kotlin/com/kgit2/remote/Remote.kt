@@ -10,8 +10,8 @@ import com.kgit2.common.memory.memoryScoped
 import com.kgit2.common.option.mutually.AutoTagOption
 import com.kgit2.fetch.Direction
 import com.kgit2.fetch.FetchOptions
-import com.kgit2.memory.Raw
 import com.kgit2.memory.GitBase
+import com.kgit2.memory.Raw
 import com.kgit2.model.toKString
 import com.kgit2.model.toList
 import com.kgit2.model.withGitBuf
@@ -133,11 +133,10 @@ class Remote(raw: RemoteRaw) : GitBase<git_remote, RemoteRaw>(raw) {
         }
     }
 
-    fun fetch(refspecs: List<String>, option: FetchOptions? = null, reflogMessage: String? = null) {
+    fun fetch(refspecs: List<String>, option: FetchOptions? = null, reflogMessage: String? = null) =
         withGitStrArray { refspecsArray ->
             git_remote_fetch(raw.handler, refspecsArray, option?.raw?.handler, reflogMessage).errorCheck()
         }
-    }
 
     fun updateTips(
         callbacks: RemoteCallbacks,
@@ -154,10 +153,8 @@ class Remote(raw: RemoteRaw) : GitBase<git_remote, RemoteRaw>(raw) {
         ).errorCheck()
     }
 
-    fun push(refspecs: Collection<String>, option: PushOptions? = null) {
-        withGitStrArray { refspecsArray ->
-            git_remote_push(raw.handler, refspecsArray, option?.raw?.handler).errorCheck()
-        }
+    fun push(refspecs: Collection<String>, option: PushOptions? = null) = withGitStrArray { refspecsArray ->
+        git_remote_push(raw.handler, refspecsArray, option?.raw?.handler).errorCheck()
     }
 
     fun stats(): IndexerProgress {
@@ -179,17 +176,13 @@ class Remote(raw: RemoteRaw) : GitBase<git_remote, RemoteRaw>(raw) {
         git_remote_prune(raw.handler, callbacks.raw.handler).errorCheck()
     }
 
-    fun fetchRefspecs(): List<String> {
-        return withGitStrArray { refspecsArray ->
-            git_remote_get_fetch_refspecs(refspecsArray, raw.handler).errorCheck()
-            refspecsArray.toList()
-        }
+    fun fetchRefspecs(): List<String> = withGitStrArray { refspecsArray ->
+        git_remote_get_fetch_refspecs(refspecsArray, raw.handler).errorCheck()
+        refspecsArray.toList()
     }
 
-    fun pushRefspecs(): List<String> {
-        return withGitStrArray { refspecsArray ->
-            git_remote_get_push_refspecs(refspecsArray, raw.handler).errorCheck()
-            refspecsArray.toList()
-        }
+    fun pushRefspecs(): List<String> = withGitStrArray { refspecsArray ->
+        git_remote_get_push_refspecs(refspecsArray, raw.handler).errorCheck()
+        refspecsArray.toList()
     }
 }

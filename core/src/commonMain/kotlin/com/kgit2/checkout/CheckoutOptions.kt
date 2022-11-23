@@ -96,9 +96,9 @@ class CheckoutOptions(
                 payload?.asStableRef<CheckoutNotifyCallback>()?.get()?.checkoutNotify(
                     CheckoutNotificationType.fromRaw(why),
                     path?.toKString(),
-                    DiffFile(baseline!!.pointed),
-                    DiffFile(target!!.pointed),
-                    DiffFile(workdir!!.pointed),
+                    DiffFile(Memory(), baseline!!),
+                    DiffFile(Memory(), target!!),
+                    DiffFile(Memory(), workdir!!),
                 )?.value ?: -1
             }
         }
