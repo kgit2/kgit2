@@ -31,7 +31,7 @@ class RawProcessor(
         for ((path, fileModel) in fileModelMap) {
             val writer = codeGenerator.createNewFile(
                 Dependencies(true),
-                fileModel.packageName,
+                fileModel.packagePath,
                 fileModel.fileName.split(".").first() + "Raw",
                 fileModel.fileName.split(".").last()
             ).writer()
