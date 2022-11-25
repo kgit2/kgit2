@@ -1,3 +1,5 @@
+import com.kgit2.tools.ToolsPlugin
+
 val kotlinVersion: String by rootProject
 val kotlinXCoroutinesVersion: String by rootProject
 val kspVersion: String by rootProject
@@ -7,17 +9,11 @@ val kommandVersion: String by rootProject
 plugins {
     kotlin("multiplatform")
     id("com.google.devtools.ksp")
+    id("com.demo.plugin") version "1.0-SNAPSHOT"
+    // id("com.kgit2.tools")
 }
 
-allprojects {
-    group = "com.kgit2"
-    version = "1.0.0-SNAPSHOT"
-
-    repositories {
-        mavenLocal()
-        mavenCentral()
-    }
-}
+apply<ToolsPlugin>()
 
 kotlin {
     val hostOs = System.getProperty("os.name")
@@ -121,5 +117,11 @@ tasks {
 
     val cinteropLibgit2Native by getting {
         dependsOn(generateDef)
+    }
+
+    val generateModule by creating {
+        doLast {
+
+        }
     }
 }
