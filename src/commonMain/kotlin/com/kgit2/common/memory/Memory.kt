@@ -28,7 +28,7 @@ open class Memory : AutofreeScope(), FreeAble {
         get() = this@ptr.getPointer(this@Memory.arena)
 }
 
-public inline fun <R> memoryScoped(block: Memory.()->R): R {
+inline fun <R> memoryScoped(block: Memory.() -> R): R {
     val memory = Memory()
     try {
         return memory.block()

@@ -1,33 +1,16 @@
 package com.kgit2.remote
 
+import com.kgit2.annotations.Raw
 import com.kgit2.common.memory.Memory
-import com.kgit2.memory.Raw
 import com.kgit2.memory.GitBase
 import com.kgit2.proxy.ProxyOptions
-import kotlinx.cinterop.*
-import libgit2.GIT_PUSH_OPTIONS_VERSION
+import kotlinx.cinterop.pointed
+import kotlinx.cinterop.ptr
 import libgit2.git_push_options
-import libgit2.git_push_options_init
 
-typealias PushOptionsPointer = CPointer<git_push_options>
-
-typealias PushOptionsSecondaryPointer = CPointerVar<git_push_options>
-
-typealias PushOptionsInitial = PushOptionsSecondaryPointer.(Memory) -> Unit
-
-class PushOptionsRaw(
-    memory: Memory = Memory(),
-    handler: PushOptionsPointer = memory.alloc<git_push_options>().ptr,
-) : Raw<git_push_options>(memory, handler) {
-    init {
-        runCatching {
-            git_push_options_init(handler, GIT_PUSH_OPTIONS_VERSION)
-        }.onFailure {
-            memory.free()
-        }.getOrThrow()
-    }
-}
-
+@Raw(
+    base = "git_push_options",
+)
 class PushOptions(
     raw: PushOptionsRaw = PushOptionsRaw(),
 ) : GitBase<git_push_options, PushOptionsRaw>(raw) {

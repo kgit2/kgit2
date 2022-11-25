@@ -1,8 +1,8 @@
 package com.kgit2.proxy
 
 import com.kgit2.common.memory.Memory
-import com.kgit2.memory.Raw
 import com.kgit2.memory.GitBase
+import com.kgit2.memory.Raw
 import kotlinx.cinterop.*
 import libgit2.GIT_PROXY_OPTIONS_VERSION
 import libgit2.git_proxy_options

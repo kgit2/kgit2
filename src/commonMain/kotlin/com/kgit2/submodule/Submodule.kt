@@ -1,40 +1,22 @@
 package com.kgit2.submodule
 
 import cnames.structs.git_submodule
+import com.kgit2.annotations.Raw
 import com.kgit2.common.error.errorCheck
 import com.kgit2.common.error.toInt
 import com.kgit2.common.memory.Memory
-import com.kgit2.memory.Raw
 import com.kgit2.memory.GitBase
 import com.kgit2.model.Oid
 import com.kgit2.repository.Repository
-import kotlinx.cinterop.*
+import kotlinx.cinterop.allocPointerTo
+import kotlinx.cinterop.ptr
+import kotlinx.cinterop.toKString
 import libgit2.*
 
-typealias SubmodulePointer = CPointer<git_submodule>
-
-typealias SubmoduleSecondaryPointer = CPointerVar<git_submodule>
-
-typealias SubmoduleInitial = SubmoduleSecondaryPointer.(Memory) -> Unit
-
-class SubmoduleRaw(
-    memory: Memory,
-    handler: SubmodulePointer,
-) : Raw<git_submodule>(memory, handler) {
-    constructor(
-        memory: Memory = Memory(),
-        handler: SubmoduleSecondaryPointer = memory.allocPointerTo(),
-        initial: SubmoduleInitial? = null,
-    ) : this(memory, handler.apply {
-        runCatching {
-            initial?.invoke(handler, memory)
-        }.onFailure {
-            git_submodule_free(handler.value!!)
-            memory.free()
-        }.getOrThrow()
-    }.value!!)
-}
-
+@Raw(
+    base = "git_submodule",
+    free = "git_submodule_free",
+)
 class Submodule(raw: SubmoduleRaw) : GitBase<git_submodule, SubmoduleRaw>(raw) {
     constructor(memory: Memory, handler: SubmodulePointer) : this(SubmoduleRaw(memory, handler))
 
@@ -62,7 +44,7 @@ class Submodule(raw: SubmoduleRaw) : GitBase<git_submodule, SubmoduleRaw>(raw) {
 
     val updateStrategy: SubmoduleUpdate = SubmoduleUpdate.fromRaw(git_submodule_update_strategy(raw.handler))
 
-    fun clone(options: SubmoduleUpdateOptions? = null): Repository = Repository() {
+    fun clone(options: SubmoduleUpdateOptions? = null): Repository = Repository {
         git_submodule_clone(this.ptr, raw.handler, options?.raw?.handler).errorCheck()
     }
 
@@ -70,7 +52,7 @@ class Submodule(raw: SubmoduleRaw) : GitBase<git_submodule, SubmoduleRaw>(raw) {
         git_submodule_init(raw.handler, overwrite.toInt()).errorCheck()
     }
 
-    fun open(): Repository = Repository() {
+    fun open(): Repository = Repository {
         git_submodule_open(this.ptr, raw.handler).errorCheck()
     }
 

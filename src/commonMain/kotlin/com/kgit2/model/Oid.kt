@@ -1,41 +1,19 @@
 package com.kgit2.model
 
+import com.kgit2.annotations.Raw
 import com.kgit2.common.error.errorCheck
 import com.kgit2.common.error.toBoolean
 import com.kgit2.common.memory.Memory
-import com.kgit2.memory.Raw
 import com.kgit2.memory.GitBase
 import com.kgit2.`object`.ObjectType
 import kotlinx.cinterop.*
 import libgit2.*
 
-typealias OidPointer = CPointer<git_oid>
-
-typealias OidSecondaryPointer = CPointerVar<git_oid>
-
-typealias OidInitial = OidPointer.(Memory) -> Unit
-
-class OidRaw(
-    memory: Memory = Memory(),
-    handler: OidPointer = memory.alloc<git_oid>().ptr,
-    initial: OidInitial? = null,
-) : Raw<git_oid>(memory, handler.apply {
-    runCatching {
-        initial?.invoke(handler, memory)
-    }.onFailure {
-        memory.free()
-    }.getOrThrow()
-})
-
-@com.kgit2.annotations.Raw(
+@Raw(
     base = "git_oid",
-    initialPointer = com.kgit2.annotations.InitialPointerType.POINTER,
-    free = "git_oid_cpy",
-    shouldFreeOnFailure = true,
+    secondaryPointer = false
 )
-class Oid(
-    raw: OidRaw,
-) : GitBase<git_oid, OidRaw>(raw) {
+class Oid(raw: OidRaw) : GitBase<git_oid, OidRaw>(raw) {
     constructor(memory: Memory, handler: OidPointer) : this(OidRaw(memory, handler))
 
     constructor(
@@ -78,7 +56,7 @@ class Oid(
         return git_oid_is_zero(raw.handler).toBoolean()
     }
 
-    fun copy(): Oid = Oid() { git_oid_cpy(this, raw.handler).errorCheck() }
+    fun copy(): Oid = Oid { git_oid_cpy(this, raw.handler).errorCheck() }
 
     operator fun compareTo(other: Oid): Int {
         return git_oid_cmp(raw.handler, other.raw.handler)

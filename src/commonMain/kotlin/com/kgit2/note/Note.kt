@@ -1,41 +1,23 @@
 package com.kgit2.note
 
+import cnames.structs.git_note
+import com.kgit2.annotations.Raw
 import com.kgit2.common.memory.Memory
 import com.kgit2.memory.GitBase
-import com.kgit2.memory.Raw
 import com.kgit2.model.Oid
 import com.kgit2.signature.Signature
-import kotlinx.cinterop.*
-import libgit2.*
+import kotlinx.cinterop.allocPointerTo
+import kotlinx.cinterop.toKString
+import kotlinx.cinterop.value
+import libgit2.git_note_author
+import libgit2.git_note_committer
+import libgit2.git_note_id
+import libgit2.git_note_message
 
-typealias NotePointer = CPointer<git_note>
-
-typealias NoteSecondaryPointer = CPointerVar<git_note>
-
-typealias NoteInitial = NoteSecondaryPointer.(Memory) -> Unit
-
-class NoteRaw(
-    memory: Memory,
-    handler: NotePointer,
-) : Raw<git_note>(memory, handler) {
-    constructor(
-        memory: Memory = Memory(),
-        handler: NoteSecondaryPointer = memory.allocPointerTo(),
-        initial: NoteInitial? = null,
-    ) : this(memory, handler.apply {
-        runCatching {
-            initial?.invoke(handler, memory)
-        }.onFailure {
-            git_note_free(handler.value!!)
-            memory.free()
-        }.getOrThrow()
-    }.value!!)
-
-    override val beforeFree: () -> Unit = {
-        git_note_free(handler)
-    }
-}
-
+@Raw(
+    base = "git_note",
+    free = "git_note_free",
+)
 class Note(raw: NoteRaw) : GitBase<git_note, NoteRaw>(raw) {
     constructor(memory: Memory, handler: NotePointer) : this(NoteRaw(memory, handler))
 
@@ -45,9 +27,9 @@ class Note(raw: NoteRaw) : GitBase<git_note, NoteRaw>(raw) {
         initial: NoteInitial? = null,
     ) : this(NoteRaw(memory, handler, initial))
 
-    val author = Signature() { this.value = git_note_author(raw.handler) }
+    val author = Signature { this.value = git_note_author(raw.handler) }
 
-    val committer = Signature() { this.value = git_note_committer(raw.handler) }
+    val committer = Signature { this.value = git_note_committer(raw.handler) }
 
     val message = git_note_message(raw.handler)?.toKString()
 

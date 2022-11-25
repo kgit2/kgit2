@@ -103,8 +103,6 @@ sealed class GitErrorCode(val value: git_error_code) {
 
     class Unknown(value: git_error_code) : GitErrorCode(value)
 
-
-
     companion object {
         fun fromRaw(raw: git_error_code): GitErrorCode {
             return when (raw) {

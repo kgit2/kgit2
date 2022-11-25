@@ -1,51 +1,28 @@
 package com.kgit2.commit
 
 import cnames.structs.git_annotated_commit
+import com.kgit2.annotations.Raw
 import com.kgit2.common.memory.Memory
 import com.kgit2.memory.GitBase
-import com.kgit2.memory.Raw
 import com.kgit2.model.Oid
 import com.kgit2.reference.Reference
-import com.kgit2.remote.Refspec
 import com.kgit2.repository.Repository
-import kotlinx.cinterop.*
+import kotlinx.cinterop.allocPointerTo
+import kotlinx.cinterop.ptr
+import kotlinx.cinterop.toKString
 import libgit2.*
 
-typealias AnnotatedCommitPointer = CPointer<git_annotated_commit>
-
-typealias AnnotatedCommitSecondaryPointer = CPointerVar<git_annotated_commit>
-
-typealias AnnotatedCommitInitial = AnnotatedCommitSecondaryPointer.(Memory) -> Unit
-
-class AnnotatedCommitRaw(
-    memory: Memory,
-    handler: AnnotatedCommitPointer,
-) : Raw<git_annotated_commit>(memory, handler) {
-    constructor(
-        memory: Memory = Memory(),
-        handler: AnnotatedCommitSecondaryPointer = memory.allocPointerTo(),
-        initial: AnnotatedCommitInitial? = null,
-    ) : this(memory, handler.apply {
-        runCatching {
-            initial?.invoke(handler, memory)
-        }.onFailure {
-            git_annotated_commit_free(handler.value!!)
-            memory.free()
-        }.getOrThrow()
-    }.value!!)
-
-    override val beforeFree: () -> Unit = {
-        git_annotated_commit_free(handler)
-    }
-}
-
+@Raw(
+    base = "git_annotated_commit",
+    free = "git_annotated_commit_free",
+)
 class AnnotatedCommit(raw: AnnotatedCommitRaw) : GitBase<git_annotated_commit, AnnotatedCommitRaw>(raw) {
     constructor(memory: Memory, handler: AnnotatedCommitPointer) : this(AnnotatedCommitRaw(memory, handler))
 
     constructor(
         memory: Memory = Memory(),
         handler: AnnotatedCommitSecondaryPointer = memory.allocPointerTo(),
-        initial: AnnotatedCommitInitial? = null
+        initial: AnnotatedCommitInitial? = null,
     ) : this(AnnotatedCommitRaw(memory, handler, initial))
 
     constructor(repository: Repository, reference: Reference) : this(initial = {

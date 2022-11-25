@@ -1,13 +1,13 @@
 package com.kgit2.reference
 
 import cnames.structs.git_reference
+import com.kgit2.annotations.Raw
 import com.kgit2.blob.Blob
 import com.kgit2.commit.Commit
 import com.kgit2.common.error.errorCheck
 import com.kgit2.common.error.toBoolean
 import com.kgit2.common.error.toInt
 import com.kgit2.common.memory.Memory
-import com.kgit2.memory.Raw
 import com.kgit2.memory.GitBase
 import com.kgit2.model.Oid
 import com.kgit2.`object`.Object
@@ -17,43 +17,17 @@ import com.kgit2.tree.Tree
 import kotlinx.cinterop.*
 import libgit2.*
 
-typealias ReferencePointer = CPointer<git_reference>
-
-typealias ReferenceSecondaryPointer = CPointerVar<git_reference>
-
-typealias ReferenceInitial = ReferenceSecondaryPointer.(Memory) -> Unit
-
-class ReferenceRaw(
-    memory: Memory,
-    handler: ReferencePointer,
-) : Raw<git_reference>(memory, handler) {
-    constructor(
-        memory: Memory = Memory(),
-        handler: ReferenceSecondaryPointer = memory.allocPointerTo(),
-        initial: ReferenceInitial? = null,
-    ) : this(memory, handler.apply {
-        runCatching {
-            initial?.invoke(handler, memory)
-        }.onFailure {
-            git_reference_free(handler.value!!)
-            memory.free()
-        }.getOrThrow()
-    }.value!!)
-
-    override val beforeFree: () -> Unit = {
-        git_reference_free(handler)
-    }
-}
-
-class Reference(
-    raw: ReferenceRaw
-) : GitBase<git_reference, ReferenceRaw>(raw) {
+@Raw(
+    base = "git_reference",
+    free = "git_reference_free",
+)
+class Reference(raw: ReferenceRaw) : GitBase<git_reference, ReferenceRaw>(raw) {
     constructor(memory: Memory, handler: ReferencePointer) : this(ReferenceRaw(memory, handler))
 
     constructor(
         memory: Memory = Memory(),
         handler: ReferenceSecondaryPointer = memory.allocPointerTo(),
-        initial: ReferenceInitial? = null
+        initial: ReferenceInitial? = null,
     ) : this(ReferenceRaw(memory, handler, initial))
 
     companion object {
@@ -87,11 +61,11 @@ class Reference(
 
     val symbolicTarget: String? = git_reference_symbolic_target(raw.handler)?.toKString()
 
-    fun resolve(): Reference = Reference() {
+    fun resolve(): Reference = Reference {
         git_reference_resolve(this.ptr, raw.handler).errorCheck()
     }
 
-    fun peel(targetType: ObjectType): Object = Object() {
+    fun peel(targetType: ObjectType): Object = Object {
         git_reference_peel(this.ptr, raw.handler, targetType.value).errorCheck()
     }
 
@@ -124,11 +98,11 @@ class Reference(
      * @param force Overwrite an existing reference
      * @param logMessage The one line long message to be appended to the reflog
      */
-    fun rename(newName: String, force: Boolean = false, logMessage: String? = null): Reference = Reference() {
+    fun rename(newName: String, force: Boolean = false, logMessage: String? = null): Reference = Reference {
         git_reference_rename(this.ptr, raw.handler, newName, force.toInt(), logMessage).errorCheck()
     }
 
-    fun setTarget(oid: Oid, logMessage: String? = null): Reference = Reference() {
+    fun setTarget(oid: Oid, logMessage: String? = null): Reference = Reference {
         git_reference_set_target(this.ptr, raw.handler, oid.raw.handler, logMessage).errorCheck()
     }
 

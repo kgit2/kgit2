@@ -1,43 +1,25 @@
 package com.kgit2.blob
 
 import cnames.structs.git_blob
+import com.kgit2.annotations.Raw
 import com.kgit2.common.error.toBoolean
 import com.kgit2.common.memory.Memory
-import com.kgit2.memory.Raw
 import com.kgit2.memory.GitBase
 import com.kgit2.model.Oid
 import com.kgit2.`object`.Object
-import kotlinx.cinterop.*
-import libgit2.*
+import kotlinx.cinterop.CPointer
+import kotlinx.cinterop.convert
+import kotlinx.cinterop.readBytes
+import kotlinx.cinterop.reinterpret
+import libgit2.git_blob_id
+import libgit2.git_blob_is_binary
+import libgit2.git_blob_rawcontent
+import libgit2.git_blob_rawsize
 
-typealias BlobPointer = CPointer<git_blob>
-
-typealias BlobSecondaryPointer = CPointerVar<git_blob>
-
-typealias BlobInitial = BlobSecondaryPointer.(Memory) -> Unit
-
-class BlobRaw(
-    memory: Memory,
-    handler: BlobPointer,
-) : Raw<git_blob>(memory, handler) {
-    constructor(
-        memory: Memory = Memory(),
-        handler: BlobSecondaryPointer = memory.allocPointerTo(),
-        initial: BlobInitial? = null,
-    ) : this(memory, handler.apply {
-        runCatching {
-            initial?.invoke(handler, memory)
-        }.onFailure {
-            git_blob_free(handler.value)
-            memory.free()
-        }.getOrThrow()
-    }.value!!)
-
-    override val beforeFree: () -> Unit = {
-        git_blob_free(handler)
-    }
-}
-
+@Raw(
+    base = "git_blob",
+    free = "git_blob_free",
+)
 class Blob(
     raw: BlobRaw,
 ) : GitBase<git_blob, BlobRaw>(raw) {

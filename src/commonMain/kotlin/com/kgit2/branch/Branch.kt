@@ -14,33 +14,6 @@ import com.kgit2.reference.ReferenceSecondaryPointer
 import kotlinx.cinterop.*
 import libgit2.*
 
-// typealias BranchPointer = CPointer<git_reference>
-//
-// typealias BranchSecondaryPointer = CPointerVar<git_reference>
-//
-// typealias BranchInitial = BranchSecondaryPointer.(Memory) -> Unit
-//
-// class BranchRaw(
-//     memory: Memory,
-//     handler: CPointer<git_reference>,
-// ) : Raw<git_reference>(memory, handler) {
-//     constructor(
-//         memory: Memory = Memory(),
-//         handler: BranchSecondaryPointer = memory.allocPointerTo(),
-//         initial: BranchInitial? = null,
-//     ) : this(memory, handler.apply {
-//         runCatching {
-//             initial?.invoke(handler, memory)
-//         }.onFailure {
-//             memory.free()
-//         }.getOrThrow()
-//     }.value!!)
-//
-//     override val beforeFree: () -> Unit = {
-//         git_reference_free(handler)
-//     }
-// }
-
 class Branch(raw: ReferenceRaw) : GitBase<git_reference, ReferenceRaw>(raw) {
     constructor(memory: Memory, handler: ReferencePointer) : this(ReferenceRaw(memory, handler))
 
@@ -57,7 +30,7 @@ class Branch(raw: ReferenceRaw) : GitBase<git_reference, ReferenceRaw>(raw) {
     }
 
     val upstream: Branch? = runCatching {
-        Branch() { git_branch_upstream(this.ptr, raw.handler).errorCheck() }
+        Branch { git_branch_upstream(this.ptr, raw.handler).errorCheck() }
     }.getOrNull()
 
     fun wrap(referenceRaw: ReferenceRaw): Branch = Branch(referenceRaw)
@@ -68,7 +41,7 @@ class Branch(raw: ReferenceRaw) : GitBase<git_reference, ReferenceRaw>(raw) {
 
     fun isHead() = git_branch_is_head(raw.handler).toBoolean()
 
-    fun rename(name: String, force: Boolean): Branch = Branch() {
+    fun rename(name: String, force: Boolean): Branch = Branch {
         git_branch_move(this.ptr, raw.handler, name, force.toInt()).errorCheck()
     }
 

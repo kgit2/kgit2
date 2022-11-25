@@ -1,48 +1,30 @@
 package com.kgit2.`object`
 
 import cnames.structs.git_object
+import com.kgit2.annotations.Raw
 import com.kgit2.blob.Blob
 import com.kgit2.commit.Commit
 import com.kgit2.common.error.errorCheck
 import com.kgit2.common.memory.Memory
-import com.kgit2.memory.Raw
 import com.kgit2.memory.GitBase
 import com.kgit2.model.Oid
 import com.kgit2.model.toKString
 import com.kgit2.model.withGitBuf
 import com.kgit2.tag.Tag
 import com.kgit2.tree.Tree
-import kotlinx.cinterop.*
-import libgit2.*
+import kotlinx.cinterop.allocPointerTo
+import kotlinx.cinterop.ptr
+import kotlinx.cinterop.reinterpret
+import kotlinx.cinterop.value
+import libgit2.git_object_id
+import libgit2.git_object_peel
+import libgit2.git_object_short_id
+import libgit2.git_object_type
 
-typealias ObjectPointer = CPointer<git_object>
-
-typealias ObjectSecondaryPointer = CPointerVar<git_object>
-
-typealias ObjectInitial = ObjectSecondaryPointer.(Memory) -> Unit
-
-class ObjectRaw(
-    memory: Memory = Memory(),
-    handler: ObjectPointer = memory.allocPointerTo<git_object>().value!!,
-) : Raw<git_object>(memory, handler) {
-    constructor(
-        memory: Memory = Memory(),
-        handler: ObjectSecondaryPointer = memory.allocPointerTo<git_object>(),
-        initial: ObjectInitial? = null,
-    ) : this(memory, handler.apply {
-        runCatching {
-            initial?.invoke(handler, memory)
-        }.onFailure {
-            git_object_free(handler.value!!)
-            memory.free()
-        }.getOrThrow()
-    }.value!!)
-
-    override val beforeFree: () -> Unit = {
-        git_object_free(handler)
-    }
-}
-
+@Raw(
+    base = "git_object",
+    free = "git_object_free",
+)
 class Object(
     raw: ObjectRaw,
 ) : GitBase<git_object, ObjectRaw>(raw) {
@@ -51,7 +33,7 @@ class Object(
     constructor(
         memory: Memory = Memory(),
         handler: ObjectSecondaryPointer = memory.allocPointerTo(),
-        initial: ObjectInitial? = null
+        initial: ObjectInitial? = null,
     ) : this(ObjectRaw(memory, handler, initial))
 
     val oid: Oid = Oid(Memory(), git_object_id(raw.handler)!!)

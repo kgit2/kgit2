@@ -1,45 +1,20 @@
 package com.kgit2.tree
 
 import cnames.structs.git_tree
+import com.kgit2.annotations.Raw
 import com.kgit2.callback.TreeWalkCallback
 import com.kgit2.common.error.errorCheck
 import com.kgit2.common.memory.Memory
-import com.kgit2.memory.Raw
 import com.kgit2.memory.GitBase
 import com.kgit2.model.Oid
 import com.kgit2.`object`.Object
 import kotlinx.cinterop.*
 import libgit2.*
-import kotlin.reflect.*
 
-typealias TreePointer = CPointer<git_tree>
-
-typealias TreeSecondaryPointer = CPointerVar<git_tree>
-
-typealias TreeInitial = TreeSecondaryPointer.(Memory) -> Unit
-
-class TreeRaw(
-    memory: Memory,
-    handler: CPointer<git_tree>,
-) : Raw<git_tree>(memory, handler) {
-    constructor(
-        memory: Memory = Memory(),
-        handler: TreeSecondaryPointer = memory.allocPointerTo(),
-        initial: TreeInitial? = null,
-    ) : this(memory, handler.apply {
-        runCatching {
-            initial?.invoke(handler, memory)
-        }.onFailure {
-            git_tree_free(handler.value!!)
-            memory.free()
-        }.getOrThrow()
-    }.value!!)
-
-    override val beforeFree: () -> Unit = {
-        git_tree_free(handler)
-    }
-}
-
+@Raw(
+    base = "git_tree",
+    free = "git_tree_free",
+)
 class Tree(raw: TreeRaw) : GitBase<git_tree, TreeRaw>(raw) {
     constructor(memory: Memory, handler: CPointer<git_tree>) : this(TreeRaw(memory, handler))
 
@@ -83,7 +58,7 @@ class Tree(raw: TreeRaw) : GitBase<git_tree, TreeRaw>(raw) {
     }
 
     fun getEntryByPath(path: String): TreeEntry {
-        return TreeEntry() {
+        return TreeEntry {
             git_tree_entry_bypath(this.ptr, raw.handler, path).errorCheck()
         }
     }

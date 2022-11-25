@@ -1,41 +1,18 @@
 package com.kgit2.credential
 
+import com.kgit2.annotations.Raw
 import com.kgit2.common.error.errorCheck
 import com.kgit2.common.memory.Memory
 import com.kgit2.config.Config
-import com.kgit2.memory.Raw
 import com.kgit2.memory.GitBase
-import kotlinx.cinterop.*
+import kotlinx.cinterop.allocPointerTo
+import kotlinx.cinterop.ptr
 import libgit2.*
 
-typealias CredentialPointer = CPointer<git_credential>
-
-typealias CredentialSecondaryPointer = CPointerVar<git_credential>
-
-typealias CredentialInitial = CredentialSecondaryPointer.(Memory) -> Unit
-
-class CredentialRaw(
-    memory: Memory,
-    handler: CredentialPointer,
-) : Raw<git_credential>(memory, handler) {
-    constructor(
-        memory: Memory = Memory(),
-        handler: CredentialSecondaryPointer = memory.allocPointerTo(),
-        initial: CredentialInitial? = null,
-    ) : this(memory, handler.apply {
-        runCatching {
-            initial?.invoke(this, memory)
-        }.onFailure {
-            git_credential_free(handler.value)
-            memory.free()
-        }.getOrThrow()
-    }.value!!)
-
-    override val beforeFree: () -> Unit = {
-        git_credential_free(handler)
-    }
-}
-
+@Raw(
+    base = "git_credential",
+    free = "git_credential_free",
+)
 class Credential(
     raw: CredentialRaw,
 ) : GitBase<git_credential, CredentialRaw>(raw) {

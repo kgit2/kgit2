@@ -1,6 +1,7 @@
 package com.kgit2.remote
 
 import cnames.structs.git_remote
+import com.kgit2.annotations.Raw
 import com.kgit2.callback.payload.IndexerProgress
 import com.kgit2.common.error.errorCheck
 import com.kgit2.common.error.toBoolean
@@ -11,7 +12,6 @@ import com.kgit2.common.option.mutually.AutoTagOption
 import com.kgit2.fetch.Direction
 import com.kgit2.fetch.FetchOptions
 import com.kgit2.memory.GitBase
-import com.kgit2.memory.Raw
 import com.kgit2.model.toKString
 import com.kgit2.model.toList
 import com.kgit2.model.withGitBuf
@@ -21,34 +21,10 @@ import com.kgit2.repository.Repository
 import kotlinx.cinterop.*
 import libgit2.*
 
-typealias RemotePointer = CPointer<git_remote>
-
-typealias RemoteSecondaryPointer = CPointerVar<git_remote>
-
-typealias RemoteInitial = RemoteSecondaryPointer.(Memory) -> Unit
-
-class RemoteRaw(
-    memory: Memory,
-    handler: RemotePointer,
-) : Raw<git_remote>(memory, handler) {
-    constructor(
-        memory: Memory = Memory(),
-        handler: RemoteSecondaryPointer = memory.allocPointerTo(),
-        initial: RemoteInitial? = null,
-    ) : this(memory, handler.apply {
-        runCatching {
-            initial?.invoke(handler, memory)
-        }.onFailure {
-            git_remote_free(handler.value!!)
-            memory.free()
-        }.getOrThrow()
-    }.value!!)
-
-    override val beforeFree: () -> Unit = {
-        git_remote_free(handler)
-    }
-}
-
+@Raw(
+    base = "git_remote",
+    free = "git_remote_free",
+)
 class Remote(raw: RemoteRaw) : GitBase<git_remote, RemoteRaw>(raw) {
     constructor(memory: Memory, handler: RemotePointer) : this(RemoteRaw(memory, handler))
 

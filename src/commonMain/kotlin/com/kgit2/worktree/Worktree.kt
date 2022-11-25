@@ -1,44 +1,22 @@
 package com.kgit2.worktree
 
 import cnames.structs.git_worktree
+import com.kgit2.annotations.Raw
 import com.kgit2.common.error.errorCheck
 import com.kgit2.common.memory.Memory
-import com.kgit2.memory.Raw
 import com.kgit2.memory.GitBase
 import com.kgit2.model.toKString
 import com.kgit2.model.withGitBuf
 import com.kgit2.repository.Repository
-import kotlinx.cinterop.*
+import kotlinx.cinterop.allocPointerTo
+import kotlinx.cinterop.ptr
+import kotlinx.cinterop.toKString
 import libgit2.*
 
-typealias WorktreePointer = CPointer<git_worktree>
-
-typealias WorktreeSecondaryPointer = CPointerVar<git_worktree>
-
-typealias WorktreeInitial = WorktreeSecondaryPointer.(Memory) -> Unit
-
-class WorktreeRaw(
-    memory: Memory,
-    handler: WorktreePointer,
-) : Raw<git_worktree>(memory, handler) {
-    constructor(
-        memory: Memory = Memory(),
-        handler: WorktreeSecondaryPointer = memory.allocPointerTo(),
-        initial: WorktreeInitial? = null,
-    ) : this(memory, handler.apply {
-        runCatching {
-            initial?.invoke(handler, memory)
-        }.onFailure {
-            git_worktree_free(handler.value!!)
-            memory.free()
-        }.getOrThrow()
-    }.value!!)
-
-    override val beforeFree: () -> Unit = {
-        git_worktree_free(handler)
-    }
-}
-
+@Raw(
+    base = "git_worktree",
+    free = "git_worktree_free",
+)
 class Worktree(raw: WorktreeRaw) : GitBase<git_worktree, WorktreeRaw>(raw) {
     constructor(memory: Memory, handler: WorktreePointer) : this(WorktreeRaw(memory, handler))
 

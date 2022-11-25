@@ -1,36 +1,25 @@
 package com.kgit2.repository
 
+import com.kgit2.annotations.Raw
 import com.kgit2.common.memory.Memory
 import com.kgit2.memory.GitBase
-import com.kgit2.memory.Raw
 import com.kgit2.`object`.Object
-import kotlinx.cinterop.*
+import kotlinx.cinterop.alloc
+import kotlinx.cinterop.convert
+import kotlinx.cinterop.pointed
+import kotlinx.cinterop.ptr
 import libgit2.*
 
-typealias RevSpecPointer = CPointer<git_revspec>
-
-typealias RevSpecSecondaryPointer = CPointerVar<git_revspec>
-
-typealias RevSpecInitial = RevSpecPointer.(Memory) -> Unit
-
-class RevSpecRaw(
-    memory: Memory = Memory(),
-    handler: RevSpecPointer = memory.alloc<git_revspec>().ptr,
-    initial: RevSpecInitial? = null,
-) : Raw<git_revspec>(memory, handler.apply {
-    runCatching {
-        initial?.invoke(handler, memory)
-    }.onFailure {
-        memory.free()
-    }.getOrThrow()
-})
-
-class RevSpec(raw: RevSpecRaw = RevSpecRaw()) : GitBase<git_revspec, RevSpecRaw>(raw) {
+@Raw(
+    base = "git_revspec",
+    secondaryPointer = false
+)
+class RevSpec(raw: RevspecRaw = RevspecRaw()) : GitBase<git_revspec, RevspecRaw>(raw) {
     constructor(
         memory: Memory = Memory(),
-        handler: RevSpecPointer = memory.alloc<git_revspec>().ptr,
-        initial: RevSpecInitial? = null,
-    ) : this(RevSpecRaw(memory, handler, initial))
+        handler: RevspecPointer = memory.alloc<git_revspec>().ptr,
+        initial: RevspecInitial? = null,
+    ) : this(RevspecRaw(memory, handler, initial))
 
     val from: Object? = raw.handler.pointed.from?.let { Object(Memory(), it) }
     val to: Object? = raw.handler.pointed.to?.let { Object(Memory(), it) }

@@ -3,6 +3,7 @@
 package com.kgit2.repository
 
 import cnames.structs.git_repository
+import com.kgit2.annotations.Raw
 import com.kgit2.blob.Blob
 import com.kgit2.branch.Branch
 import com.kgit2.branch.BranchIterator
@@ -20,7 +21,6 @@ import com.kgit2.config.Config
 import com.kgit2.exception.GitError
 import com.kgit2.exception.GitErrorCode
 import com.kgit2.memory.GitBase
-import com.kgit2.memory.Raw
 import com.kgit2.model.*
 import com.kgit2.`object`.Object
 import com.kgit2.`object`.ObjectType
@@ -38,34 +38,10 @@ import com.kgit2.worktree.Worktree
 import kotlinx.cinterop.*
 import libgit2.*
 
-typealias RepositoryPointer = CPointer<git_repository>
-
-typealias RepositorySecondaryPointer = CPointerVar<git_repository>
-
-typealias RepositoryInitial = RepositorySecondaryPointer.(Memory) -> Unit
-
-class RepositoryRaw(
-    memory: Memory,
-    handler: RepositoryPointer,
-) : Raw<git_repository>(memory, handler) {
-    constructor(
-        memory: Memory = Memory(),
-        handler: RepositorySecondaryPointer = memory.allocPointerTo(),
-        initial: RepositoryInitial? = null,
-    ) : this(memory, handler.apply {
-        runCatching {
-            initial?.invoke(handler, memory)
-        }.onFailure {
-            git_repository_free(handler.value!!)
-            memory.free()
-        }.getOrThrow()
-    }.value!!)
-
-    override val beforeFree: () -> Unit = {
-        git_repository_free(handler)
-    }
-}
-
+@Raw(
+    base = "git_repository",
+    free = "git_repository_free",
+)
 class Repository(raw: RepositoryRaw) : GitBase<git_repository, RepositoryRaw>(raw) {
     constructor(memory: Memory, handler: RepositoryPointer) : this(RepositoryRaw(memory, handler))
 
@@ -76,15 +52,15 @@ class Repository(raw: RepositoryRaw) : GitBase<git_repository, RepositoryRaw>(ra
     ) : this(RepositoryRaw(memory, handler, initial))
 
     companion object {
-        fun initial(path: String, bare: Boolean = false): Repository = Repository() {
+        fun initial(path: String, bare: Boolean = false): Repository = Repository {
             git_repository_init(this.ptr, path, bare.toInt().convert()).errorCheck()
         }
 
-        fun initialExt(path: String, options: RepositoryInitOptions): Repository = Repository() {
+        fun initialExt(path: String, options: RepositoryInitOptions): Repository = Repository {
             git_repository_init_ext(this.ptr, path, options.raw.handler).errorCheck()
         }
 
-        fun open(path: String, bare: Boolean = false): Repository = Repository() {
+        fun open(path: String, bare: Boolean = false): Repository = Repository {
             when (bare) {
                 true -> git_repository_open_bare(this.ptr, path)
                 false -> git_repository_open(this.ptr, path)
@@ -95,15 +71,15 @@ class Repository(raw: RepositoryRaw) : GitBase<git_repository, RepositoryRaw>(ra
             path: String,
             flags: RepositoryOpenFlags = RepositoryOpenFlags.OpenFromENV,
             ceilingDirs: String? = null,
-        ): Repository = Repository() {
+        ): Repository = Repository {
             git_repository_open_ext(this.ptr, path, flags.value, ceilingDirs).errorCheck()
         }
 
-        fun openFromWorktree(worktree: Worktree): Repository = Repository() {
+        fun openFromWorktree(worktree: Worktree): Repository = Repository {
             git_repository_open_from_worktree(this.ptr, worktree.raw.handler).errorCheck()
         }
 
-        fun openFromEnv(): Repository = Repository() {
+        fun openFromEnv(): Repository = Repository {
             git_repository_open_ext(this.ptr, null, RepositoryOpenFlags.OpenFromENV.value, null).errorCheck()
         }
 
@@ -115,19 +91,19 @@ class Repository(raw: RepositoryRaw) : GitBase<git_repository, RepositoryRaw>(ra
             return open(discoverPath)
         }
 
-        fun clone(url: String, localPath: String, cloneOptions: CloneOptions): Repository = Repository() {
+        fun clone(url: String, localPath: String, cloneOptions: CloneOptions): Repository = Repository {
             git_clone(this.ptr, url, localPath, cloneOptions.raw.handler).errorCheck()
         }
 
         fun cloneRecursive(url: String, localPath: String, cloneOptions: CloneOptions): Repository {
-            val repository = Repository() {
+            val repository = Repository {
                 git_clone(this.ptr, url, localPath, cloneOptions.raw.handler).errorCheck()
             }
             repository.Submodule.updateSubmodules()
             return repository
         }
 
-        fun fromOdb(odb: Odb): Repository = Repository() {
+        fun fromOdb(odb: Odb): Repository = Repository {
             git_repository_wrap_odb(this.ptr, odb.raw.handler).errorCheck()
         }
     }
@@ -200,7 +176,7 @@ class Repository(raw: RepositoryRaw) : GitBase<git_repository, RepositoryRaw>(ra
             message: String,
             tree: Tree,
             parents: List<Commit>,
-        ): Commit = Commit() {
+        ): Commit = Commit {
             TODO()
         }
 
@@ -215,7 +191,7 @@ class Repository(raw: RepositoryRaw) : GitBase<git_repository, RepositoryRaw>(ra
             TODO()
         }
 
-        fun commitSigned(commitContent: String, signature: String, signatureField: String?): Oid = Oid() {
+        fun commitSigned(commitContent: String, signature: String, signatureField: String?): Oid = Oid {
             TODO()
         }
 
@@ -241,7 +217,7 @@ class Repository(raw: RepositoryRaw) : GitBase<git_repository, RepositoryRaw>(ra
             }
         }
 
-        fun head(): Reference = Reference() {
+        fun head(): Reference = Reference {
             git_repository_head(this.ptr, raw.handler).errorCheck()
         }
 
@@ -280,7 +256,7 @@ class Repository(raw: RepositoryRaw) : GitBase<git_repository, RepositoryRaw>(ra
     val Merge = MergeModule()
 
     inner class MergeModule {
-         // fun merge(annotatedCommits: Collection<AnnotatedCommit>, mergeOpts: MergeOptions?, checkoutOptions: CheckoutBuilder?) {
+        // fun merge(annotatedCommits: Collection<AnnotatedCommit>, mergeOpts: MergeOptions?, checkoutOptions: CheckoutBuilder?) {
         //    TODO()
         // }
 
@@ -369,7 +345,7 @@ class Repository(raw: RepositoryRaw) : GitBase<git_repository, RepositoryRaw>(ra
     val Branch = BranchModule()
 
     inner class BranchModule {
-        fun createBranch(branchName: String, target: Commit, force: Boolean = false): Branch = Branch() {
+        fun createBranch(branchName: String, target: Commit, force: Boolean = false): Branch = Branch {
             git_branch_create(this.ptr, raw.handler, branchName, target.raw.handler, force.toInt()).errorCheck()
         }
 
@@ -377,7 +353,7 @@ class Repository(raw: RepositoryRaw) : GitBase<git_repository, RepositoryRaw>(ra
             branchName: String,
             annotatedCommit: AnnotatedCommit,
             force: Boolean = false,
-        ): Branch = Branch() {
+        ): Branch = Branch {
             git_branch_create_from_annotated(
                 this.ptr,
                 raw.handler,
@@ -387,11 +363,11 @@ class Repository(raw: RepositoryRaw) : GitBase<git_repository, RepositoryRaw>(ra
             ).errorCheck()
         }
 
-        fun branches(listType: BranchType): BranchIterator = BranchIterator() {
+        fun branches(listType: BranchType): BranchIterator = BranchIterator {
             git_branch_iterator_new(this.ptr, raw.handler, listType.value).errorCheck()
         }
 
-        fun findBranch(name: String, branchType: BranchType): Branch = Branch() {
+        fun findBranch(name: String, branchType: BranchType): Branch = Branch {
             git_branch_lookup(this.ptr, raw.handler, name, branchType.value).errorCheck()
         }
 
@@ -498,7 +474,7 @@ class Repository(raw: RepositoryRaw) : GitBase<git_repository, RepositoryRaw>(ra
     val Status = StatusModule()
 
     inner class StatusModule {
-        fun statusList(options: StatusOptions): StatusList = StatusList() {
+        fun statusList(options: StatusOptions): StatusList = StatusList {
             git_status_list_new(this.ptr, raw.handler, options.raw.handler).errorCheck()
         }
 
@@ -523,19 +499,19 @@ class Repository(raw: RepositoryRaw) : GitBase<git_repository, RepositoryRaw>(ra
             it.toList()
         }
 
-        fun findRemote(name: String): Remote = Remote() {
+        fun findRemote(name: String): Remote = Remote {
             git_remote_lookup(this.ptr, raw.handler, name).errorCheck()
         }
 
-        fun remote(name: String, url: String): Remote = Remote() {
+        fun remote(name: String, url: String): Remote = Remote {
             git_remote_create(this.ptr, raw.handler, name, url).errorCheck()
         }
 
-        fun remoteWithFetch(name: String, url: String, fetch: String): Remote = Remote() {
+        fun remoteWithFetch(name: String, url: String, fetch: String): Remote = Remote {
             git_remote_create_with_fetchspec(this.ptr, raw.handler, name, url, fetch).errorCheck()
         }
 
-        fun remoteAnonymous(url: String): Remote = Remote() {
+        fun remoteAnonymous(url: String): Remote = Remote {
             git_remote_create_anonymous(this.ptr, raw.handler, url).errorCheck()
         }
 
@@ -575,26 +551,26 @@ class Repository(raw: RepositoryRaw) : GitBase<git_repository, RepositoryRaw>(ra
     val Reference = ReferenceModule()
 
     inner class ReferenceModule {
-        fun reference(name: String, id: Oid, force: Boolean, log_message: String): Reference = Reference() {
+        fun reference(name: String, id: Oid, force: Boolean, log_message: String): Reference = Reference {
             git_reference_create(this.ptr, raw.handler, name, id.raw.handler, force.toInt(), log_message).errorCheck()
             TODO()
         }
 
-        fun findReference(name: String): Reference = Reference() {
+        fun findReference(name: String): Reference = Reference {
             git_reference_lookup(this.ptr, raw.handler, name).errorCheck()
             TODO()
         }
 
-        fun references(): ReferenceIterator = ReferenceIterator() {
+        fun references(): ReferenceIterator = ReferenceIterator {
             git_reference_iterator_new(this.ptr, raw.handler).errorCheck()
         }
 
-        fun globReferences(glob: String): ReferenceIterator = ReferenceIterator() {
+        fun globReferences(glob: String): ReferenceIterator = ReferenceIterator {
             git_reference_iterator_glob_new(this.ptr, raw.handler, glob).errorCheck()
         }
 
         fun referenceMatching(name: String, id: Oid, force: Boolean, current_id: Oid, log_message: String): Reference =
-            Reference() {
+            Reference {
                 git_reference_create_matching(
                     this.ptr,
                     raw.handler,
@@ -608,7 +584,7 @@ class Repository(raw: RepositoryRaw) : GitBase<git_repository, RepositoryRaw>(ra
             }
 
         fun referenceSymbolic(name: String, target: String, force: Boolean, log_message: String): Reference =
-            Reference() {
+            Reference {
                 git_reference_symbolic_create(
                     this.ptr,
                     raw.handler,
@@ -626,11 +602,11 @@ class Repository(raw: RepositoryRaw) : GitBase<git_repository, RepositoryRaw>(ra
             force: Boolean,
             currentValue: String,
             log_message: String,
-        ): Reference = Reference() {
+        ): Reference = Reference {
             TODO()
         }
 
-        fun resolveReferenceFromShortName(shortName: String): Reference = Reference() {
+        fun resolveReferenceFromShortName(shortName: String): Reference = Reference {
             TODO()
         }
 
@@ -650,7 +626,7 @@ class Repository(raw: RepositoryRaw) : GitBase<git_repository, RepositoryRaw>(ra
     val Object = ObjectModule()
 
     inner class ObjectModule {
-        fun findObject(oid: Oid, type: ObjectType? = null): Object = Object() {
+        fun findObject(oid: Oid, type: ObjectType? = null): Object = Object {
             git_object_lookup(this.ptr, raw.handler, oid.raw.handler, type?.value ?: ObjectType.Any.value).errorCheck()
             TODO()
         }
@@ -684,7 +660,7 @@ class Repository(raw: RepositoryRaw) : GitBase<git_repository, RepositoryRaw>(ra
     val Config = ConfigModule()
 
     inner class ConfigModule {
-        fun config(): Config = Config() {
+        fun config(): Config = Config {
             git_repository_config(this.ptr, raw.handler).errorCheck()
         }
     }
@@ -692,12 +668,12 @@ class Repository(raw: RepositoryRaw) : GitBase<git_repository, RepositoryRaw>(ra
     val Signature = SignatureModule()
 
     inner class SignatureModule {
-        fun signatureNow(name: String, email: String): Signature = Signature() {
+        fun signatureNow(name: String, email: String): Signature = Signature {
             git_signature_now(this.ptr, name, email).errorCheck()
             TODO()
         }
 
-        fun signatureDefault(): Signature = Signature() {
+        fun signatureDefault(): Signature = Signature {
             git_signature_default(this.ptr, raw.handler).errorCheck()
             TODO()
         }
@@ -742,7 +718,7 @@ class Repository(raw: RepositoryRaw) : GitBase<git_repository, RepositoryRaw>(ra
             val gitCallback: git_submodule_cb = staticCFunction { _, name, payload ->
                 val (repository, submodules) = payload!!.asStableRef<Pair<RepositoryPointer, MutableList<Submodule>>>()
                     .get()
-                submodules.add(Submodule() {
+                submodules.add(Submodule {
                     git_submodule_lookup(this.ptr, repository, name?.toKString()).errorCheck()
                 })
                 0
@@ -776,7 +752,7 @@ class Repository(raw: RepositoryRaw) : GitBase<git_repository, RepositoryRaw>(ra
             git_submodule_set_branch(raw.handler, name, branch).errorCheck()
         }
 
-        fun findSubmodule(name: String): Submodule = Submodule() {
+        fun findSubmodule(name: String): Submodule = Submodule {
             git_submodule_lookup(this.ptr, raw.handler, name).errorCheck()
             TODO()
         }
@@ -950,18 +926,18 @@ class Repository(raw: RepositoryRaw) : GitBase<git_repository, RepositoryRaw>(ra
         //     TODO()
         // }
 
-        fun revParse(spec: String): RevSpec = RevSpec() {
+        fun revParse(spec: String): RevSpec = RevSpec {
             git_revparse(this, raw.handler, spec).errorCheck()
         }
 
-        fun revParseSingle(spec: String) = Object() {
+        fun revParseSingle(spec: String) = Object {
             git_revparse_single(this.ptr, raw.handler, spec).errorCheck()
         }
 
         fun revParseExt(spec: String): Pair<Object, Reference> {
             lateinit var reference: Reference
-            val `object` = Object() {
-                reference = Reference() {
+            val `object` = Object {
+                reference = Reference {
                     git_revparse_ext(this@Object.ptr, this@Reference.ptr, raw.handler, spec).errorCheck()
                 }
             }

@@ -1,49 +1,51 @@
 package com.kgit2.config
 
 import cnames.structs.git_config
+import com.kgit2.annotations.Raw
 import com.kgit2.common.error.errorCheck
 import com.kgit2.common.error.toBoolean
 import com.kgit2.common.error.toInt
 import com.kgit2.common.memory.Memory
 import com.kgit2.memory.GitBase
-import com.kgit2.memory.Raw
 import com.kgit2.model.toKString
 import com.kgit2.model.withGitBuf
 import com.kgit2.repository.Repository
 import kotlinx.cinterop.*
 import libgit2.*
 
-typealias ConfigPointer = CPointer<git_config>
+// typealias ConfigPointer = CPointer<git_config>
+//
+// typealias ConfigSecondaryPointer = CPointerVar<git_config>
+//
+// typealias ConfigInitial = ConfigSecondaryPointer.(Memory) -> Unit
+//
+// class ConfigRaw(
+//     memory: Memory = Memory(),
+//     handler: ConfigPointer = memory.allocPointerTo<git_config>().value!!,
+// ) : Raw<git_config>(memory, handler) {
+//     constructor(
+//         memory: Memory = Memory(),
+//         handler: ConfigSecondaryPointer = memory.allocPointerTo(),
+//         initial: ConfigInitial? = null,
+//     ) : this(memory, handler.apply {
+//         runCatching {
+//             initial?.invoke(handler, memory)
+//         }.onFailure {
+//             git_config_free(handler.value!!)
+//             memory.free()
+//         }.getOrThrow()
+//     }.value!!)
+//
+//     override val beforeFree: () -> Unit = {
+//         git_config_free(handler)
+//     }
+// }
 
-typealias ConfigSecondaryPointer = CPointerVar<git_config>
-
-typealias ConfigInitial = ConfigSecondaryPointer.(Memory) -> Unit
-
-class ConfigRaw(
-    memory: Memory = Memory(),
-    handler: ConfigPointer = memory.allocPointerTo<git_config>().value!!,
-) : Raw<git_config>(memory, handler) {
-    constructor(
-        memory: Memory = Memory(),
-        handler: ConfigSecondaryPointer = memory.allocPointerTo(),
-        initial: ConfigInitial? = null,
-    ) : this(memory, handler.apply {
-        runCatching {
-            initial?.invoke(handler, memory)
-        }.onFailure {
-            git_config_free(handler.value!!)
-            memory.free()
-        }.getOrThrow()
-    }.value!!)
-
-    override val beforeFree: () -> Unit = {
-        git_config_free(handler)
-    }
-}
-
-class Config(
-    raw: ConfigRaw,
-) : GitBase<git_config, ConfigRaw>(raw) {
+@Raw(
+    base = "git_config",
+    free = "git_config_free",
+)
+class Config(raw: ConfigRaw) : GitBase<git_config, ConfigRaw>(raw) {
     constructor(memory: Memory, handler: ConfigPointer) : this(ConfigRaw(memory, handler))
 
     constructor(
@@ -63,11 +65,11 @@ class Config(
         }
     })
 
-    fun openGlobal(): Config = Config() {
+    fun openGlobal(): Config = Config {
         git_config_open_global(this.ptr, raw.handler).errorCheck()
     }
 
-    fun openLevel(level: ConfigLevel): Config = Config() {
+    fun openLevel(level: ConfigLevel): Config = Config {
         git_config_open_level(this.ptr, raw.handler, level.value).errorCheck()
     }
 
@@ -252,15 +254,15 @@ class Config(
         git_config_delete_multivar(raw.handler, name, regexp).errorCheck()
     }
 
-    fun getMultiVar(name: String, regexp: String? = null): ConfigIterator = ConfigIterator() {
+    fun getMultiVar(name: String, regexp: String? = null): ConfigIterator = ConfigIterator {
         git_config_multivar_iterator_new(this.ptr, raw.handler, name, regexp).errorCheck()
     }
 
-    fun getEntry(name: String): ConfigEntry = ConfigEntry() {
+    fun getEntry(name: String): ConfigEntry = ConfigEntry {
         git_config_get_entry(this.ptr, raw.handler, name).errorCheck()
     }
 
-    fun getEntries(glob: String? = null): ConfigIterator = ConfigIterator() {
+    fun getEntries(glob: String? = null): ConfigIterator = ConfigIterator {
         when {
             glob != null -> git_config_iterator_glob_new(this.ptr, raw.handler, glob)
             else -> git_config_iterator_new(this.ptr, raw.handler)
@@ -271,7 +273,7 @@ class Config(
         git_config_delete_entry(raw.handler, name).errorCheck()
     }
 
-    fun snapshot(): Config = Config() {
+    fun snapshot(): Config = Config {
         git_config_snapshot(this.ptr, raw.handler).errorCheck()
     }
 }

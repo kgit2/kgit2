@@ -1,5 +1,6 @@
 package com.kgit2.repository
 
+import com.kgit2.annotations.Raw
 import com.kgit2.callback.RemoteCreateCallback
 import com.kgit2.callback.RepositoryCreateCallback
 import com.kgit2.checkout.CheckoutOptions
@@ -8,29 +9,14 @@ import com.kgit2.common.error.toInt
 import com.kgit2.common.memory.Memory
 import com.kgit2.fetch.FetchOptions
 import com.kgit2.memory.GitBase
-import com.kgit2.memory.Raw
 import com.kgit2.remote.Remote
 import kotlinx.cinterop.*
 import libgit2.git_clone_options
 
-typealias CloneOptionsPointer = CPointer<git_clone_options>
-
-typealias CloneOptionsInitial = CloneOptionsPointer.(Memory) -> Unit
-
-class CloneOptionsRaw(
-    memory: Memory = Memory(),
-    handler: CloneOptionsPointer = memory.alloc<git_clone_options>().ptr,
-    initial: CloneOptionsInitial? = null,
-) : Raw<git_clone_options>(memory, handler) {
-    init {
-        runCatching {
-            initial?.invoke(handler, memory)
-        }.onFailure {
-            memory.free()
-        }.getOrThrow()
-    }
-}
-
+@Raw(
+    base = "git_clone_options",
+    secondaryPointer = false,
+)
 class CloneOptions(raw: CloneOptionsRaw = CloneOptionsRaw()) : GitBase<git_clone_options, CloneOptionsRaw>(raw) {
     constructor(
         memory: Memory = Memory(),
