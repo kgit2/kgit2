@@ -9,8 +9,6 @@ val kommandVersion: String by rootProject
 plugins {
     kotlin("multiplatform")
     id("com.google.devtools.ksp")
-    id("com.demo.plugin") version "1.0-SNAPSHOT"
-    // id("com.kgit2.tools")
 }
 
 apply<ToolsPlugin>()
