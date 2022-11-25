@@ -8,5 +8,5 @@ data class ModuleDataModel(
     val freeOnFailure: String?,
     val shouldFreeOnFailure: Boolean = false,
 ) {
-    val moduleName = CaseFormat.LOWER_HYPHEN.to(CaseFormat.UPPER_CAMEL, git2Name.replace("git_", ""))
+    val moduleName = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, git2Name.replace("git_", ""))
 }

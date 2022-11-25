@@ -12,10 +12,10 @@ class ${module.moduleName}Raw(
         memory: Memory = Memory(),
         handler: ${module.moduleName}SecondaryPointer = memory.allocPointerTo(),
         <#if module.shouldFreeOnFailure>shouldFreeOnFailure: Boolean = true,</#if>
-        initializer: ${module.moduleName}Initial? = null,
+        initial: ${module.moduleName}Initial? = null,
     ) : this(memory, handler.apply {
         runCatching {
-            initializer?.invoke(this, memory)
+            initial?.invoke(handler, memory)
         }.onFailure {
             <#if module.freeOnFailure?has_content>
             <#if module.shouldFreeOnFailure>

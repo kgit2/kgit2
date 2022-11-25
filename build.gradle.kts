@@ -36,6 +36,7 @@ kotlin {
                 // implementation("com.kgit2:bitmask-library:$bitmaskVersion")
             }
             kotlin.srcDirs("build/generated/ksp/metadata/commonMain")
+            kotlin.srcDirs("build/generated/ksp/native/nativeMain/kotlin")
         }
         val commonTest by getting {
             dependencies {
@@ -43,9 +44,7 @@ kotlin {
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:$kotlinXCoroutinesVersion")
             }
         }
-        val nativeMain by getting {
-            kotlin.srcDirs("build/generated/ksp/native/nativeMain/kotlin")
-        }
+        val nativeMain by getting
         val nativeTest by getting
     }
 
