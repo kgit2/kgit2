@@ -1,6 +1,5 @@
 package com.kgit2.odb
 
-import com.kgit2.annotations.InitialPointerType
 import com.kgit2.annotations.Raw
 import com.kgit2.common.error.errorCheck
 import com.kgit2.common.memory.Memory
@@ -16,7 +15,6 @@ import libgit2.git_odb_backend
 
 @Raw(
     base = "git_odb_backend",
-    initialPointer = InitialPointerType.SECONDARY,
 )
 class MemPack(raw: OdbBackendRaw) : GitBase<git_odb_backend, OdbBackendRaw>(raw) {
     constructor(memory: Memory, handler: CPointer<git_odb_backend>) : this(OdbBackendRaw(memory, handler))
