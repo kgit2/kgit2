@@ -1,51 +1,27 @@
 package com.kgit2.status
 
 import cnames.structs.git_status_list
+import com.kgit2.annotations.Raw
 import com.kgit2.common.memory.Memory
 import com.kgit2.memory.GitBase
-import com.kgit2.memory.Raw
 import kotlinx.atomicfu.AtomicInt
 import kotlinx.atomicfu.atomic
-import kotlinx.cinterop.*
+import kotlinx.cinterop.allocPointerTo
+import kotlinx.cinterop.convert
 import libgit2.git_status_byindex
 import libgit2.git_status_list_entrycount
-import libgit2.git_status_list_free
 
-typealias StatusListPointer = CPointer<git_status_list>
-
-typealias StatusListSecondaryPointer = CPointerVar<git_status_list>
-
-typealias StatusListInitial = StatusListSecondaryPointer.(Memory) -> Unit
-
-class StatusListRaw(
-    memory: Memory,
-    handler: StatusListPointer,
-) : Raw<git_status_list>(memory, handler) {
-    constructor(
-        memory: Memory = Memory(),
-        handler: StatusListSecondaryPointer = memory.allocPointerTo(),
-        initial: StatusListInitial? = null,
-    ) : this(memory, handler.apply {
-        runCatching {
-            initial?.invoke(handler, memory)
-        }.onFailure {
-            git_status_list_free(handler.value!!)
-            memory.free()
-        }.getOrThrow()
-    }.value!!)
-
-    override val beforeFree: () -> Unit = {
-        git_status_list_free(handler)
-    }
-}
-
+@Raw(
+    base = "git_status_list",
+    free = "git_status_list_free",
+)
 class StatusList(raw: StatusListRaw) : GitBase<git_status_list, StatusListRaw>(raw), Iterable<StatusEntry> {
     constructor(memory: Memory, handler: StatusListPointer) : this(StatusListRaw(memory, handler))
 
     constructor(
         memory: Memory = Memory(),
         handler: StatusListSecondaryPointer = memory.allocPointerTo(),
-        initial: StatusListInitial? = null
+        initial: StatusListInitial? = null,
     ) : this(StatusListRaw(memory, handler, initial))
 
     operator fun get(index: Int): StatusEntry {

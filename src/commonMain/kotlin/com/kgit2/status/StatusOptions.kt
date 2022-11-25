@@ -45,7 +45,6 @@ class StatusOptions(raw: StatusOptionsRaw) : GitBase<git_status_options, StatusO
         git_status_options_init(this, GIT_STATUS_OPTIONS_VERSION).errorCheck()
     })
 
-
     var show: StatusShow = StatusShow.fromRaw(raw.handler.pointed.show)
         set(value) {
             field = value

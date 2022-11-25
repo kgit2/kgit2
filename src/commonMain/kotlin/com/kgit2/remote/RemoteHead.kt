@@ -1,36 +1,19 @@
 package com.kgit2.remote
 
+import com.kgit2.annotations.Raw
 import com.kgit2.common.error.toBoolean
 import com.kgit2.common.memory.Memory
-import com.kgit2.memory.Raw
 import com.kgit2.memory.GitBase
 import com.kgit2.model.Oid
-import kotlinx.cinterop.*
+import kotlinx.cinterop.allocPointerTo
+import kotlinx.cinterop.pointed
+import kotlinx.cinterop.ptr
+import kotlinx.cinterop.toKString
 import libgit2.git_remote_head
 
-typealias RemoteHeadPointer = CPointer<git_remote_head>
-
-typealias RemoteHeadSecondaryPointer = CPointerVar<git_remote_head>
-
-typealias RemoteHeadInitial = RemoteHeadSecondaryPointer.(Memory) -> Unit
-
-class RemoteHeadRaw(
-    memory: Memory,
-    handler: RemoteHeadPointer,
-) : Raw<git_remote_head>(memory, handler) {
-    constructor(
-        memory: Memory = Memory(),
-        handler: RemoteHeadSecondaryPointer = memory.allocPointerTo(),
-        init: RemoteHeadInitial? = null,
-    ) : this(memory, handler.apply {
-        runCatching {
-            init?.invoke(handler, memory)
-        }.onFailure {
-            memory.free()
-        }.getOrThrow()
-    }.value!!)
-}
-
+@Raw(
+    base = "git_remote_head",
+)
 class RemoteHead(raw: RemoteHeadRaw) : GitBase<git_remote_head, RemoteHeadRaw>(raw) {
     constructor(memory: Memory, handler: RemoteHeadPointer) : this(RemoteHeadRaw(memory, handler))
 

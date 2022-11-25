@@ -1,6 +1,9 @@
 package com.kgit2.status
 
-import libgit2.*
+import libgit2.GIT_STATUS_SHOW_INDEX_AND_WORKDIR
+import libgit2.GIT_STATUS_SHOW_INDEX_ONLY
+import libgit2.GIT_STATUS_SHOW_WORKDIR_ONLY
+import libgit2.git_status_show_t
 
 enum class StatusShow(val value: git_status_show_t) {
     IndexAndWorkDir(GIT_STATUS_SHOW_INDEX_AND_WORKDIR),

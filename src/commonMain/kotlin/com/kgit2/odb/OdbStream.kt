@@ -1,15 +1,9 @@
 package com.kgit2.odb
 
-import com.kgit2.common.memory.Memory
-import kotlinx.cinterop.CPointer
-import kotlinx.cinterop.CPointerVar
-import libgit2.git_odb_stream
+import com.kgit2.annotations.Raw
 
-typealias OdbStreamPointer = CPointer<git_odb_stream>
-
-typealias OdbStreamSecondaryPointer = CPointerVar<git_odb_stream>
-
-typealias OdbStreamInitial = OdbStreamSecondaryPointer.(Memory) -> Unit
-
-class OdbStream {
-}
+@Raw(
+    base = "git_odb_stream",
+    free = "git_odb_stream_free"
+)
+class OdbStream

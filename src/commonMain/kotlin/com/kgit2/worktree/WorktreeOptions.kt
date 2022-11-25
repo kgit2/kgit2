@@ -2,10 +2,12 @@ package com.kgit2.worktree
 
 import com.kgit2.common.error.errorCheck
 import com.kgit2.common.memory.Memory
-import com.kgit2.memory.Raw
 import com.kgit2.memory.GitBase
+import com.kgit2.memory.Raw
 import kotlinx.cinterop.*
-import libgit2.*
+import libgit2.GIT_WORKTREE_PRUNE_OPTIONS_VERSION
+import libgit2.git_worktree_prune_options
+import libgit2.git_worktree_prune_options_init
 
 typealias WorktreePruneOptionsPointer = CPointer<git_worktree_prune_options>
 
@@ -33,7 +35,8 @@ class WorktreePruneOptionsRaw(
     // }.value!!)
 }
 
-class WorktreePruneOptions(raw: WorktreePruneOptionsRaw) : GitBase<git_worktree_prune_options, WorktreePruneOptionsRaw>(raw) {
+class WorktreePruneOptions(raw: WorktreePruneOptionsRaw) :
+    GitBase<git_worktree_prune_options, WorktreePruneOptionsRaw>(raw) {
     constructor(memory: Memory, handler: WorktreePruneOptionsPointer) : this(WorktreePruneOptionsRaw(memory, handler))
 
     private fun flag(flag: WorktreePruneOptionsFlag, on: Boolean): WorktreePruneOptions {
@@ -48,5 +51,6 @@ class WorktreePruneOptions(raw: WorktreePruneOptionsRaw) : GitBase<git_worktree_
 
     fun locked(locked: Boolean): WorktreePruneOptions = flag(WorktreePruneOptionsFlag.Locked, locked)
 
-    fun workingTree(workingTree: Boolean): WorktreePruneOptions = flag(WorktreePruneOptionsFlag.WorkingTree, workingTree)
+    fun workingTree(workingTree: Boolean): WorktreePruneOptions =
+        flag(WorktreePruneOptionsFlag.WorkingTree, workingTree)
 }

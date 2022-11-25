@@ -1,5 +1,6 @@
 package com.kgit2.checkout
 
+import com.kgit2.annotations.Raw
 import com.kgit2.callback.CheckoutNotifyCallback
 import com.kgit2.callback.CheckoutProgressCallback
 import com.kgit2.common.error.errorCheck
@@ -9,7 +10,6 @@ import com.kgit2.common.memory.Memory
 import com.kgit2.common.option.mutually.FileMode
 import com.kgit2.common.option.mutually.FileOpenFlags
 import com.kgit2.diff.DiffFile
-import com.kgit2.memory.Raw
 import com.kgit2.memory.GitBase
 import com.kgit2.model.toList
 import kotlinx.cinterop.*
@@ -17,27 +17,14 @@ import libgit2.GIT_CHECKOUT_OPTIONS_VERSION
 import libgit2.git_checkout_options
 import libgit2.git_checkout_options_init
 
-typealias CheckoutOptionsPointer = CPointer<git_checkout_options>
-
-typealias CheckoutOptionsSecondaryPointer = CPointerVar<git_checkout_options>
-
-typealias CheckoutOptionsInitial = CheckoutOptionsPointer.(Memory) -> Unit
-
-class CheckoutOptionsRaw(
-    memory: Memory = Memory(),
-    handler: CheckoutOptionsPointer = memory.alloc<git_checkout_options>().ptr,
-) : Raw<git_checkout_options>(memory, handler) {
-    init {
-        runCatching {
-            git_checkout_options_init(handler.getPointer(memory), GIT_CHECKOUT_OPTIONS_VERSION).errorCheck()
-        }.onFailure {
-            memory.free()
-        }.getOrThrow()
-    }
-}
-
+@Raw(
+    base = "git_checkout_options",
+    secondaryPointer = false,
+)
 class CheckoutOptions(
-    raw: CheckoutOptionsRaw = CheckoutOptionsRaw(),
+    raw: CheckoutOptionsRaw = CheckoutOptionsRaw {
+        git_checkout_options_init(this.getPointer(it), GIT_CHECKOUT_OPTIONS_VERSION).errorCheck()
+    },
 ) : GitBase<git_checkout_options, CheckoutOptionsRaw>(raw) {
     constructor(memory: Memory, handler: CheckoutOptionsPointer) : this(CheckoutOptionsRaw(memory, handler))
 

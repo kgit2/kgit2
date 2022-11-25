@@ -1,45 +1,25 @@
 package com.kgit2.tree
 
+import cnames.structs.git_tree_entry
+import com.kgit2.annotations.Raw
 import com.kgit2.common.error.toBoolean
 import com.kgit2.common.memory.Memory
 import com.kgit2.common.option.mutually.FileMode
-import com.kgit2.memory.Raw
 import com.kgit2.memory.GitBase
 import com.kgit2.model.Oid
 import com.kgit2.`object`.Object
 import com.kgit2.`object`.ObjectType
 import com.kgit2.repository.Repository
-import kotlinx.cinterop.*
+import kotlinx.cinterop.CPointer
+import kotlinx.cinterop.allocPointerTo
+import kotlinx.cinterop.ptr
+import kotlinx.cinterop.toKString
 import libgit2.*
 
-typealias TreeEntryPointer = CPointer<git_tree_entry>
-
-typealias TreeEntrySecondaryPointer = CPointerVar<git_tree_entry>
-
-typealias TreeEntryInitial = TreeEntrySecondaryPointer.(Memory) -> Unit
-
-class TreeEntryRaw(
-    memory: Memory,
-    handler: CPointer<git_tree_entry>,
-) : Raw<git_tree_entry>(memory, handler) {
-    constructor(
-        memory: Memory = Memory(),
-        handler: TreeEntrySecondaryPointer = memory.allocPointerTo(),
-        initial: TreeEntryInitial? = null,
-    ) : this(memory, handler.apply {
-        runCatching {
-            initial?.invoke(handler, memory)
-        }.onFailure {
-            git_tree_entry_free(handler.value!!)
-            memory.free()
-        }.getOrThrow()
-    }.value!!)
-
-    override val beforeFree: () -> Unit = {
-        git_tree_entry_free(handler)
-    }
-}
-
+@Raw(
+    base = "git_tree_entry",
+    free = "git_tree_entry_free",
+)
 class TreeEntry(raw: TreeEntryRaw) : GitBase<git_tree_entry, TreeEntryRaw>(raw) {
     constructor(memory: Memory, handler: CPointer<git_tree_entry>) : this(TreeEntryRaw(memory, handler))
 
@@ -59,11 +39,11 @@ class TreeEntry(raw: TreeEntryRaw) : GitBase<git_tree_entry, TreeEntryRaw>(raw) 
 
     val fileModeRaw: FileMode = FileMode.fromRaw(git_tree_entry_filemode_raw(raw.handler))
 
-    fun toObject(repository: Repository) = Object() {
+    fun toObject(repository: Repository) = Object {
         git_tree_entry_to_object(this.ptr, repository.raw.handler, raw.handler)
     }
 
-    fun clone() = TreeEntry() {
+    fun clone() = TreeEntry {
         git_tree_entry_dup(this.ptr, raw.handler)
     }
 

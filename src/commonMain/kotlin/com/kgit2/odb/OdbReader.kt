@@ -3,51 +3,23 @@ package com.kgit2.odb
 import com.kgit2.common.error.errorCheck
 import com.kgit2.common.memory.Memory
 import com.kgit2.memory.GitBase
-import com.kgit2.memory.Raw
-import kotlinx.cinterop.*
+import kotlinx.cinterop.allocPointerTo
+import kotlinx.cinterop.convert
+import kotlinx.cinterop.refTo
 import libgit2.git_odb_stream
-import libgit2.git_odb_stream_free
 import libgit2.git_odb_stream_read
 import okio.Buffer
 import okio.Source
 import okio.Timeout
 
-typealias OdbReaderPointer = CPointer<git_odb_stream>
-
-typealias OdbReaderSecondaryPointer = CPointerVar<git_odb_stream>
-
-typealias OdbReaderInitial = OdbReaderSecondaryPointer.(Memory) -> Unit
-
-class OdbReaderRaw(
-    memory: Memory = Memory(),
-    handler: OdbReaderPointer = memory.alloc<git_odb_stream>().ptr,
-) : Raw<git_odb_stream>(memory, handler) {
-    constructor(
-        memory: Memory = Memory(),
-        handler: OdbReaderSecondaryPointer = memory.allocPointerTo(),
-        initial: OdbReaderInitial? = null,
-    ) : this(memory, handler.apply {
-        runCatching {
-            initial?.invoke(handler, memory)
-        }.onFailure {
-            memory.free()
-        }.getOrThrow()
-    }.value!!)
-
-    override val beforeFree: () -> Unit = {
-        git_odb_stream_free(handler)
-    }
-}
-
-
-class OdbReader(raw: OdbReaderRaw) : GitBase<git_odb_stream, OdbReaderRaw>(raw), Source {
-    constructor(memory: Memory, handler: CPointer<git_odb_stream>) : this(OdbReaderRaw(memory, handler))
+class OdbReader(raw: OdbStreamRaw) : GitBase<git_odb_stream, OdbStreamRaw>(raw), Source {
+    constructor(memory: Memory, handler: OdbStreamPointer) : this(OdbStreamRaw(memory, handler))
 
     constructor(
         memory: Memory = Memory(),
-        handler: OdbReaderSecondaryPointer = memory.allocPointerTo(),
-        initial: OdbReaderInitial? = null,
-    ) : this(OdbReaderRaw(memory, handler, initial))
+        handler: OdbStreamSecondaryPointer = memory.allocPointerTo(),
+        initial: OdbStreamInitial? = null,
+    ) : this(OdbStreamRaw(memory, handler, initial))
 
     /**
      * Closes this source and releases the resources held by this source. It is an error to read a

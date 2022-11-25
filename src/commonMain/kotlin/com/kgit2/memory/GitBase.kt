@@ -4,8 +4,8 @@ import kotlinx.cinterop.CPointed
 import kotlin.native.internal.Cleaner
 import kotlin.native.internal.createCleaner
 
-abstract class GitBase<T: CPointed, R: Raw<T>>(
-    protected val _raw: R
+abstract class GitBase<T : CPointed, R : Raw<T>>(
+    protected val _raw: R,
 ) {
     val raw: R = _raw
         get() {

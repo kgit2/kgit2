@@ -1,6 +1,5 @@
 package com.kgit2.utils
 
-import com.kgit2.KGit2
 import io.github.aakira.napier.Napier
 import okio.FileHandle
 import okio.FileSystem

@@ -1,9 +1,9 @@
 package com.kgit2.commit
 
 import cnames.structs.git_commit
+import com.kgit2.annotations.Raw
 import com.kgit2.common.error.errorCheck
 import com.kgit2.common.memory.Memory
-import com.kgit2.memory.Raw
 import com.kgit2.memory.GitBase
 import com.kgit2.model.Oid
 import com.kgit2.`object`.Object
@@ -14,50 +14,24 @@ import com.kgit2.tree.Tree
 import kotlinx.cinterop.*
 import libgit2.*
 
-typealias CommitPointer = CPointer<git_commit>
-
-typealias CommitSecondaryPointer = CPointerVar<git_commit>
-
-typealias CommitInitial = CommitSecondaryPointer.(Memory) -> Unit
-
-class CommitRaw(
-    memory: Memory,
-    handler: CommitPointer,
-) : Raw<git_commit>(memory, handler) {
-    constructor(
-        memory: Memory = Memory(),
-        handler: CommitSecondaryPointer = memory.allocPointerTo<git_commit>(),
-        initial: CommitInitial? = null,
-    ) : this(memory, handler.apply {
-        runCatching {
-            initial?.invoke(handler, memory)
-        }.onFailure {
-            git_commit_free(handler.value!!)
-            memory.free()
-        }.getOrThrow()
-    }.value!!)
-
-    override val beforeFree: () -> Unit = {
-        git_commit_free(handler)
-    }
-}
-
-class Commit(
-    raw: CommitRaw,
-) : GitBase<git_commit, CommitRaw>(raw) {
+@Raw(
+    base = "git_commit",
+    free = "git_commit_free",
+)
+class Commit(raw: CommitRaw) : GitBase<git_commit, CommitRaw>(raw) {
     constructor(memory: Memory, handler: CommitPointer) : this(CommitRaw(memory, handler))
 
     constructor(
         memory: Memory = Memory(),
         handler: CommitSecondaryPointer = memory.allocPointerTo<git_commit>(),
-        initial: CommitInitial? = null
+        initial: CommitInitial? = null,
     ) : this(CommitRaw(memory, handler, initial))
 
     val id: Oid = Oid(Memory(), git_commit_id(raw.handler)!!)
 
     val treeId: Oid = Oid(Memory(), git_commit_tree_id(raw.handler)!!)
 
-    val tree: Tree = Tree() {
+    val tree: Tree = Tree {
         git_commit_tree(this.ptr, raw.handler).errorCheck()
     }
 
@@ -79,7 +53,7 @@ class Commit(
 
     val parents: List<Commit> = run {
         (0 until parentCount.convert()).fold(mutableListOf()) { prev, i ->
-            val commit = CommitRaw() { git_commit_parent(this.ptr, raw.handler, i.convert()).errorCheck() }
+            val commit = CommitRaw { git_commit_parent(this.ptr, raw.handler, i.convert()).errorCheck() }
             prev.add(Commit(commit))
             prev
         }
@@ -87,13 +61,13 @@ class Commit(
 
     val author: Signature = Signature(Memory(), git_commit_author(raw.handler)!!)
 
-    fun authorWithMailMap(mailMap: MailMap): Signature = Signature() {
+    fun authorWithMailMap(mailMap: MailMap): Signature = Signature {
         git_commit_author_with_mailmap(this.ptr, raw.handler, mailMap.raw.handler).errorCheck()
     }
 
     val committer: Signature = Signature(Memory(), git_commit_committer(raw.handler)!!)
 
-    fun committerWithMailMap(mailMap: MailMap) = Signature() {
+    fun committerWithMailMap(mailMap: MailMap) = Signature {
         git_commit_committer_with_mailmap(ptr, raw.handler, mailMap.raw.handler).errorCheck()
     }
 

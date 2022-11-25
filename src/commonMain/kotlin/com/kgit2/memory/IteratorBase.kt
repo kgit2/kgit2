@@ -1,10 +1,10 @@
 package com.kgit2.memory
 
-import com.kgit2.exception.GitErrorCode
 import com.kgit2.exception.GitError
+import com.kgit2.exception.GitErrorCode
 import kotlinx.cinterop.CPointed
 
-abstract class IteratorBase<T: CPointed, R: Raw<T>, E>(raw: R) : GitBase<T, R>(raw), Iterator<E> {
+abstract class IteratorBase<T : CPointed, R : Raw<T>, E>(raw: R) : GitBase<T, R>(raw), Iterator<E> {
     var next: E? = null
 
     abstract fun nextRaw(): Result<E>

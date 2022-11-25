@@ -1,40 +1,23 @@
 package com.kgit2.certificate
 
+import com.kgit2.annotations.Raw
 import com.kgit2.common.memory.Memory
-import com.kgit2.memory.Raw
 import com.kgit2.memory.GitBase
-import kotlinx.cinterop.*
+import kotlinx.cinterop.pointed
+import kotlinx.cinterop.readBytes
+import kotlinx.cinterop.reinterpret
+import kotlinx.cinterop.toKString
 import libgit2.git_cert_hostkey
 
-typealias CertHostKeyPointer = CPointer<git_cert_hostkey>
+@Raw(
+    base = "git_cert_hostkey",
+)
+class CertHostKey(raw: CertHostkeyRaw) : GitBase<git_cert_hostkey, CertHostkeyRaw>(raw) {
+    constructor(memory: Memory, handler: CertHostkeyPointer) : this(CertHostkeyRaw(memory, handler))
 
-typealias CertHostKeySecondaryPointer = CPointerVar<git_cert_hostkey>
-
-typealias CertHostKeyInitial = CertHostKeySecondaryPointer.(Memory) -> Unit
-
-class CertHostKeyRaw(
-    memory: Memory,
-    handler: CertHostKeyPointer,
-) : Raw<git_cert_hostkey>(memory, handler) {
-    constructor(
-        memory: Memory = Memory(),
-        handler: CertHostKeySecondaryPointer = memory.allocPointerTo(),
-        initial: CertHostKeyInitial? = null,
-    ) : this(memory, handler.apply {
-        runCatching {
-            initial?.invoke(handler, memory)
-        }.onFailure {
-            memory.free()
-        }.getOrThrow()
-    }.value!!)
-}
-
-class CertHostKey(
-    raw: CertHostKeyRaw,
-) : GitBase<git_cert_hostkey, CertHostKeyRaw>(raw) {
-    constructor(memory: Memory, handler: CertHostKeyPointer) : this(CertHostKeyRaw(memory, handler))
-
-    constructor(memory: Memory, handler: CertHostKeySecondaryPointer, initial: CertHostKeyInitial?) : this(CertHostKeyRaw(memory, handler.reinterpret(), initial))
+    constructor(memory: Memory, handler: CertHostkeySecondaryPointer, initial: CertHostkeyInitial?) : this(
+        CertHostkeyRaw(memory, handler.reinterpret(), initial)
+    )
 
     val type = CertSSHType.fromRaw(raw.handler.pointed.type)
 

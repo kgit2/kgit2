@@ -1,36 +1,22 @@
 package com.kgit2.remote
 
 import cnames.structs.git_refspec
+import com.kgit2.annotations.Raw
 import com.kgit2.common.error.errorCheck
 import com.kgit2.common.memory.Memory
 import com.kgit2.fetch.Direction
-import com.kgit2.memory.Raw
 import com.kgit2.memory.GitBase
 import com.kgit2.model.toKString
 import com.kgit2.model.withGitBuf
-import kotlinx.cinterop.CPointer
-import kotlinx.cinterop.CPointerVar
 import kotlinx.cinterop.toKString
 import libgit2.*
 
-typealias RefspecPointer = CPointer<git_refspec>
-
-typealias RefspecSecondaryPointer = CPointerVar<git_refspec>
-
-typealias RefspecInitial = RefspecSecondaryPointer.(Memory) -> Unit
-
-class RefspecRaw(
-    memory: Memory,
-    handler: RefspecPointer,
-) : Raw<git_refspec>(memory, handler) {
-    override val beforeFree: () -> Unit = {
-        git_refspec_free(handler)
-    }
-}
-
-
+@Raw(
+    base = "git_refspec",
+    free = "git_refspec_free"
+)
 class Refspec(
-    raw: RefspecRaw
+    raw: RefspecRaw,
 ) : GitBase<git_refspec, RefspecRaw>(raw) {
     constructor(memory: Memory, handler: RefspecPointer) : this(RefspecRaw(memory, handler))
 

@@ -46,7 +46,10 @@ class OdbPackWriter(
     raw: OdbPackWriterRaw,
     protected val progress: Progress,
 ) : GitBase<git_odb_writepack, OdbPackWriterRaw>(raw), Sink {
-    constructor(memory: Memory, handler: CPointer<git_odb_writepack>) : this(OdbPackWriterRaw(memory, handler), Progress())
+    constructor(memory: Memory, handler: CPointer<git_odb_writepack>) : this(
+        OdbPackWriterRaw(memory, handler),
+        Progress()
+    )
 
     constructor(
         memory: Memory = Memory(),

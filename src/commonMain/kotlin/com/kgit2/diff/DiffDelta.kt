@@ -1,41 +1,24 @@
 package com.kgit2.diff
 
+import com.kgit2.annotations.Raw
 import com.kgit2.common.memory.Memory
 import com.kgit2.memory.GitBase
-import com.kgit2.memory.Raw
-import kotlinx.cinterop.*
+import kotlinx.cinterop.allocPointerTo
+import kotlinx.cinterop.pointed
+import kotlinx.cinterop.ptr
+import kotlinx.cinterop.toKString
 import libgit2.git_diff_delta
 
-typealias DiffDeltaPointer = CPointer<git_diff_delta>
-
-typealias DiffDeltaSecondaryPointer = CPointerVar<git_diff_delta>
-
-typealias DiffDeltaInitial = DiffDeltaSecondaryPointer.(Memory) -> Unit
-
-class DiffDeltaRaw(
-    memory: Memory,
-    handler: DiffDeltaPointer,
-) : Raw<git_diff_delta>(memory, handler) {
-    constructor(
-        memory: Memory = Memory(),
-        handler: DiffDeltaSecondaryPointer = memory.allocPointerTo(),
-        initial: DiffDeltaInitial? = null,
-    ) : this(memory, handler.apply {
-        runCatching {
-            initial?.invoke(handler, memory)
-        }.onFailure {
-            memory.free()
-        }.getOrThrow()
-    }.value!!)
-}
-
+@Raw(
+    base = "git_diff_delta",
+)
 class DiffDelta(raw: DiffDeltaRaw) : GitBase<git_diff_delta, DiffDeltaRaw>(raw) {
     constructor(memory: Memory, handler: DiffDeltaPointer) : this(DiffDeltaRaw(memory, handler))
 
     constructor(
         memory: Memory = Memory(),
         handler: DiffDeltaSecondaryPointer = memory.allocPointerTo(),
-        initial: DiffDeltaInitial? = null
+        initial: DiffDeltaInitial? = null,
     ) : this(DiffDeltaRaw(memory, handler, initial))
 
     val path: String = raw.handler.pointed.new_file.path!!.toKString()

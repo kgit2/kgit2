@@ -1,42 +1,23 @@
 package com.kgit2.status
 
+import com.kgit2.annotations.Raw
 import com.kgit2.common.memory.Memory
 import com.kgit2.diff.DiffDelta
 import com.kgit2.memory.GitBase
-import com.kgit2.memory.Raw
-import kotlinx.cinterop.*
+import kotlinx.cinterop.allocPointerTo
+import kotlinx.cinterop.pointed
 import libgit2.git_status_entry
 
-typealias StatusEntryPointer = CPointer<git_status_entry>
-
-typealias StatusEntrySecondaryPointer = CPointerVar<git_status_entry>
-
-typealias StatusEntryInitial = StatusEntrySecondaryPointer.(Memory) -> Unit
-
-class StatusEntryRaw(
-    memory: Memory,
-    handler: StatusEntryPointer,
-) : Raw<git_status_entry>(memory, handler) {
-    constructor(
-        memory: Memory = Memory(),
-        handler: StatusEntrySecondaryPointer = memory.allocPointerTo(),
-        initial: StatusEntryInitial? = null,
-    ) : this(memory, handler.apply {
-        runCatching {
-            initial?.invoke(handler, memory)
-        }.onFailure {
-            memory.free()
-        }.getOrThrow()
-    }.value!!)
-}
-
+@Raw(
+    base = "git_status_entry"
+)
 class StatusEntry(raw: StatusEntryRaw) : GitBase<git_status_entry, StatusEntryRaw>(raw) {
     constructor(memory: Memory, handler: StatusEntryPointer) : this(StatusEntryRaw(memory, handler))
 
     constructor(
         memory: Memory = Memory(),
         handler: StatusEntrySecondaryPointer = memory.allocPointerTo(),
-        initial: StatusEntryInitial? = null
+        initial: StatusEntryInitial? = null,
     ) : this(StatusEntryRaw(memory, handler, initial))
 
     val headToIndex: DiffDelta? = raw.handler.pointed.head_to_index?.let {

@@ -1,37 +1,20 @@
 package com.kgit2.fetch
 
+import com.kgit2.annotations.Raw
 import com.kgit2.common.memory.Memory
 import com.kgit2.common.option.mutually.AutoTagOption
-import com.kgit2.memory.Raw
 import com.kgit2.memory.GitBase
 import com.kgit2.model.toList
 import com.kgit2.proxy.ProxyOptions
 import com.kgit2.remote.RemoteCallbacks
 import com.kgit2.remote.RemoteRedirect
 import kotlinx.cinterop.*
-import libgit2.GIT_FETCH_OPTIONS_VERSION
 import libgit2.git_fetch_options
-import libgit2.git_fetch_options_init
 
-typealias FetchOptionsPointer = CPointer<git_fetch_options>
-
-typealias FetchOptionsSecondaryPointer = CPointerVar<git_fetch_options>
-
-typealias FetchOptionsInitial = FetchOptionsSecondaryPointer.(Memory) -> Unit
-
-class FetchOptionsRaw(
-    memory: Memory = Memory(),
-    handler: FetchOptionsPointer = memory.alloc<git_fetch_options>().ptr,
-) : Raw<git_fetch_options>(memory, handler) {
-    init {
-        runCatching {
-            git_fetch_options_init(handler, GIT_FETCH_OPTIONS_VERSION)
-        }.onFailure {
-            memory.free()
-        }.getOrThrow()
-    }
-}
-
+@Raw(
+    base = "git_fetch_options",
+    secondaryPointer = false,
+)
 class FetchOptions(
     raw: FetchOptionsRaw = FetchOptionsRaw(),
 ) : GitBase<git_fetch_options, FetchOptionsRaw>(raw) {

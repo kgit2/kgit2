@@ -11,7 +11,7 @@ import kotlinx.cinterop.CVariable
 
 typealias BeforeFree = () -> Unit
 
-abstract class Raw<T: CPointed> (
+abstract class Raw<T : CPointed>(
     val memory: Memory,
     val handler: CPointer<T>,
 ) : FreeAble {
