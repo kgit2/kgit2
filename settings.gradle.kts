@@ -1,4 +1,10 @@
 pluginManagement {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+
     val kotlinVersion: String by settings
     val kspVersion: String by settings
     plugins {
@@ -6,11 +12,6 @@ pluginManagement {
         kotlin("multiplatform") version kotlinVersion apply false
         id("org.jetbrains.dokka") version kotlinVersion apply false
         id("com.google.devtools.ksp") version kspVersion apply false
-    }
-
-    repositories {
-        mavenCentral()
-        gradlePluginPortal()
     }
 }
 
