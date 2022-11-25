@@ -24,7 +24,9 @@ buildCache {
 
 rootProject.name = "kgit2"
 
-include(":core")
+// include(":core")
+include(":annotations")
+include(":ksp")
 
 // val bitmask = File(settingsDir,"../bitmask")
 // if (bitmask.exists()) {

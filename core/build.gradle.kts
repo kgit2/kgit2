@@ -36,8 +36,10 @@ kotlin {
                 implementation("io.ktor:ktor-client-core:2.1.2")
                 implementation("io.github.aakira:napier:2.6.1")
                 implementation("com.kgit2:kommand:$kommandVersion")
+                implementation(project(":annotations"))
                 // implementation("com.kgit2:bitmask-library:$bitmaskVersion")
             }
+            kotlin.srcDirs("build/generated/ksp/metadata/commonMain")
         }
         val commonTest by getting {
             dependencies {
@@ -45,7 +47,9 @@ kotlin {
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:$kotlinXCoroutinesVersion")
             }
         }
-        val nativeMain by getting
+        val nativeMain by getting {
+            kotlin.srcDirs("build/generated/ksp/native/nativeMain/kotlin")
+        }
         val nativeTest by getting
     }
 
@@ -71,10 +75,12 @@ kotlin {
     }
 }
 
-// dependencies {
-//     add("kspCommonMainMetadata", "com.kgit2:bitmask-processor:$kspVersion")
-//     add("kspNative", "com.kgit2:bitmask-processor:$kspVersion")
-// }
+dependencies {
+    // add("kspCommonMainMetadata", "com.kgit2:bitmask-processor:$kspVersion")
+    // add("kspNative", "com.kgit2:bitmask-processor:$kspVersion")
+    // add("kspCommonMainMetadata", project(":ksp"))
+    // add("kspNative", project(":ksp"))
+}
 
 tasks {
     val generateDef by registering {
