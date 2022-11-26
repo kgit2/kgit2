@@ -16,7 +16,7 @@ import kotlinx.cinterop.toKString
 import libgit2.*
 
 @Raw(
-    base = "git_tag",
+    base = git_tag::class,
     free = "git_tag_free",
 )
 class Tag(raw: TagRaw) : GitBase<git_tag, TagRaw>(raw) {
@@ -24,9 +24,9 @@ class Tag(raw: TagRaw) : GitBase<git_tag, TagRaw>(raw) {
 
     constructor(
         memory: Memory = Memory(),
-        handler: TagSecondaryPointer = memory.allocPointerTo(),
-        initial: TagInitial? = null,
-    ) : this(TagRaw(memory, handler, initial))
+        secondary: TagSecondaryPointer = memory.allocPointerTo(),
+        secondaryInitial: TagSecondaryInitial? = null,
+    ) : this(TagRaw(memory, secondary, secondaryInitial))
 
     val id: Oid = Oid(Memory(), git_tag_id(raw.handler)!!)
 

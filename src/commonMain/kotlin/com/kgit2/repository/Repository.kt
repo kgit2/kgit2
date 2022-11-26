@@ -39,7 +39,7 @@ import kotlinx.cinterop.*
 import libgit2.*
 
 @Raw(
-    base = "git_repository",
+    base = git_repository::class,
     free = "git_repository_free",
 )
 class Repository(raw: RepositoryRaw) : GitBase<git_repository, RepositoryRaw>(raw) {
@@ -47,9 +47,9 @@ class Repository(raw: RepositoryRaw) : GitBase<git_repository, RepositoryRaw>(ra
 
     constructor(
         memory: Memory = Memory(),
-        handler: RepositorySecondaryPointer = memory.allocPointerTo(),
-        initial: RepositoryInitial? = null,
-    ) : this(RepositoryRaw(memory, handler, initial))
+        secondary: RepositorySecondaryPointer = memory.allocPointerTo(),
+        secondaryInitial: RepositorySecondaryInitial? = null,
+    ) : this(RepositoryRaw(memory, secondary, secondaryInitial))
 
     companion object {
         fun initial(path: String, bare: Boolean = false): Repository = Repository {

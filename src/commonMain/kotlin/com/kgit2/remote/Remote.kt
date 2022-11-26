@@ -22,7 +22,7 @@ import kotlinx.cinterop.*
 import libgit2.*
 
 @Raw(
-    base = "git_remote",
+    base = git_remote::class,
     free = "git_remote_free",
 )
 class Remote(raw: RemoteRaw) : GitBase<git_remote, RemoteRaw>(raw) {
@@ -30,9 +30,9 @@ class Remote(raw: RemoteRaw) : GitBase<git_remote, RemoteRaw>(raw) {
 
     constructor(
         memory: Memory = Memory(),
-        handler: RemoteSecondaryPointer = memory.allocPointerTo(),
-        initial: RemoteInitial? = null,
-    ) : this(RemoteRaw(memory, handler, initial))
+        secondary: RemoteSecondaryPointer = memory.allocPointerTo(),
+        secondaryInitial: RemoteSecondaryInitial? = null,
+    ) : this(RemoteRaw(memory, secondary, secondaryInitial))
 
     /**
      * @param repository if null, will create a detached remote
@@ -44,7 +44,7 @@ class Remote(raw: RemoteRaw) : GitBase<git_remote, RemoteRaw>(raw) {
         repository: Repository? = null,
         fetch: String? = null,
         name: String? = null,
-    ) : this(initial = {
+    ) : this(secondaryInitial = {
         when {
             repository == null -> git_remote_create_detached(this.ptr, url)
             fetch != null -> git_remote_create_with_fetchspec(this.ptr, repository.raw.handler, name, url, fetch)

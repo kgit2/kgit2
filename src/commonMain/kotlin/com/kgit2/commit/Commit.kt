@@ -15,7 +15,7 @@ import kotlinx.cinterop.*
 import libgit2.*
 
 @Raw(
-    base = "git_commit",
+    base = git_commit::class,
     free = "git_commit_free",
 )
 class Commit(raw: CommitRaw) : GitBase<git_commit, CommitRaw>(raw) {
@@ -23,9 +23,9 @@ class Commit(raw: CommitRaw) : GitBase<git_commit, CommitRaw>(raw) {
 
     constructor(
         memory: Memory = Memory(),
-        handler: CommitSecondaryPointer = memory.allocPointerTo<git_commit>(),
-        initial: CommitInitial? = null,
-    ) : this(CommitRaw(memory, handler, initial))
+        secondary: CommitSecondaryPointer = memory.allocPointerTo<git_commit>(),
+        secondaryInitial: CommitSecondaryInitial? = null,
+    ) : this(CommitRaw(memory, secondary, secondaryInitial))
 
     val id: Oid = Oid(Memory(), git_commit_id(raw.handler)!!)
 
@@ -47,7 +47,7 @@ class Commit(raw: CommitRaw) : GitBase<git_commit, CommitRaw>(raw) {
 
     val body: String = git_commit_body(raw.handler)!!.toKString()
 
-    val time: Time = Time(raw.memory, git_commit_time(raw.handler), git_commit_time_offset(raw.handler))
+    val time: Time = Time(git_commit_time(raw.handler), git_commit_time_offset(raw.handler))
 
     val parentCount: UInt = git_commit_parentcount(raw.handler)
 

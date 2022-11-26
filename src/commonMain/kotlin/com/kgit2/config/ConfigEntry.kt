@@ -9,7 +9,7 @@ import kotlinx.cinterop.toKString
 import libgit2.git_config_entry
 
 @Raw(
-    base = "git_config_entry",
+    base = git_config_entry::class,
     free = "git_config_entry_free",
     shouldFreeOnFailure = true,
 )
@@ -18,10 +18,10 @@ class ConfigEntry(raw: ConfigEntryRaw) : GitBase<git_config_entry, ConfigEntryRa
 
     constructor(
         memory: Memory = Memory(),
-        handler: ConfigEntrySecondaryPointer = memory.allocPointerTo(),
+        secondary: ConfigEntrySecondaryPointer = memory.allocPointerTo(),
         shouldFreeOnFailure: Boolean = true,
-        initializer: ConfigEntryInitial? = null,
-    ) : this(ConfigEntryRaw(memory, handler, shouldFreeOnFailure, initializer))
+        secondaryInitial: ConfigEntrySecondaryInitial? = null,
+    ) : this(ConfigEntryRaw(memory, secondary, shouldFreeOnFailure, secondaryInitial))
 
     /**
      * The name of the entry.

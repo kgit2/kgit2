@@ -12,16 +12,16 @@ import kotlinx.cinterop.toKString
 import libgit2.git_remote_head
 
 @Raw(
-    base = "git_remote_head",
+    base = git_remote_head::class,
 )
 class RemoteHead(raw: RemoteHeadRaw) : GitBase<git_remote_head, RemoteHeadRaw>(raw) {
     constructor(memory: Memory, handler: RemoteHeadPointer) : this(RemoteHeadRaw(memory, handler))
 
     constructor(
         memory: Memory = Memory(),
-        handler: RemoteHeadSecondaryPointer = memory.allocPointerTo(),
-        init: RemoteHeadInitial? = null,
-    ) : this(RemoteHeadRaw(memory, handler, init))
+        secondary: RemoteHeadSecondaryPointer = memory.allocPointerTo(),
+        secondaryInitial: RemoteHeadSecondaryInitial? = null,
+    ) : this(RemoteHeadRaw(memory, secondary, secondaryInitial))
 
     val isLocal: Boolean = raw.handler.pointed.local.toBoolean()
 

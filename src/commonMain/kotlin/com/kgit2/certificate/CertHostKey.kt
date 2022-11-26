@@ -10,14 +10,14 @@ import kotlinx.cinterop.toKString
 import libgit2.git_cert_hostkey
 
 @Raw(
-    base = "git_cert_hostkey",
+    base = git_cert_hostkey::class,
 )
 class CertHostKey(raw: CertHostkeyRaw) : GitBase<git_cert_hostkey, CertHostkeyRaw>(raw) {
-    constructor(memory: Memory, handler: CertHostkeyPointer) : this(CertHostkeyRaw(memory, handler))
-
-    constructor(memory: Memory, handler: CertHostkeySecondaryPointer, initial: CertHostkeyInitial?) : this(
-        CertHostkeyRaw(memory, handler.reinterpret(), initial)
-    )
+    constructor(
+        memory: Memory,
+        handler: CertHostkeyPointer,
+        initial: CertHostkeyInitial? = null,
+    ) : this(CertHostkeyRaw(memory, handler, initial))
 
     val type = CertSSHType.fromRaw(raw.handler.pointed.type)
 

@@ -7,7 +7,6 @@ import com.kgit2.common.memory.Memory
 import com.kgit2.memory.GitBase
 import com.kgit2.model.Oid
 import com.kgit2.`object`.Object
-import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.convert
 import kotlinx.cinterop.readBytes
 import kotlinx.cinterop.reinterpret
@@ -17,16 +16,13 @@ import libgit2.git_blob_rawcontent
 import libgit2.git_blob_rawsize
 
 @Raw(
-    base = "git_blob",
+    base = git_blob::class,
     free = "git_blob_free",
 )
 class Blob(
     raw: BlobRaw,
 ) : GitBase<git_blob, BlobRaw>(raw) {
-    constructor(
-        memory: Memory,
-        handler: CPointer<git_blob>,
-    ) : this(BlobRaw(memory, handler))
+    constructor(memory: Memory, handler: BlobPointer) : this(BlobRaw(memory, handler))
 
     val id: Oid = Oid(raw.memory, git_blob_id(raw.handler)!!)
 

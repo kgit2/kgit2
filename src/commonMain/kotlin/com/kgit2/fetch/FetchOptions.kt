@@ -12,8 +12,7 @@ import kotlinx.cinterop.*
 import libgit2.git_fetch_options
 
 @Raw(
-    base = "git_fetch_options",
-    secondaryPointer = false,
+    base = git_fetch_options::class,
 )
 class FetchOptions(
     raw: FetchOptionsRaw = FetchOptionsRaw(),

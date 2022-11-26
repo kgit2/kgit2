@@ -10,7 +10,7 @@ import kotlinx.cinterop.ptr
 import libgit2.*
 
 @Raw(
-    base = "git_credential",
+    base = git_credential::class,
     free = "git_credential_free",
 )
 class Credential(
@@ -18,21 +18,21 @@ class Credential(
 ) : GitBase<git_credential, CredentialRaw>(raw) {
     constructor(memory: Memory, handler: CredentialPointer) : this(CredentialRaw(memory, handler))
 
-    constructor() : this(CredentialRaw(initial = { git_credential_default_new(this.ptr) }))
-
     constructor(
         memory: Memory = Memory(),
-        handler: CredentialSecondaryPointer = memory.allocPointerTo(),
-        initial: CredentialInitial? = null,
-    ) : this(CredentialRaw(memory, handler, initial))
+        secondary: CredentialSecondaryPointer = memory.allocPointerTo(),
+        secondaryInitial: CredentialSecondaryInitial? = null,
+    ) : this(CredentialRaw(memory, secondary = secondary, secondaryInitial = secondaryInitial))
 
-    constructor(username: String, password: String? = null, fromAgent: Boolean = false) : this(CredentialRaw(initial = {
+    constructor() : this(secondaryInitial = { git_credential_default_new(this.ptr) })
+
+    constructor(username: String, password: String? = null, fromAgent: Boolean = false) : this(secondaryInitial = {
         when {
             password != null -> git_credential_userpass_plaintext_new(this.ptr, username, password)
             fromAgent -> git_credential_ssh_key_from_agent(this.ptr, username)
             else -> git_credential_username_new(this.ptr, username)
         }.errorCheck()
-    }))
+    })
 
     constructor(
         username: String,
@@ -40,12 +40,12 @@ class Credential(
         privateKey: String,
         passphrase: String?,
         fromMemory: Boolean = false,
-    ) : this(CredentialRaw(initial = {
+    ) : this(secondaryInitial = {
         when (fromMemory) {
             true -> git_cred_ssh_key_memory_new(this.ptr, username, publicKey, privateKey, passphrase)
             false -> git_cred_ssh_key_new(this.ptr, username, publicKey, privateKey, passphrase)
         }.errorCheck()
-    }))
+    })
 
     constructor(
         config: Config,

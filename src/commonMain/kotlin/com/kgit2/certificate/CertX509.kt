@@ -9,18 +9,14 @@ import kotlinx.cinterop.reinterpret
 import libgit2.git_cert_x509
 
 @Raw(
-    base = "git_cert_x509",
+    base = git_cert_x509::class,
 )
 class CertX509(raw: CertX509Raw) : GitBase<git_cert_x509, CertX509Raw>(raw) {
-    constructor(memory: Memory, handler: CertX509Pointer) : this(CertX509Raw(memory, handler))
-
-    constructor(memory: Memory, handler: CertX509SecondaryPointer, initial: CertX509Initial?) : this(
-        CertX509Raw(
-            memory,
-            handler.reinterpret(),
-            initial
-        )
-    )
+    constructor(
+        memory: Memory,
+        handler: CertX509Pointer,
+        initial: CertX509Initial? = null,
+    ) : this(CertX509Raw(memory, handler, initial))
 
     val data = raw.handler.pointed.data?.readBytes(raw.handler.pointed.len.toInt())
 }

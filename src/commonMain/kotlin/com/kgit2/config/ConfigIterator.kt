@@ -10,7 +10,7 @@ import libgit2.git_config_iterator
 import libgit2.git_config_next
 
 @Raw(
-    base = "git_config_iterator",
+    base = git_config_iterator::class,
     free = "git_config_iterator_free",
 )
 class ConfigIterator(raw: ConfigIteratorRaw) : IteratorBase<git_config_iterator, ConfigIteratorRaw, ConfigEntry>(raw) {
@@ -18,9 +18,9 @@ class ConfigIterator(raw: ConfigIteratorRaw) : IteratorBase<git_config_iterator,
 
     constructor(
         memory: Memory = Memory(),
-        handler: ConfigIteratorSecondaryPointer = memory.allocPointerTo(),
-        initializer: ConfigIteratorInitial? = null,
-    ) : this(ConfigIteratorRaw(memory, handler, initializer))
+        secondary: ConfigIteratorSecondaryPointer = memory.allocPointerTo(),
+        secondaryInitial: ConfigIteratorSecondaryInitial? = null,
+    ) : this(ConfigIteratorRaw(memory, secondary = secondary, secondaryInitial = secondaryInitial))
 
     override fun nextRaw(): Result<ConfigEntry> = runCatching {
         ConfigEntry(shouldFreeOnFailure = false) {

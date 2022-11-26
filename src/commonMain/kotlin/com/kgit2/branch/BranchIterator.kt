@@ -13,7 +13,7 @@ import libgit2.git_branch_next
 import libgit2.git_branch_tVar
 
 @Raw(
-    base = "git_branch_iterator",
+    base = git_branch_iterator::class,
     free = "git_branch_iterator_free",
 )
 class BranchIterator(raw: BranchIteratorRaw) : IteratorBase<git_branch_iterator, BranchIteratorRaw, Branch>(raw) {
@@ -21,13 +21,13 @@ class BranchIterator(raw: BranchIteratorRaw) : IteratorBase<git_branch_iterator,
 
     constructor(
         memory: Memory = Memory(),
-        handler: BranchIteratorSecondaryPointer = memory.allocPointerTo(),
-        initial: BranchIteratorInitial? = null,
-    ) : this(BranchIteratorRaw(memory, handler, initial))
+        secondary: BranchIteratorSecondaryPointer = memory.allocPointerTo(),
+        secondaryInitial: BranchIteratorSecondaryInitial? = null,
+    ) : this(BranchIteratorRaw(memory, secondary, secondaryInitial))
 
     override fun nextRaw(): Result<Branch> = runCatching {
-        Branch { memory ->
-            val type = memory.alloc<git_branch_tVar>()
+        Branch {
+            val type = it.alloc<git_branch_tVar>()
             git_branch_next(this.ptr, type.ptr, raw.handler).errorCheck()
         }
     }

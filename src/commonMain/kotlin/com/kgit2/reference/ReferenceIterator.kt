@@ -10,18 +10,17 @@ import libgit2.git_reference_iterator
 import libgit2.git_reference_next
 
 @Raw(
-    base = "git_reference_iterator",
+    base = git_reference_iterator::class,
     free = "git_reference_iterator_free"
 )
-class ReferenceIterator(raw: ReferenceIteratorRaw) :
-    IteratorBase<git_reference_iterator, ReferenceIteratorRaw, Reference>(raw) {
+class ReferenceIterator(raw: ReferenceIteratorRaw) : IteratorBase<git_reference_iterator, ReferenceIteratorRaw, Reference>(raw) {
     constructor(memory: Memory, handler: ReferenceIteratorPointer) : this(ReferenceIteratorRaw(memory, handler))
 
     constructor(
         memory: Memory = Memory(),
-        handler: ReferenceIteratorSecondaryPointer = memory.allocPointerTo(),
-        initial: ReferenceIteratorInitial? = null,
-    ) : this(ReferenceIteratorRaw(memory, handler, initial))
+        secondary: ReferenceIteratorSecondaryPointer = memory.allocPointerTo(),
+        secondaryInitial: ReferenceIteratorSecondaryInitial? = null,
+    ) : this(ReferenceIteratorRaw(memory, secondary, secondaryInitial))
 
     override fun nextRaw(): Result<Reference> = runCatching {
         Reference {

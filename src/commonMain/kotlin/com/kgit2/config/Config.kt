@@ -42,7 +42,7 @@ import libgit2.*
 // }
 
 @Raw(
-    base = "git_config",
+    base = git_config::class,
     free = "git_config_free",
 )
 class Config(raw: ConfigRaw) : GitBase<git_config, ConfigRaw>(raw) {
@@ -50,15 +50,15 @@ class Config(raw: ConfigRaw) : GitBase<git_config, ConfigRaw>(raw) {
 
     constructor(
         memory: Memory = Memory(),
-        handler: ConfigSecondaryPointer = memory.allocPointerTo(),
-        initial: ConfigInitial?,
-    ) : this(ConfigRaw(memory, handler, initial))
+        secondary: ConfigSecondaryPointer = memory.allocPointerTo(),
+        secondaryInitial: ConfigSecondaryInitial?,
+    ) : this(ConfigRaw(memory, secondary, secondaryInitial))
 
-    constructor(path: String) : this(initial = {
+    constructor(path: String) : this(secondaryInitial = {
         git_config_open_ondisk(this.ptr, path).errorCheck()
     })
 
-    constructor(default: Boolean = false) : this(initial = {
+    constructor(default: Boolean = false) : this(secondaryInitial = {
         when (default) {
             true -> git_config_open_default(this.ptr).errorCheck()
             false -> git_config_new(this.ptr).errorCheck()

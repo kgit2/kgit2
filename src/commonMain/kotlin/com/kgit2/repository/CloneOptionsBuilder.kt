@@ -14,8 +14,7 @@ import kotlinx.cinterop.*
 import libgit2.git_clone_options
 
 @Raw(
-    base = "git_clone_options",
-    secondaryPointer = false,
+    base = git_clone_options::class,
 )
 class CloneOptions(raw: CloneOptionsRaw = CloneOptionsRaw()) : GitBase<git_clone_options, CloneOptionsRaw>(raw) {
     constructor(

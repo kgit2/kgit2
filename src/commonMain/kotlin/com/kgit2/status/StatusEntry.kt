@@ -9,16 +9,16 @@ import kotlinx.cinterop.pointed
 import libgit2.git_status_entry
 
 @Raw(
-    base = "git_status_entry"
+    base = git_status_entry::class,
 )
 class StatusEntry(raw: StatusEntryRaw) : GitBase<git_status_entry, StatusEntryRaw>(raw) {
     constructor(memory: Memory, handler: StatusEntryPointer) : this(StatusEntryRaw(memory, handler))
 
     constructor(
         memory: Memory = Memory(),
-        handler: StatusEntrySecondaryPointer = memory.allocPointerTo(),
-        initial: StatusEntryInitial? = null,
-    ) : this(StatusEntryRaw(memory, handler, initial))
+        secondary: StatusEntrySecondaryPointer = memory.allocPointerTo(),
+        secondaryInitial: StatusEntrySecondaryInitial? = null,
+    ) : this(StatusEntryRaw(memory, secondary, secondaryInitial))
 
     val headToIndex: DiffDelta? = raw.handler.pointed.head_to_index?.let {
         DiffDelta(Memory(), it)

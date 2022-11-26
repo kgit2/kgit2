@@ -13,7 +13,7 @@ import kotlinx.cinterop.toKString
 import libgit2.*
 
 @Raw(
-    base = "git_annotated_commit",
+    base = git_annotated_commit::class,
     free = "git_annotated_commit_free",
 )
 class AnnotatedCommit(raw: AnnotatedCommitRaw) : GitBase<git_annotated_commit, AnnotatedCommitRaw>(raw) {
@@ -21,19 +21,19 @@ class AnnotatedCommit(raw: AnnotatedCommitRaw) : GitBase<git_annotated_commit, A
 
     constructor(
         memory: Memory = Memory(),
-        handler: AnnotatedCommitSecondaryPointer = memory.allocPointerTo(),
-        initial: AnnotatedCommitInitial? = null,
-    ) : this(AnnotatedCommitRaw(memory, handler, initial))
+        secondary: AnnotatedCommitSecondaryPointer = memory.allocPointerTo(),
+        secondaryInitial: AnnotatedCommitSecondaryInitial? = null,
+    ) : this(AnnotatedCommitRaw(memory, secondary, secondaryInitial))
 
-    constructor(repository: Repository, reference: Reference) : this(initial = {
+    constructor(repository: Repository, reference: Reference) : this(secondaryInitial = {
         git_annotated_commit_from_ref(this.ptr, repository.raw.handler, reference.raw.handler)
     })
 
-    constructor(repository: Repository, branchName: String, remoteUrl: String, id: Oid) : this(initial = {
+    constructor(repository: Repository, branchName: String, remoteUrl: String, id: Oid) : this(secondaryInitial = {
         git_annotated_commit_from_fetchhead(this.ptr, repository.raw.handler, branchName, remoteUrl, id.raw.handler)
     })
 
-    constructor(repository: Repository, refspec: String) : this(initial = {
+    constructor(repository: Repository, refspec: String) : this(secondaryInitial = {
         git_annotated_commit_from_revspec(this.ptr, repository.raw.handler, refspec)
     })
 

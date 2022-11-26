@@ -12,13 +12,12 @@ import libgit2.git_repository_init_init_options
 import libgit2.git_repository_init_options
 
 @Raw(
-    base = "git_repository_init_options",
-    secondaryPointer = false,
+    base = git_repository_init_options::class,
 )
 class RepositoryInitOptions(
-    raw: RepositoryInitOptionsRaw = RepositoryInitOptionsRaw {
+    raw: RepositoryInitOptionsRaw = RepositoryInitOptionsRaw(initial = {
         git_repository_init_init_options(this, GIT_REPOSITORY_INIT_OPTIONS_VERSION).errorCheck()
-    },
+    }),
 ) : GitBase<git_repository_init_options, RepositoryInitOptionsRaw>(raw) {
     constructor(memory: Memory, handler: RepositoryInitOptionsPointer) : this(RepositoryInitOptionsRaw(memory, handler))
 

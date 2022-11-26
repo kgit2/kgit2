@@ -7,7 +7,7 @@ import com.kgit2.remote.Remote
 import libgit2.git_transport
 
 @Raw(
-    base = "git_transport",
+    base = git_transport::class,
 )
 class Transport(raw: TransportRaw) : GitBase<git_transport, TransportRaw>(raw) {
     constructor(memory: Memory, handler: TransportPointer) : this(TransportRaw(memory, handler))

@@ -14,7 +14,7 @@ import kotlinx.cinterop.toKString
 import libgit2.*
 
 @Raw(
-    base = "git_submodule",
+    base = git_submodule::class,
     free = "git_submodule_free",
 )
 class Submodule(raw: SubmoduleRaw) : GitBase<git_submodule, SubmoduleRaw>(raw) {
@@ -22,9 +22,9 @@ class Submodule(raw: SubmoduleRaw) : GitBase<git_submodule, SubmoduleRaw>(raw) {
 
     constructor(
         memory: Memory = Memory(),
-        handler: SubmoduleSecondaryPointer = memory.allocPointerTo(),
-        initial: SubmoduleInitial? = null,
-    ) : this(SubmoduleRaw(memory, handler, initial))
+        secondary: SubmoduleSecondaryPointer = memory.allocPointerTo(),
+        secondaryInitial: SubmoduleSecondaryInitial? = null,
+    ) : this(SubmoduleRaw(memory, secondary, secondaryInitial))
 
     val name: String? = git_submodule_name(raw.handler)?.toKString()
 
