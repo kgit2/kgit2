@@ -10,16 +10,16 @@ import kotlinx.cinterop.toKString
 import libgit2.git_diff_delta
 
 @Raw(
-    base = "git_diff_delta",
+    base = git_diff_delta::class,
 )
 class DiffDelta(raw: DiffDeltaRaw) : GitBase<git_diff_delta, DiffDeltaRaw>(raw) {
     constructor(memory: Memory, handler: DiffDeltaPointer) : this(DiffDeltaRaw(memory, handler))
 
     constructor(
         memory: Memory = Memory(),
-        handler: DiffDeltaSecondaryPointer = memory.allocPointerTo(),
-        initial: DiffDeltaInitial? = null,
-    ) : this(DiffDeltaRaw(memory, handler, initial))
+        secondary: DiffDeltaSecondaryPointer = memory.allocPointerTo(),
+        secondaryInitial: DiffDeltaSecondaryInitial? = null,
+    ) : this(DiffDeltaRaw(memory, secondary, secondaryInitial))
 
     val path: String = raw.handler.pointed.new_file.path!!.toKString()
 

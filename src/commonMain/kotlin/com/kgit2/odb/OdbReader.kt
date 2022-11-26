@@ -17,9 +17,9 @@ class OdbReader(raw: OdbStreamRaw) : GitBase<git_odb_stream, OdbStreamRaw>(raw),
 
     constructor(
         memory: Memory = Memory(),
-        handler: OdbStreamSecondaryPointer = memory.allocPointerTo(),
-        initial: OdbStreamInitial? = null,
-    ) : this(OdbStreamRaw(memory, handler, initial))
+        secondary: OdbStreamSecondaryPointer = memory.allocPointerTo(),
+        secondaryInitial: OdbStreamSecondaryInitial? = null,
+    ) : this(OdbStreamRaw(memory, secondary, secondaryInitial))
 
     /**
      * Closes this source and releases the resources held by this source. It is an error to read a

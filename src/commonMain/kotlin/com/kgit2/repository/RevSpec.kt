@@ -11,8 +11,7 @@ import kotlinx.cinterop.ptr
 import libgit2.*
 
 @Raw(
-    base = "git_revspec",
-    secondaryPointer = false
+    base = git_revspec::class,
 )
 class RevSpec(raw: RevspecRaw = RevspecRaw()) : GitBase<git_revspec, RevspecRaw>(raw) {
     constructor(

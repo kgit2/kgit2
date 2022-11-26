@@ -7,10 +7,7 @@ import com.kgit2.common.error.toInt
 import com.kgit2.common.memory.Memory
 import com.kgit2.common.memory.memoryScoped
 import com.kgit2.memory.GitBase
-import com.kgit2.reference.ReferenceInitial
-import com.kgit2.reference.ReferencePointer
-import com.kgit2.reference.ReferenceRaw
-import com.kgit2.reference.ReferenceSecondaryPointer
+import com.kgit2.reference.*
 import kotlinx.cinterop.*
 import libgit2.*
 
@@ -19,9 +16,9 @@ class Branch(raw: ReferenceRaw) : GitBase<git_reference, ReferenceRaw>(raw) {
 
     constructor(
         memory: Memory = Memory(),
-        handler: ReferenceSecondaryPointer = memory.allocPointerTo(),
-        initial: ReferenceInitial? = null,
-    ) : this(ReferenceRaw(memory, handler, initial))
+        secondary: ReferenceSecondaryPointer = memory.allocPointerTo(),
+        secondaryInitial: ReferenceSecondaryInitial? = null,
+    ) : this(ReferenceRaw(memory, secondary, secondaryInitial))
 
     val name: String = memoryScoped {
         val name = allocPointerTo<ByteVar>()

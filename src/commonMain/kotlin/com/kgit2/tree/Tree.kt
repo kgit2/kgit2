@@ -12,7 +12,7 @@ import kotlinx.cinterop.*
 import libgit2.*
 
 @Raw(
-    base = "git_tree",
+    base = git_tree::class,
     free = "git_tree_free",
 )
 class Tree(raw: TreeRaw) : GitBase<git_tree, TreeRaw>(raw) {
@@ -20,9 +20,9 @@ class Tree(raw: TreeRaw) : GitBase<git_tree, TreeRaw>(raw) {
 
     constructor(
         memory: Memory = Memory(),
-        handler: TreeSecondaryPointer = memory.allocPointerTo(),
-        initial: TreeInitial? = null,
-    ) : this(TreeRaw(memory, handler, initial))
+        secondary: TreeSecondaryPointer = memory.allocPointerTo(),
+        secondaryInitial: TreeSecondaryInitial? = null,
+    ) : this(TreeRaw(memory, secondary, secondaryInitial))
 
     val id: Oid = Oid(Memory(), git_tree_id(raw.handler)!!)
 

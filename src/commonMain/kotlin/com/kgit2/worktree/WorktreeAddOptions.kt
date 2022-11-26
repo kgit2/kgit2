@@ -13,13 +13,12 @@ import libgit2.git_worktree_add_options
 import libgit2.git_worktree_add_options_init
 
 @Raw(
-    base = "git_worktree_add_options",
-    secondaryPointer = false
+    base = git_worktree_add_options::class,
 )
 class WorktreeAddOptions(
-    raw: WorktreeAddOptionsRaw = WorktreeAddOptionsRaw {
+    raw: WorktreeAddOptionsRaw = WorktreeAddOptionsRaw(initial = {
         git_worktree_add_options_init(this, GIT_WORKTREE_ADD_OPTIONS_VERSION).errorCheck()
-    },
+    }),
 ) : GitBase<git_worktree_add_options, WorktreeAddOptionsRaw>(raw) {
     constructor(memory: Memory, handler: WorktreeAddOptionsPointer) : this(WorktreeAddOptionsRaw(memory, handler))
 

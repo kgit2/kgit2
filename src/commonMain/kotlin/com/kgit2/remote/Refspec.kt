@@ -12,12 +12,10 @@ import kotlinx.cinterop.toKString
 import libgit2.*
 
 @Raw(
-    base = "git_refspec",
+    base = git_refspec::class,
     free = "git_refspec_free"
 )
-class Refspec(
-    raw: RefspecRaw,
-) : GitBase<git_refspec, RefspecRaw>(raw) {
+class Refspec(raw: RefspecRaw) : GitBase<git_refspec, RefspecRaw>(raw) {
     constructor(memory: Memory, handler: RefspecPointer) : this(RefspecRaw(memory, handler))
 
     val direction = Direction.fromRaw(git_refspec_direction(raw.handler))

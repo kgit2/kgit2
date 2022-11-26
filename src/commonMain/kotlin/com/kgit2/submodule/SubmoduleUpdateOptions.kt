@@ -13,13 +13,12 @@ import libgit2.git_submodule_update_options
 import libgit2.git_submodule_update_options_init
 
 @Raw(
-    base = "git_submodule_update_options",
-    secondaryPointer = false,
+    base = git_submodule_update_options::class,
 )
 class SubmoduleUpdateOptions(
-    raw: SubmoduleUpdateOptionsRaw = SubmoduleUpdateOptionsRaw {
+    raw: SubmoduleUpdateOptionsRaw = SubmoduleUpdateOptionsRaw(initial = {
         git_submodule_update_options_init(this, GIT_SUBMODULE_UPDATE_OPTIONS_VERSION)
-    },
+    }),
 ) : GitBase<git_submodule_update_options, SubmoduleUpdateOptionsRaw>(raw) {
     constructor(memory: Memory, handler: SubmoduleUpdateOptionsPointer) : this(
         SubmoduleUpdateOptionsRaw(

@@ -15,7 +15,7 @@ import libgit2.git_note_id
 import libgit2.git_note_message
 
 @Raw(
-    base = "git_note",
+    base = git_note::class,
     free = "git_note_free",
 )
 class Note(raw: NoteRaw) : GitBase<git_note, NoteRaw>(raw) {
@@ -23,9 +23,9 @@ class Note(raw: NoteRaw) : GitBase<git_note, NoteRaw>(raw) {
 
     constructor(
         memory: Memory = Memory(),
-        handler: NoteSecondaryPointer = memory.allocPointerTo(),
-        initial: NoteInitial? = null,
-    ) : this(NoteRaw(memory, handler, initial))
+        secondary: NoteSecondaryPointer = memory.allocPointerTo(),
+        secondaryInitial: NoteSecondaryInitial? = null,
+    ) : this(NoteRaw(memory, secondary, secondaryInitial))
 
     val author = Signature { this.value = git_note_author(raw.handler) }
 

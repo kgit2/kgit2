@@ -9,7 +9,7 @@ import kotlinx.cinterop.ptr
 import libgit2.git_push_options
 
 @Raw(
-    base = "git_push_options",
+    base = git_push_options::class,
 )
 class PushOptions(
     raw: PushOptionsRaw = PushOptionsRaw(),

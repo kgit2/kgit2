@@ -12,8 +12,7 @@ import kotlinx.cinterop.toKString
 import libgit2.git_diff_file
 
 @Raw(
-    base = "git_diff_file",
-    secondaryPointer = false,
+    base = git_diff_file::class,
 )
 class DiffFile(raw: DiffFileRaw) : GitBase<git_diff_file, DiffFileRaw>(raw) {
     constructor(memory: Memory, handler: DiffFilePointer) : this(DiffFileRaw(memory, handler))

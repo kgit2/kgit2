@@ -18,15 +18,18 @@ import libgit2.git_checkout_options
 import libgit2.git_checkout_options_init
 
 @Raw(
-    base = "git_checkout_options",
-    secondaryPointer = false,
+    base = git_checkout_options::class,
 )
 class CheckoutOptions(
-    raw: CheckoutOptionsRaw = CheckoutOptionsRaw {
+    raw: CheckoutOptionsRaw = CheckoutOptionsRaw(initial = {
         git_checkout_options_init(this.getPointer(it), GIT_CHECKOUT_OPTIONS_VERSION).errorCheck()
-    },
+    }),
 ) : GitBase<git_checkout_options, CheckoutOptionsRaw>(raw) {
-    constructor(memory: Memory, handler: CheckoutOptionsPointer) : this(CheckoutOptionsRaw(memory, handler))
+    constructor(
+        memory: Memory,
+        handler: CheckoutOptionsPointer,
+        initial: CheckoutOptionsInitial? = null,
+    ) : this(CheckoutOptionsRaw(memory, handler, initial))
 
     var strategy: CheckoutStrategyOpts = CheckoutStrategyOpts(raw.handler.pointed.checkout_strategy)
         set(value) {

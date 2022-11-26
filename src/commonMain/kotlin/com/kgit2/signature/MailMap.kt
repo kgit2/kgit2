@@ -15,26 +15,18 @@ import kotlin.native.internal.Cleaner
 import kotlin.native.internal.createCleaner
 
 @Raw(
-    base = "git_mailmap",
+    base = git_mailmap::class,
     free = "git_mailmap_free",
 )
 class MailMap(raw: MailmapRaw) : GitBase<git_mailmap, MailmapRaw>(raw) {
     constructor(memory: Memory, handler: MailmapPointer) : this(MailmapRaw(memory, handler))
 
-    constructor(buf: String? = null) : this(
-        MailmapRaw { memory ->
-            runCatching {
-                when (buf) {
-                    null -> git_mailmap_new(ptr).errorCheck()
-                    else -> git_mailmap_from_buffer(ptr, buf, buf.length.convert())
-                }
-            }.onFailure {
-                memory.free()
-            }.getOrThrow()
+    constructor(buf: String? = null) : this(MailmapRaw {
+        when (buf) {
+            null -> git_mailmap_new(ptr).errorCheck()
+            else -> git_mailmap_from_buffer(ptr, buf, buf.length.convert())
         }
-    )
-
-    override val cleaner: Cleaner = createCleaner(raw) { raw.free() }
+    })
 
     fun addEntry(realName: String, realEmail: String, replaceName: String, replaceEmail: String) {
         git_mailmap_add_entry(raw.handler, realName, realEmail, replaceName, replaceEmail).errorCheck()

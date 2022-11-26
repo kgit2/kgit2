@@ -15,7 +15,7 @@ import kotlinx.cinterop.*
 import libgit2.*
 
 @Raw(
-    base = "git_odb",
+    base = git_odb::class,
     free = "git_odb_free"
 )
 class Odb(raw: OdbRaw) : GitBase<git_odb, OdbRaw>(raw) {
@@ -23,11 +23,11 @@ class Odb(raw: OdbRaw) : GitBase<git_odb, OdbRaw>(raw) {
 
     constructor(
         memory: Memory = Memory(),
-        handler: OdbSecondaryPointer = memory.allocPointerTo(),
-        initial: OdbInitial? = null,
-    ) : this(OdbRaw(memory, handler, initial))
+        secondary: OdbSecondaryPointer = memory.allocPointerTo(),
+        secondaryInitial: OdbSecondaryInitial? = null,
+    ) : this(OdbRaw(memory, secondary, secondaryInitial))
 
-    constructor() : this(initial = {
+    constructor() : this(secondaryInitial = {
         git_odb_new(this.ptr).errorCheck()
     })
 

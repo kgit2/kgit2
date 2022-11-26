@@ -14,7 +14,7 @@ import libgit2.git_odb_object_size
 import libgit2.git_odb_object_type
 
 @Raw(
-    base = "git_odb_object",
+    base = git_odb_object::class,
     free = "git_odb_object_free",
 )
 class OdbObject(
@@ -24,9 +24,9 @@ class OdbObject(
 
     constructor(
         memory: Memory = Memory(),
-        handler: OdbObjectSecondaryPointer = memory.allocPointerTo(),
-        initial: OdbObjectInitial? = null,
-    ) : this(OdbObjectRaw(memory, handler, initial))
+        secondary: OdbObjectSecondaryPointer = memory.allocPointerTo(),
+        secondaryInitial: OdbObjectSecondaryInitial? = null,
+    ) : this(OdbObjectRaw(memory, secondary, secondaryInitial))
 
     val oid: Oid = Oid(Memory(), git_odb_object_id(raw.handler)!!)
 

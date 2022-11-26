@@ -18,7 +18,7 @@ import kotlinx.cinterop.*
 import libgit2.*
 
 @Raw(
-    base = "git_reference",
+    base = git_reference::class,
     free = "git_reference_free",
 )
 class Reference(raw: ReferenceRaw) : GitBase<git_reference, ReferenceRaw>(raw) {
@@ -26,9 +26,9 @@ class Reference(raw: ReferenceRaw) : GitBase<git_reference, ReferenceRaw>(raw) {
 
     constructor(
         memory: Memory = Memory(),
-        handler: ReferenceSecondaryPointer = memory.allocPointerTo(),
-        initial: ReferenceInitial? = null,
-    ) : this(ReferenceRaw(memory, handler, initial))
+        secondary: ReferenceSecondaryPointer = memory.allocPointerTo(),
+        secondaryInitial: ReferenceSecondaryInitial? = null,
+    ) : this(ReferenceRaw(memory, secondary, secondaryInitial))
 
     companion object {
         fun isValidName(name: String): Boolean = git_reference_is_valid_name(name).toBoolean()

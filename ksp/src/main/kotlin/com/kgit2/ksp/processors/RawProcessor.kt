@@ -7,7 +7,7 @@ import com.google.devtools.ksp.processing.SymbolProcessorEnvironment
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.kgit2.annotations.Raw
 import com.kgit2.ksp.ProcessorBase
-import com.kgit2.ksp.model.ModuleFileModel
+import com.kgit2.ksp.model.RawFileModel
 import com.kgit2.ksp.visitor.AnnotatedVisitor
 import freemarker.template.Configuration
 import koin
@@ -24,18 +24,18 @@ class RawProcessor(
         val symbols = resolver.getSymbolsWithAnnotation(Raw::class.qualifiedName!!)
         logger.warn("Found ${symbols.count()} symbols with @Raw")
         val visitor = koin.get<AnnotatedVisitor>()
-        val fileModelMap = mutableMapOf<String, ModuleFileModel>()
+        val fileModelMap = mutableMapOf<String, RawFileModel>()
         symbols.forEach {
             it.accept(visitor, fileModelMap)
         }
         for ((path, fileModel) in fileModelMap) {
             val writer = codeGenerator.createNewFile(
-                Dependencies(true),
-                fileModel.packagePath,
-                fileModel.fileName.split(".").first() + "Raw",
-                fileModel.fileName.split(".").last()
+                dependencies = Dependencies(true),
+                packageName = fileModel.packagePath,
+                fileName = fileModel.fileName.split(".").first() + "Raw",
+                extensionName = fileModel.fileName.split(".").last()
             ).writer()
-            val template = configuration.getTemplate("module.ftl")
+            val template = configuration.getTemplate("raw-file.ftl")
             template.process(fileModel, writer)
         }
         return emptyList()

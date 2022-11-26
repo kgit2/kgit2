@@ -22,19 +22,17 @@ import libgit2.git_object_short_id
 import libgit2.git_object_type
 
 @Raw(
-    base = "git_object",
+    base = git_object::class,
     free = "git_object_free",
 )
-class Object(
-    raw: ObjectRaw,
-) : GitBase<git_object, ObjectRaw>(raw) {
+class Object(raw: ObjectRaw) : GitBase<git_object, ObjectRaw>(raw) {
     constructor(memory: Memory, handler: ObjectPointer) : this(ObjectRaw(memory, handler))
 
     constructor(
         memory: Memory = Memory(),
-        handler: ObjectSecondaryPointer = memory.allocPointerTo(),
-        initial: ObjectInitial? = null,
-    ) : this(ObjectRaw(memory, handler, initial))
+        secondary: ObjectSecondaryPointer = memory.allocPointerTo(),
+        secondaryInitial: ObjectSecondaryInitial? = null,
+    ) : this(ObjectRaw(memory, secondary, secondaryInitial))
 
     val oid: Oid = Oid(Memory(), git_object_id(raw.handler)!!)
 

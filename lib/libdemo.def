@@ -45,3 +45,11 @@ int accept_fun(MyFun f) {
 MyFun supply_fun() {
     return myFun;
 }
+
+struct MyStructWithTypedef {
+    union {
+        MyStruct *point;
+        int a;
+        double b;
+    } target;
+};

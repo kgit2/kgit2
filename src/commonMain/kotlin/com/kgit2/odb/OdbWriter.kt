@@ -16,9 +16,9 @@ class OdbWriter(raw: OdbStreamRaw) : GitBase<git_odb_stream, OdbStreamRaw>(raw),
 
     constructor(
         memory: Memory = Memory(),
-        handler: OdbStreamSecondaryPointer = memory.allocPointerTo(),
-        initial: OdbStreamInitial? = null,
-    ) : this(OdbStreamRaw(memory, handler, initial))
+        secondary: OdbStreamSecondaryPointer = memory.allocPointerTo(),
+        secondaryInitial: OdbStreamSecondaryInitial? = null,
+    ) : this(OdbStreamRaw(memory, secondary, secondaryInitial))
 
     override fun close() {
         raw.free()

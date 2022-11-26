@@ -12,7 +12,7 @@ import libgit2.git_status_byindex
 import libgit2.git_status_list_entrycount
 
 @Raw(
-    base = "git_status_list",
+    base = git_status_list::class,
     free = "git_status_list_free",
 )
 class StatusList(raw: StatusListRaw) : GitBase<git_status_list, StatusListRaw>(raw), Iterable<StatusEntry> {
@@ -20,9 +20,9 @@ class StatusList(raw: StatusListRaw) : GitBase<git_status_list, StatusListRaw>(r
 
     constructor(
         memory: Memory = Memory(),
-        handler: StatusListSecondaryPointer = memory.allocPointerTo(),
-        initial: StatusListInitial? = null,
-    ) : this(StatusListRaw(memory, handler, initial))
+        secondary: StatusListSecondaryPointer = memory.allocPointerTo(),
+        secondaryInitial: StatusListSecondaryInitial? = null,
+    ) : this(StatusListRaw(memory, secondary, secondaryInitial))
 
     operator fun get(index: Int): StatusEntry {
         git_status_byindex(raw.handler, index.convert())?.let {

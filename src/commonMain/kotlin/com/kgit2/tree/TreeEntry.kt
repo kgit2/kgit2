@@ -17,7 +17,7 @@ import kotlinx.cinterop.toKString
 import libgit2.*
 
 @Raw(
-    base = "git_tree_entry",
+    base = git_tree_entry::class,
     free = "git_tree_entry_free",
 )
 class TreeEntry(raw: TreeEntryRaw) : GitBase<git_tree_entry, TreeEntryRaw>(raw) {
@@ -25,9 +25,9 @@ class TreeEntry(raw: TreeEntryRaw) : GitBase<git_tree_entry, TreeEntryRaw>(raw) 
 
     constructor(
         memory: Memory = Memory(),
-        handler: TreeEntrySecondaryPointer = memory.allocPointerTo(),
-        initial: TreeEntryInitial? = null,
-    ) : this(TreeEntryRaw(memory, handler, initial))
+        secondary: TreeEntrySecondaryPointer = memory.allocPointerTo(),
+        secondaryInitial: TreeEntrySecondaryInitial? = null,
+    ) : this(TreeEntryRaw(memory, secondary, secondaryInitial))
 
     val id: Oid = Oid(Memory(), git_tree_entry_id(raw.handler)!!)
 

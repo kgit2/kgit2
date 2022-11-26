@@ -1,14 +1,12 @@
 package com.kgit2.ksp.visitor
 
 import com.google.devtools.ksp.processing.SymbolProcessorEnvironment
-import com.google.devtools.ksp.symbol.KSDeclaration
-import com.google.devtools.ksp.symbol.KSFile
-import com.google.devtools.ksp.symbol.KSNode
+import com.google.devtools.ksp.symbol.*
 import com.google.devtools.ksp.visitor.KSDefaultVisitor
 import com.kgit2.annotations.Raw
 import com.kgit2.ksp.ProcessorBase
-import com.kgit2.ksp.model.ModuleDataModel
-import com.kgit2.ksp.model.ModuleFileModel
+import com.kgit2.ksp.model.RawDeclareModel
+import com.kgit2.ksp.model.RawFileModel
 import org.koin.core.annotation.ComponentScan
 import org.koin.core.annotation.Factory
 
@@ -16,22 +14,25 @@ import org.koin.core.annotation.Factory
 @ComponentScan
 class AnnotatedVisitor(
     override val environment: SymbolProcessorEnvironment,
-) : KSDefaultVisitor<MutableMap<String, ModuleFileModel>, Unit>(), ProcessorBase {
-    override fun defaultHandler(node: KSNode, data: MutableMap<String, ModuleFileModel>) {
+    private val argumentVisitor: ArgumentVisitor,
+) : KSDefaultVisitor<MutableMap<String, RawFileModel>, Unit>(), ProcessorBase {
+    override fun defaultHandler(node: KSNode, data: MutableMap<String, RawFileModel>) {
         if (node !is KSDeclaration) return
         defaultHandler(node, data)
     }
 
-    private fun defaultHandler(annotated: KSDeclaration, data: MutableMap<String, ModuleFileModel>) {
+    private fun defaultHandler(annotated: KSDeclaration, data: MutableMap<String, RawFileModel>) {
         val rawAnnotation = annotated.annotations.find { it.shortName.asString() == "Raw" }!!
         val file = annotated.parent
         if (file !is KSFile) return
-        val fileModel = data[file.filePath] ?: ModuleFileModel(file.fileName, file.packageName.asString())
+        val fileModel = data[file.filePath] ?: RawFileModel(file.fileName, file.packageName.asString())
         val argumentMap = rawAnnotation.arguments.associateBy { it.name!!.asString() }
+        val superTypeOfBase = argumentMap[Raw::base.name]!!.accept(argumentVisitor, Unit)
+        val structVar = superTypeOfBase.any { it.declaration.simpleName.asString() == "CStructVar" }
         fileModel.modules.add(
-            ModuleDataModel(
-                git2Name = argumentMap[Raw::base.name]!!.value as String,
-                secondaryPointer = (argumentMap[Raw::secondaryPointer.name]?.value as Boolean?) ?: true,
+            RawDeclareModel(
+                git2Name = (argumentMap[Raw::base.name]!!.value as KSType).declaration.simpleName.asString(),
+                structVar = structVar,
                 freeOnFailure = argumentMap[Raw::free.name]?.value as String?,
                 shouldFreeOnFailure = (argumentMap[Raw::shouldFreeOnFailure.name]?.value as Boolean?) ?: false,
             )

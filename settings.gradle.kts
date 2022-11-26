@@ -27,6 +27,7 @@ rootProject.name = "kgit2"
 // include(":core")
 include(":annotations")
 include(":ksp")
+// include(":native")
 
 // val bitmask = File(settingsDir,"../bitmask")
 // if (bitmask.exists()) {

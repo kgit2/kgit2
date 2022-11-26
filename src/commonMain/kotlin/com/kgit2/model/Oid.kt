@@ -10,8 +10,7 @@ import kotlinx.cinterop.*
 import libgit2.*
 
 @Raw(
-    base = "git_oid",
-    secondaryPointer = false
+    base = git_oid::class,
 )
 class Oid(raw: OidRaw) : GitBase<git_oid, OidRaw>(raw) {
     constructor(memory: Memory, handler: OidPointer) : this(OidRaw(memory, handler))
@@ -19,7 +18,7 @@ class Oid(raw: OidRaw) : GitBase<git_oid, OidRaw>(raw) {
     constructor(
         memory: Memory = Memory(),
         handler: OidPointer = memory.alloc<git_oid>().ptr,
-        initial: OidInitial?,
+        initial: OidInitial? = null,
     ) : this(OidRaw(memory, handler, initial))
 
     constructor(hexString: String) : this(initial = {

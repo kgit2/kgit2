@@ -8,18 +8,14 @@ import kotlinx.cinterop.reinterpret
 import libgit2.git_cert
 
 @Raw(
-    base = "git_cert",
+    base = git_cert::class,
 )
 class Cert(raw: CertRaw) : GitBase<git_cert, CertRaw>(raw) {
-    constructor(memory: Memory, handler: CertPointer) : this(CertRaw(memory, handler))
-
-    constructor(memory: Memory, handler: CertSecondaryPointer, initial: CertInitial?) : this(
-        CertRaw(
-            memory,
-            handler.reinterpret(),
-            initial
-        )
-    )
+    constructor(
+        memory: Memory,
+        handler: CertPointer,
+        initial: CertInitial? = null,
+    ) : this(CertRaw(memory, handler, initial))
 
     var certType: CertType = CertType.fromRaw(raw.handler.pointed.cert_type)
         set(value) {

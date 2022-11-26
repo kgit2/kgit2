@@ -14,7 +14,7 @@ import kotlinx.cinterop.toKString
 import libgit2.*
 
 @Raw(
-    base = "git_worktree",
+    base = git_worktree::class,
     free = "git_worktree_free",
 )
 class Worktree(raw: WorktreeRaw) : GitBase<git_worktree, WorktreeRaw>(raw) {
@@ -22,11 +22,11 @@ class Worktree(raw: WorktreeRaw) : GitBase<git_worktree, WorktreeRaw>(raw) {
 
     constructor(
         memory: Memory = Memory(),
-        handler: WorktreeSecondaryPointer = memory.allocPointerTo(),
-        initial: WorktreeInitial? = null,
-    ) : this(WorktreeRaw(memory, handler, initial))
+        secondary: WorktreeSecondaryPointer = memory.allocPointerTo(),
+        secondaryInitial: WorktreeSecondaryInitial? = null,
+    ) : this(WorktreeRaw(memory, secondary, secondaryInitial))
 
-    constructor(repository: Repository) : this(initial = {
+    constructor(repository: Repository) : this(secondaryInitial = {
         git_worktree_open_from_repository(this.ptr, repository.raw.handler).errorCheck()
     })
 
