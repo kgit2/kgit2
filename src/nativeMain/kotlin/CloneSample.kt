@@ -1,5 +1,5 @@
 import cnames.structs.git_repository
-import com.kgit2.common.error.errorCheck
+import com.kgit2.common.extend.errorCheck
 import kotlinx.cinterop.*
 import libgit2.*
 

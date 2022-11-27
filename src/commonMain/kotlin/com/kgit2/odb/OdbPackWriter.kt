@@ -2,7 +2,7 @@ package com.kgit2.odb
 
 import com.kgit2.callback.IndexerProgressCallback
 import com.kgit2.callback.payload.IndexerProgress
-import com.kgit2.common.error.errorCheck
+import com.kgit2.common.extend.errorCheck
 import com.kgit2.common.memory.Memory
 import com.kgit2.memory.GitBase
 import com.kgit2.memory.Raw

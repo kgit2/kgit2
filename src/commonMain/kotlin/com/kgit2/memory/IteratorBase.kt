@@ -1,28 +1,33 @@
 package com.kgit2.memory
 
-import com.kgit2.exception.GitError
-import com.kgit2.exception.GitErrorCode
+import com.kgit2.common.error.GitError
+import com.kgit2.common.error.GitErrorCode
+import com.kgit2.memory.collections.NativeMutableList
+import kotlinx.atomicfu.atomic
 import kotlinx.cinterop.CPointed
 
 abstract class IteratorBase<T : CPointed, R : Raw<T>, E>(raw: R) : GitBase<T, R>(raw), Iterator<E> {
-    var next: E? = null
+    protected val cache = NativeMutableList<E>()
+    protected val index = atomic(-1)
 
     abstract fun nextRaw(): Result<E>
 
     override fun hasNext(): Boolean {
+        if (index.value < cache.size - 1) {
+            return true
+        }
         nextRaw().onSuccess {
-            this.next = it
+            cache.add(it)
         }.onFailure {
             if (it !is GitError || it.code != GitErrorCode.IterOver) {
                 throw it
             }
-            next = null
             return false
         }
         return true
     }
 
-    override fun next(): E = next ?: throw NoSuchElementException()
+    override fun next(): E = cache[index.incrementAndGet()]
 
     val list by lazy { asSequence().toList() }
 }

@@ -4,8 +4,8 @@ import com.kgit2.annotations.Raw
 import com.kgit2.callback.RemoteCreateCallback
 import com.kgit2.callback.RepositoryCreateCallback
 import com.kgit2.checkout.CheckoutOptions
-import com.kgit2.common.error.toBoolean
-import com.kgit2.common.error.toInt
+import com.kgit2.common.extend.toBoolean
+import com.kgit2.common.extend.toInt
 import com.kgit2.common.memory.Memory
 import com.kgit2.fetch.FetchOptions
 import com.kgit2.memory.GitBase
@@ -50,12 +50,14 @@ class CloneOptions(raw: CloneOptionsRaw = CloneOptionsRaw()) : GitBase<git_clone
             field = value
             raw.handler.pointed.repository_cb_payload = StableRef.create(value as Any).asCPointer()
             raw.handler.pointed.repository_cb = staticCFunction { repo, path, bare, payload ->
-                val callback = payload!!.asStableRef<RepositoryCreateCallback>().get()
-                callback.repositoryCreate(
+                val callbackPayload = payload!!.asStableRef<RepositoryCreateCallback>()
+                val result = callbackPayload.get().repositoryCreate(
                     Repository(Memory(), repo!!.pointed.value!!),
                     path!!.toKString(),
                     bare.toBoolean(),
                 )
+                callbackPayload.dispose()
+                result
             }
         }
 
@@ -64,13 +66,15 @@ class CloneOptions(raw: CloneOptionsRaw = CloneOptionsRaw()) : GitBase<git_clone
             field = value
             raw.handler.pointed.remote_cb_payload = StableRef.create(value as Any).asCPointer()
             raw.handler.pointed.remote_cb = staticCFunction { remote, repo, name, url, payload ->
-                val callback = payload!!.asStableRef<RemoteCreateCallback>().get()
-                callback.remoteCreate(
+                val callbackPayload = payload!!.asStableRef<RemoteCreateCallback>()
+                val result = callbackPayload.get().remoteCreate(
                     Remote(Memory(), remote!!.pointed.value!!),
                     Repository(Memory(), repo!!),
                     name!!.toKString(),
                     url!!.toKString(),
                 ).value
+                callbackPayload.dispose()
+                result
             }
         }
 }

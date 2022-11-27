@@ -34,4 +34,8 @@ class ConfigEntry(raw: ConfigEntryRaw) : GitBase<git_config_entry, ConfigEntryRa
     val level: ConfigLevel = ConfigLevel.fromRaw(raw.handler.pointed.level)
 
     val includeDepth: UInt = raw.handler.pointed.include_depth
+
+    override fun toString(): String {
+        return "ConfigEntry(name=$name, value=$value, level=$level, includeDepth=$includeDepth)"
+    }
 }

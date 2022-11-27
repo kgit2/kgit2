@@ -2,7 +2,7 @@ package com.kgit2.tree
 
 import cnames.structs.git_tree_entry
 import com.kgit2.annotations.Raw
-import com.kgit2.common.error.toBoolean
+import com.kgit2.common.extend.toBoolean
 import com.kgit2.common.memory.Memory
 import com.kgit2.common.option.mutually.FileMode
 import com.kgit2.memory.GitBase

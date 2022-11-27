@@ -1,7 +1,7 @@
-package com.kgit2.common.error
+package com.kgit2.common.extend
 
-import com.kgit2.exception.GitError
-import com.kgit2.exception.GitErrorCode
+import com.kgit2.common.error.GitError
+import com.kgit2.common.error.GitErrorCode
 
 fun Int.errorCheck() {
     if (this == 0) return

@@ -22,37 +22,3 @@ fun <R> withGitBuf(content: String? = null, block: (CPointer<git_buf>) -> R): R 
         result
     }
 }
-
-// interface IGitBuf : GitAutoFreeBase<CPointer<git_buf>> {
-//     val ptr: String?
-//     val size: ULong?
-//     val reserved: ULong?
-//     val disposed: Boolean
-// }
-//
-// class GitBuf(
-//     override val arena: Arena,
-//     override val handler: CPointer<git_buf>,
-// ) : IGitBuf {
-//     companion object {
-//         fun initialized(arena: Arena = Arena()): GitBuf {
-//             val handler = cValue<git_buf>().getPointer(arena)
-//             return GitBuf(arena, handler)
-//         }
-//     }
-//
-//     override val ptr: String?
-//         get() = handler.pointed.ptr?.toKString()
-//     override val size: ULong
-//         get() = handler.pointed.size
-//     override val reserved: ULong
-//         get() = handler.pointed.reserved
-//
-//     override var disposed: Boolean = false
-//
-//     override fun free() {
-//         git_buf_dispose(handler)
-//         arena.clear()
-//         disposed = true
-//     }
-// }

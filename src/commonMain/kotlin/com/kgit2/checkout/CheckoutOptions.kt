@@ -3,9 +3,9 @@ package com.kgit2.checkout
 import com.kgit2.annotations.Raw
 import com.kgit2.callback.CheckoutNotifyCallback
 import com.kgit2.callback.CheckoutProgressCallback
-import com.kgit2.common.error.errorCheck
-import com.kgit2.common.error.toBoolean
-import com.kgit2.common.error.toInt
+import com.kgit2.common.extend.errorCheck
+import com.kgit2.common.extend.toBoolean
+import com.kgit2.common.extend.toInt
 import com.kgit2.common.memory.Memory
 import com.kgit2.common.option.mutually.FileMode
 import com.kgit2.common.option.mutually.FileOpenFlags
@@ -83,13 +83,16 @@ class CheckoutOptions(
             field = value
             raw.handler.pointed.notify_payload = StableRef.create(value as Any).asCPointer()
             raw.handler.pointed.notify_cb = staticCFunction { why, path, baseline, target, workdir, payload ->
-                payload?.asStableRef<CheckoutNotifyCallback>()?.get()?.checkoutNotify(
+                val callbackPayload = payload!!.asStableRef<CheckoutNotifyCallback>()
+                val result = callbackPayload.get().checkoutNotify(
                     CheckoutNotificationType.fromRaw(why),
                     path?.toKString(),
                     DiffFile(Memory(), baseline!!),
                     DiffFile(Memory(), target!!),
                     DiffFile(Memory(), workdir!!),
-                )?.value ?: -1
+                ).value
+                callbackPayload.dispose()
+                result
             }
         }
 
@@ -102,11 +105,13 @@ class CheckoutOptions(
             field = value
             raw.handler.pointed.progress_payload = StableRef.create(value as Any).asCPointer()
             raw.handler.pointed.progress_cb = staticCFunction { path, completedSteps, totalSteps, payload ->
-                payload?.asStableRef<CheckoutProgressCallback>()?.get()?.checkoutProgress(
+                val callbackPayload = payload!!.asStableRef<CheckoutProgressCallback>()
+                callbackPayload.get().checkoutProgress(
                     path!!.toKString(),
                     completedSteps,
                     totalSteps
                 )
+                callbackPayload.dispose()
             }
         }
 

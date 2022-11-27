@@ -2,7 +2,7 @@ package com.kgit2.remote
 
 import cnames.structs.git_refspec
 import com.kgit2.annotations.Raw
-import com.kgit2.common.error.errorCheck
+import com.kgit2.common.extend.errorCheck
 import com.kgit2.common.memory.Memory
 import com.kgit2.fetch.Direction
 import com.kgit2.memory.GitBase

@@ -2,7 +2,7 @@ package com.kgit2.signature
 
 import cnames.structs.git_mailmap
 import com.kgit2.annotations.Raw
-import com.kgit2.common.error.errorCheck
+import com.kgit2.common.extend.errorCheck
 import com.kgit2.common.memory.Memory
 import com.kgit2.memory.GitBase
 import kotlinx.cinterop.convert
@@ -11,8 +11,6 @@ import libgit2.git_mailmap_add_entry
 import libgit2.git_mailmap_from_buffer
 import libgit2.git_mailmap_new
 import libgit2.git_mailmap_resolve_signature
-import kotlin.native.internal.Cleaner
-import kotlin.native.internal.createCleaner
 
 @Raw(
     base = git_mailmap::class,

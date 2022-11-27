@@ -9,7 +9,7 @@ import com.kgit2.common.option.mutually.PackBuilderStage
 import com.kgit2.credential.Credential
 import com.kgit2.credential.CredentialType
 import com.kgit2.diff.DiffFile
-import com.kgit2.exception.GitErrorCode
+import com.kgit2.common.error.GitErrorCode
 import com.kgit2.fetch.Direction
 import com.kgit2.model.Oid
 import com.kgit2.remote.Remote
@@ -18,6 +18,10 @@ import com.kgit2.repository.Repository
 import com.kgit2.submodule.Submodule
 import com.kgit2.transport.Transport
 import com.kgit2.tree.TreeEntry
+import kotlinx.cinterop.asStableRef
+import kotlinx.cinterop.staticCFunction
+import kotlinx.cinterop.toKString
+import libgit2.git_index_matched_path_cb
 
 interface RepositoryCreateCallback {
     /**
@@ -246,4 +250,15 @@ interface TreeWalkCallback {
      * @return 0 on success or error code
      */
     fun treeWalk(root: String, entry: TreeEntry): Int
+}
+
+interface IndexMatchedPathCallback {
+    fun matchedPath(pathspec: String, path: String): Int
+
+    fun toRawCB(): git_index_matched_path_cb = staticCFunction { path, matchedPathSpec, payload ->
+        val callbackPayload = payload!!.asStableRef<IndexMatchedPathCallback>()
+        val result = callbackPayload.get().matchedPath(path!!.toKString(), matchedPathSpec!!.toKString())
+        callbackPayload.dispose()
+        result
+    }
 }

@@ -3,9 +3,9 @@ package com.kgit2.remote
 import cnames.structs.git_remote
 import com.kgit2.annotations.Raw
 import com.kgit2.callback.payload.IndexerProgress
-import com.kgit2.common.error.errorCheck
-import com.kgit2.common.error.toBoolean
-import com.kgit2.common.error.toInt
+import com.kgit2.common.extend.errorCheck
+import com.kgit2.common.extend.toBoolean
+import com.kgit2.common.extend.toInt
 import com.kgit2.common.memory.Memory
 import com.kgit2.common.memory.memoryScoped
 import com.kgit2.common.option.mutually.AutoTagOption
@@ -109,9 +109,9 @@ class Remote(raw: RemoteRaw) : GitBase<git_remote, RemoteRaw>(raw) {
         }
     }
 
-    fun fetch(refspecs: List<String>, option: FetchOptions? = null, reflogMessage: String? = null) =
-        withGitStrArray { refspecsArray ->
-            git_remote_fetch(raw.handler, refspecsArray, option?.raw?.handler, reflogMessage).errorCheck()
+    fun fetch(refSpecs: Collection<String>, option: FetchOptions? = null, reflogMessage: String? = null) =
+        withGitStrArray(refSpecs) { refSpecsArray ->
+            git_remote_fetch(raw.handler, refSpecsArray, option?.raw?.handler, reflogMessage).errorCheck()
         }
 
     fun updateTips(
@@ -129,8 +129,8 @@ class Remote(raw: RemoteRaw) : GitBase<git_remote, RemoteRaw>(raw) {
         ).errorCheck()
     }
 
-    fun push(refspecs: Collection<String>, option: PushOptions? = null) = withGitStrArray { refspecsArray ->
-        git_remote_push(raw.handler, refspecsArray, option?.raw?.handler).errorCheck()
+    fun push(refSpecs: Collection<String>, option: PushOptions? = null) = withGitStrArray(refSpecs) { refSpecsArray ->
+        git_remote_push(raw.handler, refSpecsArray, option?.raw?.handler).errorCheck()
     }
 
     fun stats(): IndexerProgress {
