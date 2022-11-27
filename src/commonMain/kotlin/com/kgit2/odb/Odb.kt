@@ -3,8 +3,8 @@ package com.kgit2.odb
 import cnames.structs.git_odb
 import com.kgit2.annotations.Raw
 import com.kgit2.callback.payload.IndexerProgress
-import com.kgit2.common.error.errorCheck
-import com.kgit2.common.error.toBoolean
+import com.kgit2.common.extend.errorCheck
+import com.kgit2.common.extend.toBoolean
 import com.kgit2.common.memory.Memory
 import com.kgit2.common.memory.memoryScoped
 import com.kgit2.memory.GitBase
@@ -68,8 +68,10 @@ class Odb(raw: OdbRaw) : GitBase<git_odb, OdbRaw>(raw) {
 
     fun packWriter(): OdbPackWriter = OdbPackWriter { _, progress ->
         val progressCallback: git_indexer_progress_cb = staticCFunction { gitProgress, payload ->
-            payload!!.asStableRef<OdbPackWriter.Progress>().get()
-                .indexerProgress(IndexerProgress.fromHandler(gitProgress!!.pointed))
+            val callbackPayload = payload!!.asStableRef<OdbPackWriter.Progress>()
+            val result = callbackPayload.get().indexerProgress(IndexerProgress.fromHandler(gitProgress!!.pointed))
+            callbackPayload.dispose()
+            result
         }
         git_odb_write_pack(
             this.ptr,
@@ -99,7 +101,10 @@ class Odb(raw: OdbRaw) : GitBase<git_odb, OdbRaw>(raw) {
 
     fun forEach(callback: (Oid) -> Int) {
         val callbackPointer: git_odb_foreach_cb = staticCFunction { oid: OidPointer?, payload: COpaquePointer? ->
-            payload!!.asStableRef<(Oid) -> Int>().get().invoke(Oid(Memory(), oid!!))
+            val callbackPayload = payload!!.asStableRef<(Oid) -> Int>()
+            val result = callbackPayload.get().invoke(Oid(Memory(), oid!!))
+            callbackPayload.dispose()
+            result
         }
         git_odb_foreach(raw.handler, callbackPointer, StableRef.create(callback).asCPointer()).errorCheck()
     }

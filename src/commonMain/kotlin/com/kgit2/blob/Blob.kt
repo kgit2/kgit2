@@ -2,7 +2,7 @@ package com.kgit2.blob
 
 import cnames.structs.git_blob
 import com.kgit2.annotations.Raw
-import com.kgit2.common.error.toBoolean
+import com.kgit2.common.extend.toBoolean
 import com.kgit2.common.memory.Memory
 import com.kgit2.memory.GitBase
 import com.kgit2.model.Oid

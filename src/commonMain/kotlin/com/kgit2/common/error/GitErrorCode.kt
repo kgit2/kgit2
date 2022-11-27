@@ -1,4 +1,4 @@
-package com.kgit2.exception
+package com.kgit2.common.error
 
 import libgit2.*
 

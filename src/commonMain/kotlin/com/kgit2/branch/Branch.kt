@@ -1,9 +1,9 @@
 package com.kgit2.branch
 
 import cnames.structs.git_reference
-import com.kgit2.common.error.errorCheck
-import com.kgit2.common.error.toBoolean
-import com.kgit2.common.error.toInt
+import com.kgit2.common.extend.errorCheck
+import com.kgit2.common.extend.toBoolean
+import com.kgit2.common.extend.toInt
 import com.kgit2.common.memory.Memory
 import com.kgit2.common.memory.memoryScoped
 import com.kgit2.memory.GitBase

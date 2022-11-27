@@ -5,7 +5,6 @@ import com.kgit2.common.memory.Memory
 import com.kgit2.memory.GitBase
 import kotlinx.cinterop.pointed
 import kotlinx.cinterop.readBytes
-import kotlinx.cinterop.reinterpret
 import libgit2.git_cert_x509
 
 @Raw(

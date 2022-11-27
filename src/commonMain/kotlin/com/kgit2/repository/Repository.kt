@@ -12,14 +12,15 @@ import com.kgit2.checkout.CheckoutOptions
 import com.kgit2.checkout.ResetType
 import com.kgit2.commit.AnnotatedCommit
 import com.kgit2.commit.Commit
-import com.kgit2.common.error.errorCheck
-import com.kgit2.common.error.toBoolean
-import com.kgit2.common.error.toInt
+import com.kgit2.common.error.GitError
+import com.kgit2.common.error.GitErrorCode
+import com.kgit2.common.extend.errorCheck
+import com.kgit2.common.extend.toBoolean
+import com.kgit2.common.extend.toInt
 import com.kgit2.common.memory.Memory
 import com.kgit2.common.memory.memoryScoped
 import com.kgit2.config.Config
-import com.kgit2.exception.GitError
-import com.kgit2.exception.GitErrorCode
+import com.kgit2.index.Index
 import com.kgit2.memory.GitBase
 import com.kgit2.model.*
 import com.kgit2.`object`.Object
@@ -176,8 +177,19 @@ class Repository(raw: RepositoryRaw) : GitBase<git_repository, RepositoryRaw>(ra
             message: String,
             tree: Tree,
             parents: List<Commit>,
-        ): Commit = Commit {
-            TODO()
+        ): Oid = Oid {
+            git_commit_create(
+                this,
+                raw.handler,
+                updateRef,
+                author.raw.handler,
+                committer.raw.handler,
+                null,
+                message,
+                tree.raw.handler,
+                parents.size.convert(),
+                parents.map { it.raw.handler }.toCValues()
+            ).errorCheck()
         }
 
         fun commitCreateBuffer(
@@ -187,20 +199,37 @@ class Repository(raw: RepositoryRaw) : GitBase<git_repository, RepositoryRaw>(ra
             message: String,
             tree: Tree,
             parents: List<Commit>,
-        ): String? {
-            TODO()
+        ): String? = withGitBuf { buf ->
+            git_commit_create_buffer(
+                buf,
+                raw.handler,
+                author.raw.handler,
+                committer.raw.handler,
+                null,
+                message,
+                tree.raw.handler,
+                parents.size.convert(),
+                parents.map { it.raw.handler }.toCValues()
+            ).errorCheck()
+            buf.toKString()
         }
 
         fun commitSigned(commitContent: String, signature: String, signatureField: String?): Oid = Oid {
-            TODO()
+            git_commit_create_with_signature(
+                this,
+                raw.handler,
+                commitContent,
+                signature,
+                signatureField
+            ).errorCheck()
         }
 
-        fun findCommit(oid: Oid): Commit {
-            TODO()
+        fun findCommit(oid: Oid): Commit = Commit {
+            git_commit_lookup(this.ptr, raw.handler, oid.raw.handler).errorCheck()
         }
 
-        fun findAnnotatedCommit(oid: Oid): AnnotatedCommit {
-            TODO()
+        fun findAnnotatedCommit(oid: Oid): AnnotatedCommit = AnnotatedCommit{
+            git_annotated_commit_lookup(this.ptr, raw.handler, oid.raw.handler).errorCheck()
         }
     }
 
@@ -239,18 +268,15 @@ class Repository(raw: RepositoryRaw) : GitBase<git_repository, RepositoryRaw>(ra
 
         fun checkoutHead(checkoutOptions: CheckoutOptions) {
             git_checkout_head(raw.handler, checkoutOptions.raw.handler).errorCheck()
-            TODO()
         }
 
-        // TODO()
-        // fun checkoutIndex(index: Index?, checkoutOptions: CheckoutOptions?) {
-        //     git_checkout_index(raw.handler, index.raw.handler, checkoutOptions.raw.handler).errorCheck()
-        // }
+        fun checkoutIndex(index: Index, checkoutOptions: CheckoutOptions = CheckoutOptions()) {
+            git_checkout_index(raw.handler, index.raw.handler, checkoutOptions.raw.handler).errorCheck()
+        }
 
-        // TODO()
-        // fun checkoutTree(tree: Tree?, checkoutOptions: CheckoutOptions?) {
-        //     git_checkout_tree(raw.handler, tree.raw.handler, checkoutOptions.raw.handler).errorCheck()
-        // }
+        fun checkoutTree(treeIsh: Object, checkoutOptions: CheckoutOptions = CheckoutOptions()) {
+            git_checkout_tree(raw.handler, treeIsh.raw.handler, checkoutOptions.raw.handler).errorCheck()
+        }
     }
 
     val Merge = MergeModule()
@@ -716,11 +742,12 @@ class Repository(raw: RepositoryRaw) : GitBase<git_repository, RepositoryRaw>(ra
     inner class SubmoduleModule {
         fun submodules(): List<Submodule> {
             val gitCallback: git_submodule_cb = staticCFunction { _, name, payload ->
-                val (repository, submodules) = payload!!.asStableRef<Pair<RepositoryPointer, MutableList<Submodule>>>()
-                    .get()
+                val callbackPayload = payload!!.asStableRef<Pair<RepositoryPointer, MutableList<Submodule>>>()
+                val (repository, submodules) = callbackPayload.get()
                 submodules.add(Submodule {
                     git_submodule_lookup(this.ptr, repository, name?.toKString()).errorCheck()
                 })
+                callbackPayload.dispose()
                 0
             }
             val submodules = mutableListOf<Submodule>()
@@ -841,15 +868,13 @@ class Repository(raw: RepositoryRaw) : GitBase<git_repository, RepositoryRaw>(ra
     val Index = IndexModule()
 
     inner class IndexModule {
-        // TODO()
-        // fun index(): Index = Index() {
-        //     git_repository_index(this.ptr, raw.handler).errorCheck()
-        // }
+        fun index(): Index = Index() {
+            git_repository_index(this.ptr, raw.handler).errorCheck()
+        }
 
-        // TODO()
-        // fun setIndex(index: Index) {
-        //     git_repository_set_index(raw.handler, index.raw.handler).errorCheck()
-        // }
+        fun setIndex(index: Index) {
+            git_repository_set_index(raw.handler, index.raw.handler).errorCheck()
+        }
     }
 
     val Blob = BlobModule()

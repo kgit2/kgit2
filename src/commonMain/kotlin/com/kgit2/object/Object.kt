@@ -4,7 +4,7 @@ import cnames.structs.git_object
 import com.kgit2.annotations.Raw
 import com.kgit2.blob.Blob
 import com.kgit2.commit.Commit
-import com.kgit2.common.error.errorCheck
+import com.kgit2.common.extend.errorCheck
 import com.kgit2.common.memory.Memory
 import com.kgit2.memory.GitBase
 import com.kgit2.model.Oid

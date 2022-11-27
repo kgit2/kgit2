@@ -2,44 +2,17 @@ package com.kgit2.config
 
 import cnames.structs.git_config
 import com.kgit2.annotations.Raw
-import com.kgit2.common.error.errorCheck
-import com.kgit2.common.error.toBoolean
-import com.kgit2.common.error.toInt
+import com.kgit2.common.extend.errorCheck
+import com.kgit2.common.extend.toBoolean
+import com.kgit2.common.extend.toInt
 import com.kgit2.common.memory.Memory
+import com.kgit2.common.memory.memoryScoped
 import com.kgit2.memory.GitBase
 import com.kgit2.model.toKString
 import com.kgit2.model.withGitBuf
 import com.kgit2.repository.Repository
 import kotlinx.cinterop.*
 import libgit2.*
-
-// typealias ConfigPointer = CPointer<git_config>
-//
-// typealias ConfigSecondaryPointer = CPointerVar<git_config>
-//
-// typealias ConfigInitial = ConfigSecondaryPointer.(Memory) -> Unit
-//
-// class ConfigRaw(
-//     memory: Memory = Memory(),
-//     handler: ConfigPointer = memory.allocPointerTo<git_config>().value!!,
-// ) : Raw<git_config>(memory, handler) {
-//     constructor(
-//         memory: Memory = Memory(),
-//         handler: ConfigSecondaryPointer = memory.allocPointerTo(),
-//         initial: ConfigInitial? = null,
-//     ) : this(memory, handler.apply {
-//         runCatching {
-//             initial?.invoke(handler, memory)
-//         }.onFailure {
-//             git_config_free(handler.value!!)
-//             memory.free()
-//         }.getOrThrow()
-//     }.value!!)
-//
-//     override val beforeFree: () -> Unit = {
-//         git_config_free(handler)
-//     }
-// }
 
 @Raw(
     base = git_config::class,
@@ -95,7 +68,7 @@ class Config(raw: ConfigRaw) : GitBase<git_config, ConfigRaw>(raw) {
         }
 
         fun parseInt32(value: String): Int? {
-            return memScoped {
+            return memoryScoped {
                 val out = alloc<IntVar>()
                 runCatching {
                     git_config_parse_int32(out.ptr, value).errorCheck()
@@ -105,7 +78,7 @@ class Config(raw: ConfigRaw) : GitBase<git_config, ConfigRaw>(raw) {
 
         fun parseInt64(value: String): Long? {
             if (value.isEmpty()) return null
-            return memScoped {
+            return memoryScoped {
                 val out = alloc<LongVar>()
                 runCatching {
                     git_config_parse_int64(out.ptr, value).errorCheck()
@@ -120,7 +93,7 @@ class Config(raw: ConfigRaw) : GitBase<git_config, ConfigRaw>(raw) {
          * Interprets "false", "no", "off", 0, or an empty string as false.
          */
         fun parseBool(value: String): Boolean? {
-            return memScoped {
+            return memoryScoped {
                 val out = alloc<IntVar>()
                 runCatching {
                     git_config_parse_bool(out.ptr, value).errorCheck()
@@ -158,7 +131,7 @@ class Config(raw: ConfigRaw) : GitBase<git_config, ConfigRaw>(raw) {
 
     fun getBool(name: String): Boolean {
         if (name.isEmpty()) throw IllegalArgumentException("name is empty")
-        return memScoped {
+        return memoryScoped {
             val out = alloc<IntVar>()
             git_config_get_bool(out.ptr, raw.handler, name).errorCheck()
             out.value.toBoolean()
@@ -172,7 +145,7 @@ class Config(raw: ConfigRaw) : GitBase<git_config, ConfigRaw>(raw) {
 
     fun getInt32(name: String): Int {
         if (name.isEmpty()) throw IllegalArgumentException("name is empty")
-        return memScoped {
+        return memoryScoped {
             val out = alloc<IntVar>()
             git_config_get_int32(out.ptr, raw.handler, name).errorCheck()
             out.value
@@ -186,7 +159,7 @@ class Config(raw: ConfigRaw) : GitBase<git_config, ConfigRaw>(raw) {
 
     fun getInt64(name: String): Long {
         if (name.isEmpty()) throw IllegalArgumentException("name is empty")
-        return memScoped {
+        return memoryScoped {
             val out = alloc<LongVar>()
             git_config_get_int64(out.ptr, raw.handler, name).errorCheck()
             out.value
@@ -210,7 +183,7 @@ class Config(raw: ConfigRaw) : GitBase<git_config, ConfigRaw>(raw) {
      */
     fun getString(name: String): String {
         if (name.isEmpty()) throw IllegalArgumentException("name is empty")
-        return memScoped {
+        return memoryScoped {
             val out = allocPointerTo<ByteVar>()
             git_config_get_string(out.ptr, raw.handler, name).errorCheck()
             out.value!!.toKString()
