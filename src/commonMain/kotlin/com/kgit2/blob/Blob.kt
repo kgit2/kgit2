@@ -14,7 +14,6 @@ import libgit2.git_blob_id
 import libgit2.git_blob_is_binary
 import libgit2.git_blob_rawcontent
 import libgit2.git_blob_rawsize
-**/In-memory representation of a blob object.
 
 /**
  * In-memory representation of a blob object.
