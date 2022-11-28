@@ -4,7 +4,8 @@ import com.kgit2.annotations.Raw
 import com.kgit2.common.extend.errorCheck
 import com.kgit2.common.memory.Memory
 import com.kgit2.memory.GitBase
-import kotlinx.cinterop.*
+import kotlinx.cinterop.cstr
+import kotlinx.cinterop.pointed
 import libgit2.GIT_PROXY_OPTIONS_VERSION
 import libgit2.git_proxy_options
 import libgit2.git_proxy_options_init

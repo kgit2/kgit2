@@ -1,9 +1,7 @@
 package com.kgit2.checkout
 
 import com.kgit2.annotations.FlagMask
-import com.kgit2.common.option.BaseMultiple
-import kotlinx.cinterop.convert
-import libgit2.*
+import libgit2.git_checkout_strategy_t
 
 @FlagMask(
     flagsType = git_checkout_strategy_t::class,

@@ -3,7 +3,9 @@ package com.kgit2.time
 import com.kgit2.annotations.Raw
 import com.kgit2.common.memory.Memory
 import com.kgit2.memory.GitBase
-import kotlinx.cinterop.*
+import kotlinx.cinterop.cValue
+import kotlinx.cinterop.convert
+import kotlinx.cinterop.pointed
 import libgit2.git_time
 
 @Raw(

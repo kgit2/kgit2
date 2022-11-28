@@ -1,9 +1,7 @@
 package com.kgit2.reference
 
 import com.kgit2.annotations.FlagMask
-import com.kgit2.common.option.BaseMultiple
-import kotlinx.cinterop.convert
-import libgit2.*
+import libgit2.git_reference_format_t
 
 @FlagMask(
     flagsType = git_reference_format_t::class,

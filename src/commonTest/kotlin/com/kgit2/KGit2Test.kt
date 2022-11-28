@@ -1,13 +1,5 @@
 package com.kgit2
 
-import com.kgit2.common.extend.asCPointer
-import kotlinx.cinterop.IntVar
-import kotlinx.cinterop.pointed
-import kotlinx.cinterop.reinterpret
-import kotlinx.cinterop.value
-import libgit2.git_index_entry
-import libgit2.git_oid
-import libgit2.git_oid_cmp
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull

@@ -1,9 +1,7 @@
 package com.kgit2.merge
 
 import com.kgit2.annotations.FlagMask
-import com.kgit2.common.option.BaseMultiple
-import kotlinx.cinterop.convert
-import libgit2.*
+import libgit2.git_merge_file_favor_t
 
 @FlagMask(
     flagsType = git_merge_file_favor_t::class,
