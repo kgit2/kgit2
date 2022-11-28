@@ -15,13 +15,14 @@ import libgit2.git_blob_is_binary
 import libgit2.git_blob_rawcontent
 import libgit2.git_blob_rawsize
 
+/**
+ * In-memory representation of a blob object.
+ */
 @Raw(
     base = git_blob::class,
     free = "git_blob_free",
 )
-class Blob(
-    raw: BlobRaw,
-) : GitBase<git_blob, BlobRaw>(raw) {
+class Blob(raw: BlobRaw) : GitBase<git_blob, BlobRaw>(raw) {
     constructor(memory: Memory, handler: BlobPointer) : this(BlobRaw(memory, handler))
 
     /** */

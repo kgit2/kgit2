@@ -14,6 +14,9 @@ import com.kgit2.reference.ReferenceSecondaryPointer
 import kotlinx.cinterop.*
 import libgit2.*
 
+/**
+ * In-memory representation of a reference.
+ */
 class Branch(raw: ReferenceRaw) : GitBase<git_reference, ReferenceRaw>(raw) {
     constructor(memory: Memory, handler: ReferencePointer) : this(ReferenceRaw(memory, handler))
 
@@ -23,6 +26,12 @@ class Branch(raw: ReferenceRaw) : GitBase<git_reference, ReferenceRaw>(raw) {
         secondaryInitial: ReferenceSecondaryInitial? = null,
     ) : this(ReferenceRaw(memory, secondary, secondaryInitial))
 
+    /**
+     * Given a reference object,
+     * this will check that it really is a branch (ie. it lives under "refs/heads/" or "refs/remotes/"),
+     * and return the branch part of it.
+     * @throws [com.kgit2.common.error.GitError] GIT_EINVALID if the reference isn't either a local or remote branch, otherwise an error code.
+     */
     val name: String = memoryScoped {
         val name = allocPointerTo<ByteVar>()
         git_branch_name(name.ptr, raw.handler).errorCheck()
