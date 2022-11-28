@@ -1,4 +1,4 @@
-package com.kgit2.ksp.visitor
+package com.kgit2.ksp.visitor.raw
 
 import com.google.devtools.ksp.processing.SymbolProcessorEnvironment
 import com.google.devtools.ksp.symbol.*
@@ -12,7 +12,7 @@ import org.koin.core.annotation.Factory
 
 @Factory
 @ComponentScan
-class AnnotatedVisitor(
+class RawAnnotatedVisitor(
     override val environment: SymbolProcessorEnvironment,
     private val argumentVisitor: ArgumentVisitor,
 ) : KSDefaultVisitor<MutableMap<String, RawFileModel>, Unit>(), ProcessorBase {
@@ -22,7 +22,7 @@ class AnnotatedVisitor(
     }
 
     private fun defaultHandler(annotated: KSDeclaration, data: MutableMap<String, RawFileModel>) {
-        val rawAnnotation = annotated.annotations.find { it.shortName.asString() == "Raw" }!!
+        val rawAnnotation = annotated.annotations.find { it.shortName.asString() == Raw::class::simpleName.get() }!!
         val file = annotated.parent
         if (file !is KSFile) return
         val fileModel = data[file.filePath] ?: RawFileModel(file.fileName, file.packageName.asString())

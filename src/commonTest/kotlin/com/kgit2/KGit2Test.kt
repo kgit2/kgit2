@@ -1,5 +1,10 @@
 package com.kgit2
 
+import com.kgit2.common.extend.asCPointer
+import kotlinx.cinterop.IntVar
+import kotlinx.cinterop.pointed
+import kotlinx.cinterop.reinterpret
+import kotlinx.cinterop.value
 import libgit2.git_index_entry
 import libgit2.git_oid
 import libgit2.git_oid_cmp
@@ -11,8 +16,6 @@ import kotlin.test.assertTrue
 class KGit2Test {
     @Test
     fun version() = kgitRunTest {
-        println(git_index_entry.size)
-        println(git_oid.size)
         val version = KGit2.version()
         assertEquals(version.toString(), "1.5.0")
     }
@@ -25,7 +28,7 @@ class KGit2Test {
     @Test
     fun features() = kgitRunTest {
         val feature = KGit2.feature
-        assertEquals(feature.value, 15U)
+        assertEquals(feature.flags, 15U)
         assertTrue(feature.enableThreads())
         assertTrue(feature.enableHttps())
         assertTrue(feature.enableSSH())

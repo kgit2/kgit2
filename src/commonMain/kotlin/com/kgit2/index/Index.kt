@@ -63,7 +63,7 @@ class Index(raw: IndexRaw) : GitBase<git_index, IndexRaw>(raw), Iterable<IndexEn
             git_index_add_all(
                 raw.handler,
                 strArray,
-                options.value,
+                options.flags,
                 indexMatchedPathCallback.toRawCB(),
                 indexMatchedPathCallback.asCPointer()
             ).errorCheck()

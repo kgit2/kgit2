@@ -8,7 +8,6 @@ import com.kgit2.common.memory.Memory
 import com.kgit2.credential.Credential
 import com.kgit2.credential.CredentialType
 import com.kgit2.fetch.Direction
-import com.kgit2.memory.BeforeFree
 import com.kgit2.memory.GitBase
 import com.kgit2.memory.Raw
 import com.kgit2.model.Oid
@@ -39,9 +38,27 @@ class RemoteCallbacksRaw(
         }.getOrThrow()
     }
 
-    override val beforeFree: BeforeFree = {
-        stableRef.dispose()
-    }
+    var sidebandProgress: TransportMessageCallback? = null
+
+    var completion: RemoteCompletionCallback? = null
+
+    var credentials: CredentialAcquireCallback? = null
+
+    var certificateCheck: CertificateCheckCallback? = null
+
+    var transferProgress: IndexerProgressCallback? = null
+
+    var updateTips: UpdateTipsCallback? = null
+
+    var pushTransferProgress: PushTransferProgressCallback? = null
+
+    var pushUpdateReference: PushUpdateReferenceCallback? = null
+
+    var pushNegotiation: PushNegotiationCallback? = null
+
+    var transport: TransportCallback? = null
+
+    var remoteReady: RemoteReadyCallback? = null
 }
 
 class RemoteCallbacks(
@@ -54,13 +71,14 @@ class RemoteCallbacks(
      * progress side-band will be passed to this function (this is
      * the 'counting objects' output).
      */
-    var sidebandProgress: TransportMessageCallback? = null
+    var sidebandProgress: TransportMessageCallback?
+        get() = raw.sidebandProgress
         set(value) {
-            field = value
+            raw.sidebandProgress = value
             raw.handler.pointed.sideband_progress = value?.let {
                 staticCFunction { message, _, payload ->
-                    val callback = payload!!.asStableRef<TransportMessageCallback>().get()
-                    val result = callback.transportMessage(message!!.toKString())
+                    val callback = payload!!.asStableRef<RemoteCallbacksRaw>().get()
+                    val result = callback.sidebandProgress!!.transportMessage(message!!.toKString())
                     if (result) 1 else 0
                 }
             }
@@ -70,13 +88,14 @@ class RemoteCallbacks(
      * Completion is called when different parts of the download
      * process are done (currently unused).
      */
-    var completion: RemoteCompletionCallback? = null
+    var completion: RemoteCompletionCallback?
+        get() = raw.completion
         set(value) {
-            field = value
+            raw.completion = value
             raw.handler.pointed.completion = value?.let {
                 staticCFunction { type, payload ->
-                    val callback = payload!!.asStableRef<RemoteCompletionCallback>().get()
-                    callback.remoteCompletion(RemoteCompletionType.fromRaw(type))
+                    val callback = payload!!.asStableRef<RemoteCallbacksRaw>().get()
+                    callback.completion!!.remoteCompletion(RemoteCompletionType.fromRaw(type))
                 }
             }
         }
@@ -88,14 +107,15 @@ class RemoteCallbacks(
      * Returning GIT_PASSTHROUGH will make libgit2 behave as
      * though this field isn't set.
      */
-    var credentials: CredentialAcquireCallback? = null
+    var credentials: CredentialAcquireCallback?
+        get() = raw.credentials
         set(value) {
-            field = value
+            raw.credentials = value
             raw.handler.pointed.credentials = value?.let {
                 staticCFunction { cred, url, usernameFromUrl, allowedTypes, payload ->
-                    val callback = payload!!.asStableRef<CredentialAcquireCallback>().get()
+                    val callback = payload!!.asStableRef<RemoteCallbacksRaw>().get()
                     val credential = Credential(Memory(), cred!!.pointed.value!!)
-                    callback.credentialAcquire(
+                    callback.credentials!!.credentialAcquire(
                         credential,
                         url!!.toKString(),
                         usernameFromUrl!!.toKString(),
@@ -111,13 +131,14 @@ class RemoteCallbacks(
      * connection to proceed. Returns 0 to allow the connection
      * or a negative value to indicate an error.
      */
-    var certificateCheck: CertificateCheckCallback? = null
+    var certificateCheck: CertificateCheckCallback?
+        get() = raw.certificateCheck
         set(value) {
-            field = value
+            raw.certificateCheck = value
             raw.handler.pointed.certificate_check = value?.let {
                 staticCFunction { cert, valid, host, payload ->
-                    val callback = payload!!.asStableRef<CertificateCheckCallback>().get()
-                    callback.certificateCheck(Cert(Memory(), cert!!), valid == 1, host!!.toKString())
+                    val callback = payload!!.asStableRef<RemoteCallbacksRaw>().get()
+                    callback.certificateCheck!!.certificateCheck(Cert(Memory(), cert!!), valid == 1, host!!.toKString())
                 }
             }
         }
@@ -127,12 +148,13 @@ class RemoteCallbacks(
      * called with the current count of progress done by the
      * indexer.
      */
-    var transferProgress: IndexerProgressCallback? = null
+    var transferProgress: IndexerProgressCallback?
+        get() = raw.transferProgress
         set(value) {
-            field = value
+            raw.transferProgress = value
             raw.handler.pointed.transfer_progress = value?.let {
                 staticCFunction { stats, payload ->
-                    val callback = payload!!.asStableRef<IndexerProgressCallback>().get()
+                    val callback = payload!!.asStableRef<RemoteCallbacksRaw>().get()
                     val progress = IndexerProgress(
                         stats!!.pointed.total_objects,
                         stats.pointed.indexed_objects,
@@ -142,7 +164,7 @@ class RemoteCallbacks(
                         stats.pointed.indexed_deltas,
                         stats.pointed.received_bytes
                     )
-                    callback.indexerProgress(progress)
+                    callback.transferProgress!!.indexerProgress(progress)
                 }
             }
         }
@@ -151,13 +173,14 @@ class RemoteCallbacks(
      * Each time a reference is updated locally, this function
      * will be called with information about it.
      */
-    var updateTips: UpdateTipsCallback? = null
+    var updateTips: UpdateTipsCallback?
+        get() = raw.updateTips
         set(value) {
-            field = value
+            raw.updateTips = value
             raw.handler.pointed.update_tips = value?.let {
                 staticCFunction { refname, a, b, payload ->
-                    val callback = payload!!.asStableRef<UpdateTipsCallback>().get()
-                    callback.updateTips(refname!!.toKString(), Oid(Memory(), a!!), Oid(Memory(), b!!))
+                    val callback = payload!!.asStableRef<RemoteCallbacksRaw>().get()
+                    callback.updateTips!!.updateTips(refname!!.toKString(), Oid(Memory(), a!!), Oid(Memory(), b!!))
                 }
             }
         }
@@ -168,24 +191,26 @@ class RemoteCallbacks(
      * inline with pack building operations, so performance may be
      * affected.
      */
-    var pushTransferProgress: PushTransferProgressCallback? = null
+    var pushTransferProgress: PushTransferProgressCallback?
+        get() = raw.pushTransferProgress
         set(value) {
-            field = value
+            raw.pushTransferProgress = value
             raw.handler.pointed.push_transfer_progress = value?.let {
                 staticCFunction { current, total, bytes, payload ->
-                    val callback = payload!!.asStableRef<PushTransferProgressCallback>().get()
-                    callback.pushTransferProgress(current, total, bytes)
+                    val callback = payload!!.asStableRef<RemoteCallbacksRaw>().get()
+                    callback.pushTransferProgress!!.pushTransferProgress(current, total, bytes)
                 }
             }
         }
 
-    var pushUpdateReference: PushUpdateReferenceCallback? = null
+    var pushUpdateReference: PushUpdateReferenceCallback?
+        get() = raw.pushUpdateReference
         set(value) {
-            field = value
+            raw.pushUpdateReference = value
             raw.handler.pointed.push_update_reference = value?.let {
                 staticCFunction { refname, status, payload ->
-                    val callback = payload!!.asStableRef<PushUpdateReferenceCallback>().get()
-                    callback.pushUpdateReference(refname!!.toKString(), status!!.toKString()).value
+                    val callback = payload!!.asStableRef<RemoteCallbacksRaw>().get()
+                    callback.pushUpdateReference!!.pushUpdateReference(refname!!.toKString(), status!!.toKString()).value
                 }
             }
         }
@@ -194,12 +219,13 @@ class RemoteCallbacks(
      * Called once between the negotiation step and the upload. It
      * provides information about what updates will be performed.
      */
-    var pushNegotiation: PushNegotiationCallback? = null
+    var pushNegotiation: PushNegotiationCallback?
+        get() = raw.pushNegotiation
         set(value) {
-            field = value
+            raw.pushNegotiation = value
             raw.handler.pointed.push_negotiation = value?.let {
                 staticCFunction { updates, size, payload ->
-                    val callback = payload!!.asStableRef<PushNegotiationCallback>().get()
+                    val callback = payload!!.asStableRef<RemoteCallbacksRaw>().get()
                     val updateList = MutableList(size.toInt()) {
                         val update = updates!![it]!!.pointed
                         PushUpdate(
@@ -209,7 +235,7 @@ class RemoteCallbacks(
                             Oid(Memory(), update.dst.ptr)
                         )
                     }
-                    callback.pushNegotiation(updateList)
+                    callback.pushNegotiation!!.pushNegotiation(updateList)
                 }
             }
         }
@@ -218,13 +244,14 @@ class RemoteCallbacks(
      * Create the transport to use for this operation. Leave NULL
      * to auto-detect.
      */
-    var transport: TransportCallback? = null
+    var transport: TransportCallback?
+        get() = raw.transport
         set(value) {
-            field = value
+            raw.transport = value
             raw.handler.pointed.transport = value?.let {
                 staticCFunction { transport, remote, payload ->
-                    val callback = payload!!.asStableRef<TransportCallback>().get()
-                    callback.transport(
+                    val callback = payload!!.asStableRef<RemoteCallbacksRaw>().get()
+                    callback.transport!!.transport(
                         Transport(Memory(), transport!!.pointed.value!!),
                         Remote(Memory(), remote!!)
                     )
@@ -235,13 +262,14 @@ class RemoteCallbacks(
     /**
      * Callback when the remote is ready to connect.
      */
-    var remoteReady: RemoteReadyCallback? = null
+    var remoteReady: RemoteReadyCallback?
+        get() = raw.remoteReady
         set(value) {
-            field = value
+            raw.remoteReady = value
             raw.handler.pointed.remote_ready = value?.let {
                 staticCFunction { remote, direction, payload ->
-                    val callback = payload!!.asStableRef<RemoteReadyCallback>().get()
-                    callback.remoteReady(Remote(Memory(), remote!!), Direction.fromRaw(direction.toUInt()))
+                    val callback = payload!!.asStableRef<RemoteCallbacksRaw>().get()
+                    callback.remoteReady!!.remoteReady(Remote(Memory(), remote!!), Direction.fromRaw(direction.toUInt()))
                 }
             }
         }

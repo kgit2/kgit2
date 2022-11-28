@@ -36,7 +36,7 @@ class Reference(raw: ReferenceRaw) : GitBase<git_reference, ReferenceRaw>(raw) {
         fun normalizeName(name: String, flags: ReferenceFormat): String = memScoped {
             val buf = allocPointerTo<ByteVar>()
             val size = alloc<ULongVar>()
-            git_reference_normalize_name(buf.value, size.value, name, flags.value).errorCheck()
+            git_reference_normalize_name(buf.value, size.value, name, flags.flags).errorCheck()
             buf.value!!.readBytes(size.value.toInt()).toKString()
         }
     }

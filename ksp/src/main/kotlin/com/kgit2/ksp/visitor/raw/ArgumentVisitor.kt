@@ -1,4 +1,4 @@
-package com.kgit2.ksp.visitor
+package com.kgit2.ksp.visitor.raw
 
 import com.google.devtools.ksp.processing.SymbolProcessorEnvironment
 import com.google.devtools.ksp.symbol.*

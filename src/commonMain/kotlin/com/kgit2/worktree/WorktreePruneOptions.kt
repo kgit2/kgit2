@@ -19,18 +19,7 @@ class WorktreePruneOptions(
 ) : GitBase<git_worktree_prune_options, WorktreePruneOptionsRaw>(raw) {
     constructor(memory: Memory, handler: WorktreePruneOptionsPointer) : this(WorktreePruneOptionsRaw(memory, handler))
 
-    private fun flag(flag: WorktreePruneOptionsFlag, on: Boolean): WorktreePruneOptions {
-        when (on) {
-            true -> raw.handler.pointed.flags = raw.handler.pointed.flags or flag.value
-            false -> raw.handler.pointed.flags = raw.handler.pointed.flags and flag.value.inv()
-        }
-        return this
+    val flags: WorktreePruneOptionsFlag = WorktreePruneOptionsFlag(raw.handler.pointed.flags) {
+        raw.handler.pointed.flags = it
     }
-
-    fun valid(valid: Boolean): WorktreePruneOptions = flag(WorktreePruneOptionsFlag.Valid, valid)
-
-    fun locked(locked: Boolean): WorktreePruneOptions = flag(WorktreePruneOptionsFlag.Locked, locked)
-
-    fun workingTree(workingTree: Boolean): WorktreePruneOptions =
-        flag(WorktreePruneOptionsFlag.WorkingTree, workingTree)
 }

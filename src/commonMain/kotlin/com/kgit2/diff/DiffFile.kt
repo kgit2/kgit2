@@ -27,11 +27,5 @@ class DiffFile(raw: DiffFileRaw) : GitBase<git_diff_file, DiffFileRaw>(raw) {
 
     val mod: FileMode = FileMode.fromRaw(raw.handler.pointed.mode.convert())
 
-    val isBinary: Boolean = flag in DiffFlag.Binary
-
-    val isNotBinary: Boolean = flag in DiffFlag.NotBinary
-
-    val isValidId: Boolean = flag in DiffFlag.ValidID
-
-    val exists: Boolean = flag in DiffFlag.Exists
+    val flags: DiffFlag = DiffFlag(raw.handler.pointed.flags)
 }
