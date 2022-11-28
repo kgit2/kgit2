@@ -199,6 +199,8 @@ gradle-app.setting
 **/build
 external/*.tar.gz
 external/libssh2*
+build-cache
 
 libgit2
 libssh2
+openssl
