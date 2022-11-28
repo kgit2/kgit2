@@ -26,8 +26,10 @@ val opensslDir = file("/opt/homebrew/opt/openssl@3")
 val libssh2DistDir = buildDir.resolve("dist/libssh2")
 val libgit2DistDir = buildDir.resolve("dist/libgit2")
 
-val linkerOpts = buildDir.resolve("linkerOpts/linkerOpts.txt")
-val defFile = buildDir.resolve("cinterop/libgit2.def")
+val cinterop = buildDir.resolve("cinterop")
+val pkgConfigVersion = cinterop.resolve("pkg-config-version.txt")
+val linkerOpts = cinterop.resolve("linker-opts.txt")
+val defFile = cinterop.resolve("libgit2.def")
 
 tasks {
     val wrapper by getting(Wrapper::class) {
@@ -177,9 +179,31 @@ tasks {
         }
     }
 
+    val pkgConfigVersion by creating(Exec::class) {
+        group = "interop"
+        outputs.file(pkgConfigVersion)
+        val command = commandLine("sh", "-c", "pkg-config --version")
+        doFirst {
+            standardOutput = FileOutputStream(pkgConfigVersion)
+        }
+        doLast {
+            logger.warn("pkg-config version: ${pkgConfigVersion.readText()}")
+        }
+    }
+
+    val installPkgConfig by creating(Exec::class) {
+        group = "interop"
+        finalizedBy(pkgConfigVersion)
+        outputs.file(pkgConfigVersion)
+        val command = commandLine("sh", "-c", "brew install pkg-config")
+        doLast {
+            logger.warn("Install pkg-config: ${command.executable} ${command.args?.joinToString(" ")}")
+        }
+    }
+
     val pkgConfig by creating(Exec::class) {
         group = "interop"
-        dependsOn(installLibgit2)
+        dependsOn(installLibgit2, installPkgConfig)
         outputs.file(linkerOpts)
         workingDir(libgit2DistDir)
         environment("PKG_CONFIG_PATH", libgit2DistDir.resolve("lib/pkgconfig").normalize().absolutePath)
