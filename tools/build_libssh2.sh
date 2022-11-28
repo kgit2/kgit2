@@ -7,12 +7,11 @@ SOURCE_DIR="$ROOT/lib/external/libssh2"
 BUIlD_DIR="$SOURCE_DIR/build"
 DIST_DIR="$ROOT/lib/libssh2"
 
-# build openssl
-#"$TOOLS_DIR"/build_openssl.sh
+export OPENSSL_ROOT_DIR="$ROOT/lib/openssl"
 
 VERSION="libssh2-1.10.0.tar.gz"
-SOURCE_BUNDLE="$ROOT/lib/external/$VERSION"
 DOWNLOAD_URL="https://www.libssh2.org/download/$VERSION"
+SOURCE_BUNDLE="$ROOT/lib/external/$VERSION"
 if [ ! -f "$SOURCE_BUNDLE" ]; then
     export https_proxy=http://127.0.0.1:6152
     export http_proxy=http://127.0.0.1:6152

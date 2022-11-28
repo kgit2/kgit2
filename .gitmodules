@@ -1,3 +1,0 @@
-[submodule "lib/external/libgit2"]
-	path = lib/external/libgit2
-	url = https://github.com/libgit2/libgit2.git

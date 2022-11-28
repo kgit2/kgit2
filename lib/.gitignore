@@ -196,9 +196,5 @@ gradle-app.setting
 
 # End of https://www.toptal.com/developers/gitignore/api/macos,jetbrains+all,visualstudiocode,gradle,kotlin
 
-**/build
-external/*.tar.gz
-external/libssh2*
-
-libgit2
-libssh2
+build
+build-cache

@@ -52,7 +52,7 @@ kotlin {
         compilations.getByName("main") {
             cinterops {
                 val libgit2 by creating {
-                    defFile(rootProject.file("lib/libgit2.def"))
+                    defFile(rootProject.file("lib/build/cinterop/libgit2.def"))
                     packageName("libgit2")
                 }
 
@@ -78,50 +78,9 @@ dependencies {
 }
 
 tasks {
-    val generateDef by registering {
-        group = "interop"
-        outputs.cacheIf { true }
-        outputs.file(rootProject.file("lib/libgit2.def"))
-        doLast {
-            val libDir = rootProject.file("lib").normalize()
-            val libgit2Dir = File(libDir, "libgit2").normalize()
-            val libssh2Dir = File(libDir, "libssh2").normalize()
-            val pb = ProcessBuilder("sh", "-c", "pkg-config --libs libgit2 --static")
-            pb.environment()["PKG_CONFIG_PATH"] = File(libgit2Dir, "lib/pkgconfig").normalize().absolutePath
-            pb.redirectInput(ProcessBuilder.Redirect.PIPE)
-            val child = pb.start()
-            val pkgResult = child.inputStream.bufferedReader().readText()
-            child.waitFor()
-            val headers = mutableListOf("git2.h")
-            File(libgit2Dir, "include/git2").listFiles()?.forEach {
-                if (it.extension == "h") {
-                    headers.add("git2/${it.name}")
-                }
-            }
-            File(libgit2Dir, "include/git2/sys").listFiles()?.forEach {
-                if (it.extension == "h") {
-                    headers.add("git2/sys/${it.name}")
-                }
-            }
-            val template = """
-                |headers = ${headers.joinToString(" ")}
-                |staticLibraries = libgit2.a
-                |libraryPaths = ${File(libgit2Dir, "lib").normalize().absolutePath} ${File(libssh2Dir, "lib").normalize().absolutePath}
-                |compilerOpts = -I${File(libgit2Dir, "include").normalize().absolutePath}
-                |linkerOpts = $pkgResult
-            """.trimMargin()
-            rootProject.file("lib/libgit2.def").writeText(template)
-        }
-    }
-
-    val cinteropLibgit2Native by getting {
-        dependsOn(generateDef)
-    }
-
-    val generateModule by creating {
-        doLast {
-
-        }
+    val wrapper by getting(Wrapper::class) {
+        distributionType = Wrapper.DistributionType.ALL
+        gradleVersion = "7.6"
     }
 }
 
