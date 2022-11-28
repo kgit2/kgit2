@@ -57,4 +57,8 @@ class MergeOptions(
     val fileFavor: MergeFileFavor = MergeFileFavor(raw.handler.pointed.file_favor) {
         raw.handler.pointed.file_favor = it
     }
+
+    val fileFlags: MergeFileFlag = MergeFileFlag(raw.handler.pointed.file_flags) {
+        raw.handler.pointed.file_flags = it
+    }
 }

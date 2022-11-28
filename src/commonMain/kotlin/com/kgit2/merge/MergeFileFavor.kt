@@ -13,4 +13,4 @@ import libgit2.git_merge_file_favor_t
 data class MergeFileFavor(
     override var flags: git_merge_file_favor_t,
     override val onFlagsChanged: ((UInt) -> Unit)?,
-) : MergeFileFavorMask<MergeFileFavor>
+) : MergeFileFlagMask<MergeFileFavor>

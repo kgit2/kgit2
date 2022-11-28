@@ -10,7 +10,7 @@ import com.kgit2.credential.CredentialType
 import com.kgit2.fetch.Direction
 import com.kgit2.memory.GitBase
 import com.kgit2.memory.Raw
-import com.kgit2.model.Oid
+import com.kgit2.oid.Oid
 import com.kgit2.transport.Transport
 import kotlinx.cinterop.*
 import libgit2.GIT_REMOTE_CALLBACKS_VERSION

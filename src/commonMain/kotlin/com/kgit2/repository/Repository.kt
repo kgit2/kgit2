@@ -10,6 +10,7 @@ import com.kgit2.branch.BranchIterator
 import com.kgit2.branch.BranchType
 import com.kgit2.checkout.CheckoutOptions
 import com.kgit2.checkout.ResetType
+import com.kgit2.cherrypick.CherrypickOptions
 import com.kgit2.commit.AnnotatedCommit
 import com.kgit2.commit.Commit
 import com.kgit2.common.error.GitError
@@ -22,10 +23,18 @@ import com.kgit2.common.memory.memoryScoped
 import com.kgit2.config.Config
 import com.kgit2.index.Index
 import com.kgit2.memory.GitBase
-import com.kgit2.model.*
+import com.kgit2.merge.MergeAnalysisFlag
+import com.kgit2.merge.MergeOptions
+import com.kgit2.merge.MergePreferenceFlag
+import com.kgit2.model.toKString
+import com.kgit2.model.toList
+import com.kgit2.model.withGitBuf
+import com.kgit2.model.withGitStrArray
 import com.kgit2.`object`.Object
 import com.kgit2.`object`.ObjectType
 import com.kgit2.odb.Odb
+import com.kgit2.oid.Oid
+import com.kgit2.oid.OidArray
 import com.kgit2.reference.Reference
 import com.kgit2.reference.ReferenceIterator
 import com.kgit2.remote.Remote
@@ -228,7 +237,7 @@ class Repository(raw: RepositoryRaw) : GitBase<git_repository, RepositoryRaw>(ra
             git_commit_lookup(this.ptr, raw.handler, oid.raw.handler).errorCheck()
         }
 
-        fun findAnnotatedCommit(oid: Oid): AnnotatedCommit = AnnotatedCommit{
+        fun findAnnotatedCommit(oid: Oid): AnnotatedCommit = AnnotatedCommit {
             git_annotated_commit_lookup(this.ptr, raw.handler, oid.raw.handler).errorCheck()
         }
     }
@@ -282,53 +291,137 @@ class Repository(raw: RepositoryRaw) : GitBase<git_repository, RepositoryRaw>(ra
     val Merge = MergeModule()
 
     inner class MergeModule {
-        // fun merge(annotatedCommits: Collection<AnnotatedCommit>, mergeOpts: MergeOptions?, checkoutOptions: CheckoutBuilder?) {
-        //    TODO()
-        // }
-
-        // fun mergeCommits(ourCommit: Commit, theirCommit: Commit, mergeOpts: MergeOptions?): Index {
-        //     TODO()
-        // }
-
-        // TODO()
-        // fun mergeTrees(ancestorTree: Tree, ourTree: Tree, theirTree: Tree, mergeOpts: MergeOptions?, ): Index = Index() {
-        //     git_merge_trees(this.ptr, raw.handler, ancestorTree.raw.handler, ourTree.raw.handler, theirTree.raw.handler, mergeOpts.raw.handler).errorCheck()
-        // }
-
-        // fun mergeAnalysis(ourCommit: Commit, theirCommit: Commit): Pair<MergeAnalysis, MergePreference> {
-        //     TODO()
-        // }
-
-        // fun mergeAnalysisForRef(ourRef: Reference, theirRef: Reference): Pair<MergeAnalysis, MergePreference> {
-        //     TODO()
-        // }
-
-        fun mergeBase(one: Oid, two: Oid): Oid {
-            TODO()
+        /**
+         * For compatibility with git, the repository is put into a merging state.
+         * Once the commit is done (or if the user wishes to abort),
+         * you should clear this state by calling [cleanUpState].
+         */
+        fun merge(
+            annotatedCommits: Collection<AnnotatedCommit>,
+            mergeOptions: MergeOptions?,
+            checkoutOptions: CheckoutOptions?,
+        ) {
+            git_merge(
+                raw.handler,
+                annotatedCommits.map { it.raw.handler }.toCValues(),
+                annotatedCommits.size.convert(),
+                mergeOptions?.raw?.handler,
+                checkoutOptions?.raw?.handler
+            ).errorCheck()
         }
 
-        fun mergeBaseMany(oids: Collection<Oid>): Oid {
-            TODO()
+        fun mergeCommits(ourCommit: Commit, theirCommit: Commit, mergeOptions: MergeOptions?): Index = Index {
+            git_merge_commits(
+                this.ptr,
+                raw.handler,
+                ourCommit.raw.handler,
+                theirCommit.raw.handler,
+                mergeOptions?.raw?.handler
+            ).errorCheck()
         }
 
-        fun mergeBases(one: Oid, two: Oid): List<Oid> {
-            TODO()
+        fun mergeTrees(ancestorTree: Tree, ourTree: Tree, theirTree: Tree, mergeOptions: MergeOptions?): Index =
+            Index() {
+                git_merge_trees(
+                    this.ptr,
+                    raw.handler,
+                    ancestorTree.raw.handler,
+                    ourTree.raw.handler,
+                    theirTree.raw.handler,
+                    mergeOptions?.raw?.handler
+                ).errorCheck()
+            }
+
+        fun mergeAnalysis(theirHeads: Collection<AnnotatedCommit>): Pair<MergeAnalysisFlag, MergePreferenceFlag> =
+            memoryScoped {
+                val analysis = alloc<git_merge_analysis_tVar>()
+                val preference = alloc<git_merge_preference_tVar>()
+                git_merge_analysis(
+                    analysis.ptr,
+                    preference.ptr,
+                    raw.handler,
+                    theirHeads.map { it.raw.handler }.toCValues(),
+                    theirHeads.size.convert()
+                ).errorCheck()
+                MergeAnalysisFlag(analysis.value) to MergePreferenceFlag(preference.value)
+            }
+
+        fun mergeAnalysisForRef(
+            ourRef: Reference,
+            theirHeads: Collection<AnnotatedCommit>,
+        ): Pair<MergeAnalysisFlag, MergePreferenceFlag> = memoryScoped {
+            val analysis = alloc<git_merge_analysis_tVar>()
+            val preference = alloc<git_merge_preference_tVar>()
+            git_merge_analysis_for_ref(
+                analysis.ptr,
+                preference.ptr,
+                raw.handler,
+                ourRef.raw.handler,
+                theirHeads.map { it.raw.handler }.toCValues(),
+                theirHeads.size.convert()
+            ).errorCheck()
+            MergeAnalysisFlag(analysis.value) to MergePreferenceFlag(preference.value)
         }
 
-        fun mergeBasesMany(oids: Collection<Oid>): List<Oid> {
-            TODO()
+        fun mergeBase(one: Oid, two: Oid): Oid = Oid {
+            git_merge_base(this, raw.handler, one.raw.handler, two.raw.handler).errorCheck()
         }
 
-        // fun cherryPick(commit: Commit, options: CherryPickOptions, signature: Signature, message: String): CherryPickResult {
-        //     TODO()
-        // }
+        fun mergeBaseMany(oids: Collection<Oid>): Oid = Oid {
+            git_merge_base_many(
+                this, raw.handler,
+                oids.size.convert(),
+                it.allocArrayOf(oids.map { oid -> oid.raw.handler }).pointed.value
+            ).errorCheck()
+        }
 
-        // fun cherryPickCommit(cherryPickCommit: Commit, ourCommit: Commit, mainline: Int, options: MergeOptions?): Index {
-        //     TODO()
-        // }
+        fun mergeBases(one: Oid, two: Oid): OidArray = OidArray {
+            git_merge_bases(
+                this,
+                raw.handler,
+                one.raw.handler,
+                two.raw.handler
+            ).errorCheck()
+        }
+
+        fun mergeBasesMany(oids: Collection<Oid>): OidArray = OidArray {
+            git_merge_bases_many(
+                this,
+                raw.handler,
+                oids.size.convert(),
+                it.allocArrayOf(oids.map { oid -> oid.raw.handler }).pointed.value
+            ).errorCheck()
+        }
+
+        fun cherryPick(commit: Commit, options: CherrypickOptions) {
+            git_cherrypick(raw.handler, commit.raw.handler, options.raw.handler).errorCheck()
+        }
+
+        fun cherryPickCommit(
+            cherryPickCommit: Commit,
+            ourCommit: Commit,
+            mainline: Int,
+            options: MergeOptions?,
+        ): Index = Index {
+            git_cherrypick_commit(
+                this.ptr, raw.handler,
+                cherryPickCommit.raw.handler,
+                ourCommit.raw.handler,
+                mainline.convert(),
+                options?.raw?.handler
+            ).errorCheck()
+        }
 
         fun mergeHeadForeach(callback: (Oid) -> Boolean) {
-            TODO()
+            val stable = StableRef.create(callback)
+            val callback: git_repository_mergehead_foreach_cb = staticCFunction { oidPtr, payload ->
+                payload!!.asStableRef<((Oid) -> Boolean)>()
+                    .get()
+                    .invoke(Oid(Memory(), oidPtr!!))
+                    .toInt()
+            }
+            git_repository_mergehead_foreach(raw.handler, callback, stable.asCPointer()).errorCheck()
+            stable.dispose()
         }
     }
 

@@ -4,7 +4,7 @@ import cnames.structs.git_note
 import com.kgit2.annotations.Raw
 import com.kgit2.common.memory.Memory
 import com.kgit2.memory.GitBase
-import com.kgit2.model.Oid
+import com.kgit2.oid.Oid
 import com.kgit2.signature.Signature
 import kotlinx.cinterop.allocPointerTo
 import kotlinx.cinterop.toKString

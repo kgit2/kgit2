@@ -4,7 +4,7 @@ import cnames.structs.git_annotated_commit
 import com.kgit2.annotations.Raw
 import com.kgit2.common.memory.Memory
 import com.kgit2.memory.GitBase
-import com.kgit2.model.Oid
+import com.kgit2.oid.Oid
 import com.kgit2.reference.Reference
 import com.kgit2.repository.Repository
 import kotlinx.cinterop.allocPointerTo

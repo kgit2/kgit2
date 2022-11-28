@@ -8,7 +8,7 @@ import com.kgit2.common.extend.toBoolean
 import com.kgit2.common.memory.Memory
 import com.kgit2.common.memory.memoryScoped
 import com.kgit2.memory.GitBase
-import com.kgit2.model.Oid
+import com.kgit2.oid.Oid
 import com.kgit2.model.OidPointer
 import com.kgit2.`object`.ObjectType
 import kotlinx.cinterop.*

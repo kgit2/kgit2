@@ -1,6 +1,6 @@
 package com.kgit2.callback.payload
 
-import com.kgit2.model.Oid
+import com.kgit2.oid.Oid
 
 data class PushUpdate(
     val srcRefName: String,
