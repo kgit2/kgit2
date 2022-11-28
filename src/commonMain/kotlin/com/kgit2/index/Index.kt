@@ -14,7 +14,10 @@ import com.kgit2.model.withGitStrArray
 import com.kgit2.repository.Repository
 import com.kgit2.tree.Tree
 import kotlinx.atomicfu.atomic
-import kotlinx.cinterop.*
+import kotlinx.cinterop.allocPointerTo
+import kotlinx.cinterop.convert
+import kotlinx.cinterop.ptr
+import kotlinx.cinterop.refTo
 import libgit2.*
 
 @Raw(

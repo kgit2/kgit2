@@ -7,7 +7,10 @@ import com.kgit2.common.extend.toInt
 import com.kgit2.common.memory.Memory
 import com.kgit2.common.memory.memoryScoped
 import com.kgit2.memory.GitBase
-import com.kgit2.reference.*
+import com.kgit2.reference.ReferencePointer
+import com.kgit2.reference.ReferenceRaw
+import com.kgit2.reference.ReferenceSecondaryInitial
+import com.kgit2.reference.ReferenceSecondaryPointer
 import kotlinx.cinterop.*
 import libgit2.*
 

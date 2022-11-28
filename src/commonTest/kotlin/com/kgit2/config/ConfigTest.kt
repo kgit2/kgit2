@@ -3,7 +3,10 @@ package com.kgit2.config
 import com.kgit2.kgitRunTest
 import com.kgit2.utils.withTempDir
 import io.github.aakira.napier.Napier
-import kotlin.test.*
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class ConfigTest {
     @Test

@@ -5,11 +5,11 @@ import com.kgit2.callback.payload.IndexerProgress
 import com.kgit2.callback.payload.PushUpdate
 import com.kgit2.certificate.Cert
 import com.kgit2.checkout.CheckoutNotificationType
+import com.kgit2.common.error.GitErrorCode
 import com.kgit2.common.option.mutually.PackBuilderStage
 import com.kgit2.credential.Credential
 import com.kgit2.credential.CredentialType
 import com.kgit2.diff.DiffFile
-import com.kgit2.common.error.GitErrorCode
 import com.kgit2.fetch.Direction
 import com.kgit2.model.Oid
 import com.kgit2.remote.Remote

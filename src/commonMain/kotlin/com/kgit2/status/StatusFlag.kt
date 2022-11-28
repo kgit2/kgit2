@@ -1,7 +1,8 @@
 package com.kgit2.status
 
 import com.kgit2.annotations.FlagMask
-import libgit2.*
+import libgit2.git_status_show_t
+import libgit2.git_status_t
 
 @FlagMask(
     flagsType = git_status_show_t::class,
