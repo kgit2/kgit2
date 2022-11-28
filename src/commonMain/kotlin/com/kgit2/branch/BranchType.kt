@@ -5,6 +5,9 @@ import libgit2.GIT_BRANCH_LOCAL
 import libgit2.GIT_BRANCH_REMOTE
 import libgit2.git_branch_t
 
+/**
+ * Basic type of any Git branch.
+ */
 enum class BranchType(val value: git_branch_t) {
     Local(GIT_BRANCH_LOCAL),
     Remote(GIT_BRANCH_REMOTE),
