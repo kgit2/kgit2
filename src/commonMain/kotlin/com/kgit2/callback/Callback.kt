@@ -11,7 +11,7 @@ import com.kgit2.credential.Credential
 import com.kgit2.credential.CredentialType
 import com.kgit2.diff.DiffFile
 import com.kgit2.fetch.Direction
-import com.kgit2.model.Oid
+import com.kgit2.oid.Oid
 import com.kgit2.remote.Remote
 import com.kgit2.remote.RemoteCompletionType
 import com.kgit2.repository.Repository

@@ -6,7 +6,7 @@ import com.kgit2.callback.TreeWalkCallback
 import com.kgit2.common.extend.errorCheck
 import com.kgit2.common.memory.Memory
 import com.kgit2.memory.GitBase
-import com.kgit2.model.Oid
+import com.kgit2.oid.Oid
 import com.kgit2.`object`.Object
 import kotlinx.cinterop.*
 import libgit2.*
