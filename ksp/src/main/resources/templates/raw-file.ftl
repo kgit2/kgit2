@@ -8,9 +8,4 @@ import libgit2.*
 
 <#list modules as module>
 <#include "raw-declare.ftl">
-<#--<#if module.secondaryPointer>-->
-<#--<#include "secondary-pointer.ftl">-->
-<#--<#else>-->
-<#--<#include "pointer.ftl">-->
-<#--</#if>-->
 </#list>

@@ -51,11 +51,9 @@ class StatusOptions(raw: StatusOptionsRaw) : GitBase<git_status_options, StatusO
             raw.handler.pointed.show = value.value
         }
 
-    var flags: StatusOptionsFlag = StatusOptionsFlag(raw.handler.pointed.flags)
-        set(value) {
-            field = value
-            raw.handler.pointed.flags = value.value
-        }
+    val flags: StatusOptionsFlag = StatusOptionsFlag(raw.handler.pointed.flags) {
+        raw.handler.pointed.flags = it
+    }
 
     var renameThreshold: UShort = raw.handler.pointed.rename_threshold
         set(value) {
@@ -67,12 +65,5 @@ class StatusOptions(raw: StatusOptionsRaw) : GitBase<git_status_options, StatusO
         raw.pathspec.addAll(pathspec)
         raw.handler.pointed.pathspec.count = raw.pinned.get().size.convert()
         raw.handler.pointed.pathspec.strings = raw.pinned.get().toCStringArray(raw.memory)
-    }
-
-    fun flag(flag: StatusOptionsFlag, on: Boolean) {
-        flags = when (on) {
-            true -> flags or flag
-            false -> flags and !flag
-        }
     }
 }

@@ -30,7 +30,7 @@ import com.kgit2.reference.Reference
 import com.kgit2.reference.ReferenceIterator
 import com.kgit2.remote.Remote
 import com.kgit2.signature.Signature
-import com.kgit2.status.Status
+import com.kgit2.status.StatusFlag
 import com.kgit2.status.StatusList
 import com.kgit2.status.StatusOptions
 import com.kgit2.submodule.Submodule
@@ -510,10 +510,10 @@ class Repository(raw: RepositoryRaw) : GitBase<git_repository, RepositoryRaw>(ra
             ignored.value.toBoolean()
         }
 
-        fun statusFile(path: String): Status = memoryScoped {
+        fun statusFile(path: String): StatusFlag = memoryScoped {
             val statusFlags = alloc<git_status_tVar>()
             git_status_file(statusFlags.ptr, raw.handler, path).errorCheck()
-            Status(statusFlags.value)
+            StatusFlag(statusFlags.value)
         }
     }
 

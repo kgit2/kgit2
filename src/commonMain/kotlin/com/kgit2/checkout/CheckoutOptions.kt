@@ -31,11 +31,9 @@ class CheckoutOptions(
         initial: CheckoutOptionsInitial? = null,
     ) : this(CheckoutOptionsRaw(memory, handler, initial))
 
-    var strategy: CheckoutStrategyOpts = CheckoutStrategyOpts(raw.handler.pointed.checkout_strategy)
-        set(value) {
-            field = value
-            raw.handler.pointed.checkout_strategy = value.value
-        }
+    val strategy: CheckoutStrategyOpts = CheckoutStrategyOpts(raw.handler.pointed.checkout_strategy) {
+        raw.handler.pointed.checkout_strategy = it
+    }
 
     var disableFilters: Boolean = raw.handler.pointed.disable_filters.toBoolean()
         set(value) {
