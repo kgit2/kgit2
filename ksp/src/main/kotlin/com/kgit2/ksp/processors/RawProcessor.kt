@@ -22,7 +22,7 @@ class RawProcessor(
 ): SymbolProcessor, ProcessorBase {
     override fun process(resolver: Resolver): List<KSAnnotated> {
         val symbols = resolver.getSymbolsWithAnnotation(Raw::class.qualifiedName!!)
-        logger.warn("Found ${symbols.count()} symbols with @Raw")
+        logger.info("Found ${symbols.count()} symbols with @Raw")
         val visitor = koin.get<RawAnnotatedVisitor>()
         val fileModelMap = mutableMapOf<String, RawFileModel>()
         symbols.forEach {

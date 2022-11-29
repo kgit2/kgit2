@@ -4,6 +4,8 @@ package com.kgit2.repository
 
 import cnames.structs.git_repository
 import com.kgit2.annotations.Raw
+import com.kgit2.apply.ApplyLocation
+import com.kgit2.apply.ApplyOptions
 import com.kgit2.blob.Blob
 import com.kgit2.branch.Branch
 import com.kgit2.branch.BranchIterator
@@ -21,6 +23,7 @@ import com.kgit2.common.extend.toInt
 import com.kgit2.common.memory.Memory
 import com.kgit2.common.memory.memoryScoped
 import com.kgit2.config.Config
+import com.kgit2.diff.Diff
 import com.kgit2.index.Index
 import com.kgit2.memory.GitBase
 import com.kgit2.merge.MergeAnalysisFlag
@@ -35,6 +38,8 @@ import com.kgit2.`object`.ObjectType
 import com.kgit2.odb.Odb
 import com.kgit2.oid.Oid
 import com.kgit2.oid.OidArray
+import com.kgit2.rebase.Rebase
+import com.kgit2.rebase.RebaseOptions
 import com.kgit2.reference.Reference
 import com.kgit2.reference.ReferenceIterator
 import com.kgit2.remote.Remote
@@ -428,25 +433,25 @@ class Repository(raw: RepositoryRaw) : GitBase<git_repository, RepositoryRaw>(ra
     val Rebase = RebaseModule()
 
     inner class RebaseModule {
-        // fun rebase(branch: AnnotatedCommit?, upstream: AnnotatedCommit?, onto: AnnotatedCommit?, options: RebaseOptions?): Rebase {
-        //     TODO()
-        // }
+        fun rebase(branch: AnnotatedCommit?, upstream: AnnotatedCommit?, onto: AnnotatedCommit?, options: RebaseOptions?): Rebase = Rebase {
+            git_rebase_init(this.ptr, raw.handler, branch?.raw?.handler, upstream?.raw?.handler, onto?.raw?.handler, options?.raw?.handler).errorCheck()
+        }
 
-        // fun openRebase(options: RebaseOptions?): Rebase {
-        //     TODO()
-        // }
+        fun openRebase(options: RebaseOptions?): Rebase = Rebase {
+            git_rebase_open(this.ptr, raw.handler, options?.raw?.handler).errorCheck()
+        }
     }
 
     val Apply = ApplyModule()
 
     inner class ApplyModule {
-        // fun apply(diff: Diff, location: ApplyLocation, options: ApplyOptions?): Tree {
-        //     TODO()
-        // }
+        fun apply(diff: Diff, location: ApplyLocation, options: ApplyOptions?) {
+            git_apply(raw.handler, diff.raw.handler, location.value, options?.raw?.handler).errorCheck()
+        }
 
-        // fun applyToTree(tree: Tree, diff: Diff, options: ApplyOptions?): Index {
-        //     TODO()
-        // }
+        fun applyToTree(tree: Tree, diff: Diff, options: ApplyOptions?): Index = Index {
+            git_apply_to_tree(this.ptr, raw.handler, tree.raw.handler, diff.raw.handler, options?.raw?.handler).errorCheck()
+        }
     }
 
     val Revert = RevertModule()

@@ -73,7 +73,7 @@ class ${module.moduleName}Raw(
     }.value!!)
     <#if module.freeOnFailure?has_content>
 
-    override val beforeFree: BeforeFree = {
+    override var beforeFree: BeforeFree? = {
         ${module.freeOnFailure}(handler)
     }
     </#if>

@@ -16,7 +16,7 @@ import kotlin.native.internal.createCleaner
     free = "git_signature_free",
 )
 class Signature(raw: SignatureRaw) : GitBase<git_signature, SignatureRaw>(raw) {
-    constructor(memory: Memory, handler: CPointer<git_signature>) : this(SignatureRaw(memory, handler))
+    constructor(memory: Memory = Memory(), handler: CPointer<git_signature>) : this(SignatureRaw(memory, handler))
 
     constructor(
         memory: Memory = Memory(),

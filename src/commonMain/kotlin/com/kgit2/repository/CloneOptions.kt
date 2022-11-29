@@ -1,8 +1,6 @@
 package com.kgit2.repository
 
 import com.kgit2.annotations.Raw
-import com.kgit2.callback.RemoteCreateCallback
-import com.kgit2.callback.RepositoryCreateCallback
 import com.kgit2.checkout.CheckoutOptions
 import com.kgit2.common.extend.toBoolean
 import com.kgit2.common.extend.toInt
@@ -51,11 +49,11 @@ class CloneOptions(raw: CloneOptionsRaw = CloneOptionsRaw()) : GitBase<git_clone
             raw.handler.pointed.repository_cb_payload = StableRef.create(value as Any).asCPointer()
             raw.handler.pointed.repository_cb = staticCFunction { repo, path, bare, payload ->
                 val callbackPayload = payload!!.asStableRef<RepositoryCreateCallback>()
-                val result = callbackPayload.get().repositoryCreate(
+                val result = callbackPayload.get().invoke(
                     Repository(Memory(), repo!!.pointed.value!!),
                     path!!.toKString(),
                     bare.toBoolean(),
-                )
+                ).value
                 callbackPayload.dispose()
                 result
             }
@@ -67,7 +65,7 @@ class CloneOptions(raw: CloneOptionsRaw = CloneOptionsRaw()) : GitBase<git_clone
             raw.handler.pointed.remote_cb_payload = StableRef.create(value as Any).asCPointer()
             raw.handler.pointed.remote_cb = staticCFunction { remote, repo, name, url, payload ->
                 val callbackPayload = payload!!.asStableRef<RemoteCreateCallback>()
-                val result = callbackPayload.get().remoteCreate(
+                val result = callbackPayload.get().invoke(
                     Remote(Memory(), remote!!.pointed.value!!),
                     Repository(Memory(), repo!!),
                     name!!.toKString(),

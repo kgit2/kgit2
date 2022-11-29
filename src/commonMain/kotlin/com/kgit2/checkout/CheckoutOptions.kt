@@ -1,8 +1,6 @@
 package com.kgit2.checkout
 
 import com.kgit2.annotations.Raw
-import com.kgit2.callback.CheckoutNotifyCallback
-import com.kgit2.callback.CheckoutProgressCallback
 import com.kgit2.common.extend.errorCheck
 import com.kgit2.common.extend.toBoolean
 import com.kgit2.common.extend.toInt
@@ -82,7 +80,7 @@ class CheckoutOptions(
             raw.handler.pointed.notify_payload = StableRef.create(value as Any).asCPointer()
             raw.handler.pointed.notify_cb = staticCFunction { why, path, baseline, target, workdir, payload ->
                 val callbackPayload = payload!!.asStableRef<CheckoutNotifyCallback>()
-                val result = callbackPayload.get().checkoutNotify(
+                val result = callbackPayload.get().invoke(
                     CheckoutNotificationType.fromRaw(why),
                     path?.toKString(),
                     DiffFile(Memory(), baseline!!),
@@ -104,7 +102,7 @@ class CheckoutOptions(
             raw.handler.pointed.progress_payload = StableRef.create(value as Any).asCPointer()
             raw.handler.pointed.progress_cb = staticCFunction { path, completedSteps, totalSteps, payload ->
                 val callbackPayload = payload!!.asStableRef<CheckoutProgressCallback>()
-                callbackPayload.get().checkoutProgress(
+                callbackPayload.get().invoke(
                     path!!.toKString(),
                     completedSteps,
                     totalSteps

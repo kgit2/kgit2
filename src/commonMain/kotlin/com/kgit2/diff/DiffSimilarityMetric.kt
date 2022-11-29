@@ -1,99 +1,102 @@
 package com.kgit2.diff
 
-import com.kgit2.common.extend.asStableRef
+import com.kgit2.annotations.Raw
+import com.kgit2.common.error.GitErrorCode
 import com.kgit2.common.memory.Memory
-import com.kgit2.memory.BeforeFree
 import com.kgit2.memory.GitBase
-import com.kgit2.memory.Raw
 import com.kgit2.signature.Signature
 import kotlinx.cinterop.*
 import libgit2.git_diff_similarity_metric
+import kotlin.native.internal.Cleaner
+import kotlin.native.internal.createCleaner
 
-typealias DiffSimilarityMetricValue = CValue<git_diff_similarity_metric>
+typealias FileSignature = (CPointer<COpaquePointerVar>?, DiffFile?, String?) -> GitErrorCode
+typealias BufferSignature = (CPointer<COpaquePointerVar>?, DiffFile?, String?) -> GitErrorCode
+typealias FreeSignature = (COpaquePointer?) -> Unit
+typealias Similarity = (Int?, Signature?, Signature?) -> GitErrorCode
 
-typealias DiffSimilarityMetricPointer = CPointer<git_diff_similarity_metric>
+@Raw(
+    base = git_diff_similarity_metric::class,
+)
+class DiffSimilarityMetric(
+    raw: DiffSimilarityMetricRaw = DiffSimilarityMetricRaw(),
+) : GitBase<git_diff_similarity_metric, DiffSimilarityMetricRaw>(raw) {
+    inner class CallbackPayload {
+        var fileSignature: FileSignature? = null
+        var bufferSignature: BufferSignature? = null
+        var freeSignature: FreeSignature? = null
+        var similarity: Similarity? = null
+    }
 
-typealias DiffSimilarityMetricInitial = DiffSimilarityMetricPointer.(Memory) -> Unit
-
-typealias DiffSimilarityMetricSecondaryPointer = CPointerVar<git_diff_similarity_metric>
-
-typealias DiffSimilarityMetricSecondaryInitial = DiffSimilarityMetricSecondaryPointer.(Memory) -> Unit
-
-class DiffSimilarityMetricRaw(
-    memory: Memory = Memory(),
-    handler: DiffSimilarityMetricPointer = memory.alloc<git_diff_similarity_metric>().ptr,
-) : Raw<git_diff_similarity_metric>(memory, handler) {
-    private val stableRef: StableRef<DiffSimilarityMetricRaw> = this.asStableRef()
+    private val callbackPayload = CallbackPayload()
+    private val stableRef = StableRef.create(callbackPayload)
 
     init {
-        runCatching {
-            handler.pointed.payload = this.stableRef.asCPointer()
-        }.onFailure {
-            memory.free()
-        }.getOrThrow()
+        raw.handler.pointed.payload = stableRef.asCPointer()
     }
 
-    override val beforeFree: BeforeFree = {
-        stableRef.dispose()
+    override val cleaner: Cleaner = createCleaner(raw to stableRef) {
+        it.second.dispose()
+        it.first.free()
     }
 
-    var fileSignature: ((CPointer<COpaquePointerVar>?, DiffFile?, String?) -> Int)? = null
+    var fileSignature: FileSignature?
+        get() = callbackPayload.fileSignature
         set(value) {
-            field = value
-            handler.pointed.file_signature = value?.let {
+            callbackPayload.fileSignature = value
+            raw.handler.pointed.file_signature = value?.let {
                 staticCFunction { out, file, fullPath, payload ->
-                    val callback = payload!!.asStableRef<DiffSimilarityMetricRaw>().get()
-                    callback.fileSignature!!.invoke(out, file?.let { DiffFile(Memory(), it) }, fullPath?.toKString())
+                    val callback = payload!!.asStableRef<CallbackPayload>().get()
+                    callback.fileSignature!!.invoke(
+                        out,
+                        file?.let { DiffFile(Memory(), it) },
+                        fullPath?.toKString()
+                    ).value
                 }
             }
         }
 
-    var bufferSignature: ((CPointer<COpaquePointerVar>?, DiffFile?, String?) -> Int)? = null
+    var bufferSignature: BufferSignature?
+        get() = callbackPayload.bufferSignature
         set(value) {
-            field = value
-            handler.pointed.buffer_signature = value?.let {
+            callbackPayload.bufferSignature = value
+            raw.handler.pointed.buffer_signature = value?.let {
                 staticCFunction { out, file, buffer, size, payload ->
-                    val callback = payload!!.asStableRef<DiffSimilarityMetricRaw>().get()
-                    callback.bufferSignature!!.invoke(out, file?.let { DiffFile(Memory(), file) }, buffer?.readBytes(size.convert())?.toKString())
+                    val callback = payload!!.asStableRef<CallbackPayload>().get()
+                    callback.bufferSignature!!.invoke(
+                        out,
+                        file?.let { DiffFile(Memory(), file) },
+                        buffer?.readBytes(size.convert())?.toKString()
+                    ).value
                 }
             }
         }
 
-    var freeSignature: ((COpaquePointer?) -> Unit)? = null
+    var freeSignature: FreeSignature?
+        get() = callbackPayload.freeSignature
         set(value) {
-            field = value
-            handler.pointed.free_signature = value?.let {
+            callbackPayload.freeSignature = value
+            raw.handler.pointed.free_signature = value?.let {
                 staticCFunction { sig, payload ->
-                    val callback = payload!!.asStableRef<DiffSimilarityMetricRaw>().get()
+                    val callback = payload!!.asStableRef<CallbackPayload>().get()
                     callback.freeSignature!!.invoke(sig)
                 }
             }
         }
 
-    var similarity: ((Int?, Signature?, Signature?) -> Int)? = null
+    var similarity: Similarity?
+        get() = callbackPayload.similarity
         set(value) {
-            field = value
-            handler.pointed.similarity = value?.let {
+            callbackPayload.similarity = value
+            raw.handler.pointed.similarity = value?.let {
                 staticCFunction { score, a, b, payload ->
-                    val callback = payload!!.asStableRef<DiffSimilarityMetricRaw>().get()
+                    val callback = payload!!.asStableRef<CallbackPayload>().get()
                     callback.similarity!!.invoke(
                         score?.pointed?.value,
                         a?.let { Signature(Memory(), it.reinterpret()) },
                         b?.let { Signature(Memory(), it.reinterpret()) }
-                    )
+                    ).value
                 }
             }
         }
-}
-
-class DiffSimilarityMetric(
-    raw: DiffSimilarityMetricRaw = DiffSimilarityMetricRaw(),
-) : GitBase<git_diff_similarity_metric, DiffSimilarityMetricRaw>(raw) {
-    var fileSignature: ((CPointer<COpaquePointerVar>?, DiffFile?, String?) -> Int)? by raw::fileSignature
-
-    var bufferSignature: ((CPointer<COpaquePointerVar>?, DiffFile?, String?) -> Int)? by raw::bufferSignature
-
-    var freeSignature: ((COpaquePointer?) -> Unit)? by raw::freeSignature
-
-    var similarity: ((Int?, Signature?, Signature?) -> Int)? by raw::similarity
 }

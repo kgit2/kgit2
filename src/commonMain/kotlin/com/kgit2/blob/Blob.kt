@@ -25,7 +25,6 @@ import libgit2.git_blob_rawsize
 class Blob(raw: BlobRaw) : GitBase<git_blob, BlobRaw>(raw) {
     constructor(memory: Memory, handler: BlobPointer) : this(BlobRaw(memory, handler))
 
-    /** */
     val id: Oid = Oid(raw.memory, git_blob_id(raw.handler)!!)
 
     val isBinary: Boolean = git_blob_is_binary(raw.handler).toBoolean()

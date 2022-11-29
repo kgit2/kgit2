@@ -22,7 +22,7 @@ class FlagMaskProcessor(
 ): SymbolProcessor, ProcessorBase {
     override fun process(resolver: Resolver): List<KSAnnotated> {
         val symbols = resolver.getSymbolsWithAnnotation(FlagMask::class.qualifiedName!!)
-        logger.warn("Found ${symbols.count()} symbols with @FlagMask")
+        logger.info("Found ${symbols.count()} symbols with @FlagMask")
         val visitor = koin.get<FlagMaskAnnotatedVisitor>()
         val fileModelMap = mutableMapOf<String, FlagMaskFileModel>()
         symbols.forEach {

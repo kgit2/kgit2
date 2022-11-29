@@ -2,18 +2,16 @@ package com.kgit2.index
 
 import cnames.structs.git_index
 import com.kgit2.annotations.Raw
-import com.kgit2.callback.IndexMatchedPathCallback
 import com.kgit2.common.extend.asCPointer
 import com.kgit2.common.extend.errorCheck
 import com.kgit2.common.extend.toBoolean
 import com.kgit2.common.extend.toInt
 import com.kgit2.common.memory.Memory
-import com.kgit2.memory.GitBase
-import com.kgit2.oid.Oid
+import com.kgit2.memory.IterableBase
 import com.kgit2.model.withGitStrArray
+import com.kgit2.oid.Oid
 import com.kgit2.repository.Repository
 import com.kgit2.tree.Tree
-import kotlinx.atomicfu.atomic
 import kotlinx.cinterop.allocPointerTo
 import kotlinx.cinterop.convert
 import kotlinx.cinterop.ptr
@@ -24,7 +22,7 @@ import libgit2.*
     base = git_index::class,
     free = "git_index_free",
 )
-class Index(raw: IndexRaw) : GitBase<git_index, IndexRaw>(raw), Iterable<IndexEntry> {
+class Index(raw: IndexRaw) : IterableBase<git_index, IndexRaw, IndexEntry>(raw) {
     constructor(memory: Memory, handler: IndexPointer) : this(IndexRaw(memory, handler))
 
     constructor(
@@ -45,9 +43,9 @@ class Index(raw: IndexRaw) : GitBase<git_index, IndexRaw>(raw), Iterable<IndexEn
             git_index_set_version(raw.handler, value)
         }
 
-    val size: Int = git_index_entrycount(raw.handler).convert()
+    override val size: Long = git_index_entrycount(raw.handler).convert()
 
-    val isEmpty = size == 0
+    val isEmpty = size == 0L
 
     fun add(entry: IndexEntry) {
         git_index_add(raw.handler, entry.memCopy().raw.handler).errorCheck()
@@ -99,15 +97,7 @@ class Index(raw: IndexRaw) : GitBase<git_index, IndexRaw>(raw), Iterable<IndexEn
         git_index_clear(raw.handler).errorCheck()
     }
 
-    operator fun get(index: Int): IndexEntry = IndexEntry(handler = git_index_get_byindex(raw.handler, index.convert())!!)
-
-    override fun iterator(): Iterator<IndexEntry> = IndexEntryIterator()
-
-    inner class IndexEntryIterator : Iterator<IndexEntry> {
-        private val index = atomic(0)
-        override fun hasNext(): Boolean = index.value < size
-        override fun next(): IndexEntry = get(index.incrementAndGet())
-    }
+    override operator fun get(index: Long): IndexEntry = IndexEntry(handler = git_index_get_byindex(raw.handler, index.convert())!!)
 
     fun get(path: String, stage: Int): IndexEntry? = git_index_get_bypath(raw.handler, path, stage.convert())?.let {
         IndexEntry(handler = it)
