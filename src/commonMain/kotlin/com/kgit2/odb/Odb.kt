@@ -2,11 +2,11 @@ package com.kgit2.odb
 
 import cnames.structs.git_odb
 import com.kgit2.annotations.Raw
-import com.kgit2.callback.payload.IndexerProgress
 import com.kgit2.common.extend.errorCheck
 import com.kgit2.common.extend.toBoolean
 import com.kgit2.common.memory.Memory
 import com.kgit2.common.memory.memoryScoped
+import com.kgit2.index.IndexerProgress
 import com.kgit2.memory.GitBase
 import com.kgit2.oid.Oid
 import com.kgit2.`object`.ObjectType
@@ -69,7 +69,7 @@ class Odb(raw: OdbRaw) : GitBase<git_odb, OdbRaw>(raw) {
     fun packWriter(): OdbPackWriter = OdbPackWriter { _, progress ->
         val progressCallback: git_indexer_progress_cb = staticCFunction { gitProgress, payload ->
             val callbackPayload = payload!!.asStableRef<OdbPackWriter.Progress>()
-            val result = callbackPayload.get().indexerProgress(IndexerProgress.fromHandler(gitProgress!!.pointed))
+            val result = callbackPayload.get().invoke(IndexerProgress.fromHandler(gitProgress!!.pointed)).value
             callbackPayload.dispose()
             result
         }

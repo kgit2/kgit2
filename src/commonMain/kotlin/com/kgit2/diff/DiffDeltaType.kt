@@ -2,7 +2,7 @@ package com.kgit2.diff
 
 import libgit2.*
 
-enum class Delta(val value: git_delta_t) {
+enum class DiffDeltaType(val value: git_delta_t) {
     Unmodified(GIT_DELTA_UNMODIFIED),
     Added(GIT_DELTA_ADDED),
     Deleted(GIT_DELTA_DELETED),
@@ -17,7 +17,7 @@ enum class Delta(val value: git_delta_t) {
     ;
 
     companion object {
-        fun fromRaw(value: git_delta_t): Delta {
+        fun from(value: git_delta_t): DiffDeltaType {
             return when (value) {
                 GIT_DELTA_UNMODIFIED -> Unmodified
                 GIT_DELTA_ADDED -> Added

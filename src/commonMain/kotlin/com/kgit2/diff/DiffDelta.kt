@@ -13,7 +13,7 @@ import libgit2.git_diff_delta
     base = git_diff_delta::class,
 )
 class DiffDelta(raw: DiffDeltaRaw) : GitBase<git_diff_delta, DiffDeltaRaw>(raw) {
-    constructor(memory: Memory, handler: DiffDeltaPointer) : this(DiffDeltaRaw(memory, handler))
+    constructor(memory: Memory = Memory(), handler: DiffDeltaPointer) : this(DiffDeltaRaw(memory, handler))
 
     constructor(
         memory: Memory = Memory(),
@@ -27,7 +27,7 @@ class DiffDelta(raw: DiffDeltaRaw) : GitBase<git_diff_delta, DiffDeltaRaw>(raw) 
 
     val nFiles: UShort = raw.handler.pointed.nfiles
 
-    val status: Delta = Delta.fromRaw(raw.handler.pointed.status)
+    val status: DiffDeltaType = DiffDeltaType.from(raw.handler.pointed.status)
 
     val similarity: UShort = raw.handler.pointed.similarity
 

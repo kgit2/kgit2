@@ -19,7 +19,7 @@ import libgit2.*
     free = "git_commit_free",
 )
 class Commit(raw: CommitRaw) : GitBase<git_commit, CommitRaw>(raw) {
-    constructor(memory: Memory, handler: CommitPointer) : this(CommitRaw(memory, handler))
+    constructor(memory: Memory = Memory(), handler: CommitPointer) : this(CommitRaw(memory, handler))
 
     constructor(
         memory: Memory = Memory(),

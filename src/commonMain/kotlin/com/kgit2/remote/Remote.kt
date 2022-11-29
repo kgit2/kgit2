@@ -2,7 +2,6 @@ package com.kgit2.remote
 
 import cnames.structs.git_remote
 import com.kgit2.annotations.Raw
-import com.kgit2.callback.payload.IndexerProgress
 import com.kgit2.common.extend.errorCheck
 import com.kgit2.common.extend.toBoolean
 import com.kgit2.common.extend.toInt
@@ -11,6 +10,7 @@ import com.kgit2.common.memory.memoryScoped
 import com.kgit2.common.option.mutually.AutoTagOption
 import com.kgit2.fetch.Direction
 import com.kgit2.fetch.FetchOptions
+import com.kgit2.index.IndexerProgress
 import com.kgit2.memory.GitBase
 import com.kgit2.model.toKString
 import com.kgit2.model.toList

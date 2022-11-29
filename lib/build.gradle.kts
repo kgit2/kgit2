@@ -226,11 +226,11 @@ tasks {
                 println(it)
             }
             val headers = mutableListOf("git2.h")
-            // File(libgit2Dir, "include/git2").listFiles()?.forEach {
-            //     if (it.extension == "h") {
-            //         headers.add("git2/${it.name}")
-            //     }
-            // }
+            libgit2DistDir.resolve("include/git2").listFiles()?.forEach {
+                if (it.extension == "h") {
+                    headers.add("git2/${it.name}")
+                }
+            }
             libgit2DistDir.resolve("include/git2/sys").listFiles()?.forEach {
                 if (it.extension == "h") {
                     headers.add("git2/sys/${it.name}")

@@ -17,7 +17,7 @@ abstract class Raw<T : CPointed>(
 ) : FreeAble {
     protected val freed: AtomicBoolean = atomic(false)
 
-    open val beforeFree: BeforeFree? = null
+    open var beforeFree: BeforeFree? = null
 
     override fun free() {
         if (freed.compareAndSet(expect = false, update = true)) {

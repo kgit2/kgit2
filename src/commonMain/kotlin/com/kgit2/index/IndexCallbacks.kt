@@ -1,6 +1,21 @@
-package com.kgit2.callback.payload
+package com.kgit2.index
 
+import kotlinx.cinterop.asStableRef
+import kotlinx.cinterop.staticCFunction
+import kotlinx.cinterop.toKString
+import libgit2.git_index_matched_path_cb
 import libgit2.git_indexer_progress
+
+interface IndexMatchedPathCallback {
+    fun matchedPath(pathspec: String, path: String): Int
+
+    fun toRawCB(): git_index_matched_path_cb = staticCFunction { path, matchedPathSpec, payload ->
+        val callbackPayload = payload!!.asStableRef<IndexMatchedPathCallback>()
+        val result = callbackPayload.get().matchedPath(path!!.toKString(), matchedPathSpec!!.toKString())
+        callbackPayload.dispose()
+        result
+    }
+}
 
 data class IndexerProgress(
     val totalObjects: UInt,

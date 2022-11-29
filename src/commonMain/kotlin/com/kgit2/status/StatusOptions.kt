@@ -2,6 +2,7 @@ package com.kgit2.status
 
 import com.kgit2.common.extend.errorCheck
 import com.kgit2.common.memory.Memory
+import com.kgit2.memory.BeforeFree
 import com.kgit2.memory.GitBase
 import com.kgit2.memory.Raw
 import kotlinx.cinterop.*
@@ -29,7 +30,7 @@ class StatusOptionsRaw(
     internal val pathspec: MutableList<String> = mutableListOf()
     internal val pinned = pathspec.pin()
 
-    override val beforeFree: () -> Unit = {
+    override var beforeFree: BeforeFree? = {
         pinned.unpin()
     }
 }

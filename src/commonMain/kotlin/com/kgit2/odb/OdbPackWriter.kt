@@ -1,9 +1,11 @@
 package com.kgit2.odb
 
-import com.kgit2.callback.IndexerProgressCallback
-import com.kgit2.callback.payload.IndexerProgress
+import com.kgit2.checkout.IndexerProgressCallback
+import com.kgit2.common.error.GitErrorCode
 import com.kgit2.common.extend.errorCheck
 import com.kgit2.common.memory.Memory
+import com.kgit2.index.IndexerProgress
+import com.kgit2.memory.BeforeFree
 import com.kgit2.memory.GitBase
 import com.kgit2.memory.Raw
 import kotlinx.cinterop.*
@@ -37,7 +39,7 @@ class OdbPackWriterRaw(
         }.getOrThrow()
     }.value!!)
 
-    override val beforeFree: () -> Unit = {
+    override var beforeFree: BeforeFree? = {
         handler.pointed.free?.invoke(handler)
     }
 }
@@ -87,6 +89,6 @@ class OdbPackWriter(
     }
 
     class Progress(var progressCallback: IndexerProgressCallback? = null) : IndexerProgressCallback {
-        override fun indexerProgress(progress: IndexerProgress): Int = progressCallback?.indexerProgress(progress) ?: 0
+        override fun invoke(progress: IndexerProgress): GitErrorCode = progressCallback?.invoke(progress) ?: GitErrorCode.Ok
     }
 }
