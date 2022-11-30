@@ -43,6 +43,7 @@ import com.kgit2.rebase.RebaseOptions
 import com.kgit2.reference.Reference
 import com.kgit2.reference.ReferenceIterator
 import com.kgit2.remote.Remote
+import com.kgit2.revert.RevertOptions
 import com.kgit2.signature.Signature
 import com.kgit2.status.StatusFlag
 import com.kgit2.status.StatusList
@@ -457,13 +458,13 @@ class Repository(raw: RepositoryRaw) : GitBase<git_repository, RepositoryRaw>(ra
     val Revert = RevertModule()
 
     inner class RevertModule {
-        // fun revert(commit: Commit, options: RevertOptions) {
-        //     TODO()
-        // }
+        fun revert(commit: Commit, options: RevertOptions? = null) {
+            git_revert(raw.handler, commit.raw.handler, options?.raw?.handler).errorCheck()
+        }
 
-        // fun revertCommit(revertCommit: Commit, outCommit: Commit, mainline: Int, options: MergeOptions?): Index {
-        //     TODO()
-        // }
+        fun revertCommit(revertCommit: Commit, outCommit: Commit, mainline: Int, options: MergeOptions? = null): Index = Index {
+            git_revert_commit(this.ptr, raw.handler, revertCommit.raw.handler, outCommit.raw.handler, mainline.convert(), options?.raw?.handler).errorCheck()
+        }
     }
 
     val Branch = BranchModule()

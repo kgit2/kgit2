@@ -24,7 +24,7 @@ class CheckoutOptions(
     }),
 ) : GitBase<git_checkout_options, CheckoutOptionsRaw>(raw) {
     constructor(
-        memory: Memory,
+        memory: Memory = Memory(),
         handler: CheckoutOptionsPointer,
         initial: CheckoutOptionsInitial? = null,
     ) : this(CheckoutOptionsRaw(memory, handler, initial))

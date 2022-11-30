@@ -19,7 +19,7 @@ class MergeOptions(
         git_merge_options_init(this, GIT_MERGE_OPTIONS_VERSION)
     })
 ) : GitBase<git_merge_options, MergeOptionsRaw>(raw) {
-    constructor(memory: Memory, handler: MergeOptionsPointer) : this(MergeOptionsRaw(memory, handler))
+    constructor(memory: Memory = Memory(), handler: MergeOptionsPointer) : this(MergeOptionsRaw(memory, handler))
 
     val flags: MergeFlag = MergeFlag(raw.handler.pointed.flags) {
         raw.handler.pointed.flags = it
