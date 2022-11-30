@@ -35,6 +35,10 @@ class DiffFindOptions(
      * @default 50
      */
     var renameThreshold: UShort = raw.handler.pointed.rename_threshold
+        set(value) {
+            field = value
+            raw.handler.pointed.rename_threshold = value
+        }
 
     /**
      * Threshold below which similar files will be eligible to be a rename source.
@@ -42,6 +46,10 @@ class DiffFindOptions(
      * @default 50
      */
     var renameFromRewriteThreshold: UShort = raw.handler.pointed.rename_from_rewrite_threshold
+        set(value) {
+            field = value
+            raw.handler.pointed.rename_from_rewrite_threshold = value
+        }
 
     /**
      * Threshold above which similar files will be considered copies.
@@ -49,6 +57,10 @@ class DiffFindOptions(
      * @default 50
      */
     var copyThreshold: UShort = raw.handler.pointed.copy_threshold
+        set(value) {
+            field = value
+            raw.handler.pointed.copy_threshold = value
+        }
 
     /**
      * Threshold below which similar files will be split into a delete/add pair.
@@ -56,6 +68,10 @@ class DiffFindOptions(
      * @default 60
      */
     var breakRewriteThreshold: UShort = raw.handler.pointed.break_rewrite_threshold
+        set(value) {
+            field = value
+            raw.handler.pointed.break_rewrite_threshold = value
+        }
 
     /**
      * Maximum number of matches to consider for a particular file.
@@ -64,6 +80,10 @@ class DiffFindOptions(
      * @default 1000
      */
     var renameLimit: ULong = raw.handler.pointed.rename_limit
+        set(value) {
+            field = value
+            raw.handler.pointed.rename_limit = value
+        }
 
     /**
      * The `metric` option allows you to plug in a custom similarity metric.
@@ -73,4 +93,8 @@ class DiffFindOptions(
      * should work fairly well for both text and binary data while still being pretty fast with a fixed memory overhead.
      */
     var metric: DiffSimilarityMetric? = null
+        set(value) {
+            field = value
+            raw.handler.pointed.metric = value?.raw?.handler
+        }
 }
