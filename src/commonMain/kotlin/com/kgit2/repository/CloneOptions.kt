@@ -2,24 +2,39 @@ package com.kgit2.repository
 
 import com.kgit2.annotations.Raw
 import com.kgit2.checkout.CheckoutOptions
+import com.kgit2.common.extend.asStableRef
 import com.kgit2.common.extend.toBoolean
 import com.kgit2.common.extend.toInt
 import com.kgit2.common.memory.Memory
 import com.kgit2.fetch.FetchOptions
-import com.kgit2.memory.GitBase
+import com.kgit2.memory.CallbackAble
+import com.kgit2.memory.ICallbacksPayload
+import com.kgit2.memory.RawWrapper
+import com.kgit2.memory.createCleaner
 import com.kgit2.remote.Remote
 import kotlinx.cinterop.*
 import libgit2.git_clone_options
+import kotlin.native.internal.Cleaner
 
 @Raw(
     base = git_clone_options::class,
 )
-class CloneOptions(raw: CloneOptionsRaw = CloneOptionsRaw()) : GitBase<git_clone_options, CloneOptionsRaw>(raw) {
+class CloneOptions(
+    raw: CloneOptionsRaw = CloneOptionsRaw()
+) :
+    RawWrapper<git_clone_options, CloneOptionsRaw>(raw),
+    CallbackAble<git_clone_options, CloneOptionsRaw, CloneOptions.CallbacksPayload> {
     constructor(
         memory: Memory = Memory(),
         handler: CloneOptionsPointer = memory.alloc<git_clone_options>().ptr,
         initial: CloneOptionsInitial?,
     ) : this(CloneOptionsRaw(memory, handler, initial))
+
+    override val callbacksPayload = CallbacksPayload()
+
+    override val stableRef = callbacksPayload.asStableRef()
+
+    override val cleaner: Cleaner = createCleaner()
 
     val checkoutOptions: CheckoutOptions = CheckoutOptions(Memory(), raw.handler.pointed.checkout_opts.ptr)
 
@@ -43,36 +58,20 @@ class CloneOptions(raw: CloneOptionsRaw = CloneOptionsRaw()) : GitBase<git_clone
             field = value
         }
 
-    var repositoryCreateCallback: RepositoryCreateCallback? = null
-        set(value) {
-            field = value
-            raw.handler.pointed.repository_cb_payload = StableRef.create(value as Any).asCPointer()
-            raw.handler.pointed.repository_cb = staticCFunction { repo, path, bare, payload ->
-                val callbackPayload = payload!!.asStableRef<RepositoryCreateCallback>()
-                val result = callbackPayload.get().invoke(
-                    Repository(Memory(), repo!!.pointed.value!!),
-                    path!!.toKString(),
-                    bare.toBoolean(),
-                ).value
-                callbackPayload.dispose()
-                result
-            }
-        }
+    var repositoryCreateCallback: RepositoryCreateCallback? by callbacksPayload::repositoryCreateCallback
 
-    var remoteCreateCallback: RemoteCreateCallback? = null
-        set(value) {
-            field = value
-            raw.handler.pointed.remote_cb_payload = StableRef.create(value as Any).asCPointer()
-            raw.handler.pointed.remote_cb = staticCFunction { remote, repo, name, url, payload ->
-                val callbackPayload = payload!!.asStableRef<RemoteCreateCallback>()
-                val result = callbackPayload.get().invoke(
-                    Remote(Memory(), remote!!.pointed.value!!),
-                    Repository(Memory(), repo!!),
-                    name!!.toKString(),
-                    url!!.toKString(),
-                ).value
-                callbackPayload.dispose()
-                result
+    var remoteCreateCallback: RemoteCreateCallback? by callbacksPayload::remoteCreateCallback
+
+    inner class CallbacksPayload : ICallbacksPayload, RepositoryCreateCallbackPayload, RemoteCreateCallbackPayload {
+        override var repositoryCreateCallback: RepositoryCreateCallback? = null
+            set(value) {
+                field = value
+                raw.handler.pointed.repository_cb = value?.let { staticRepositoryCreateCallback }
             }
-        }
+        override var remoteCreateCallback: RemoteCreateCallback? = null
+            set(value) {
+                field = value
+                raw.handler.pointed.remote_cb = value?.let { staticRemoteCreateCallback }
+            }
+    }
 }

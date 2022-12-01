@@ -3,7 +3,7 @@ package com.kgit2.odb
 import com.kgit2.annotations.Raw
 import com.kgit2.common.extend.errorCheck
 import com.kgit2.common.memory.Memory
-import com.kgit2.memory.GitBase
+import com.kgit2.memory.RawWrapper
 import com.kgit2.model.toKString
 import com.kgit2.model.withGitBuf
 import com.kgit2.repository.Repository
@@ -16,7 +16,7 @@ import libgit2.git_odb_backend
 @Raw(
     base = git_odb_backend::class,
 )
-class MemPack(raw: OdbBackendRaw) : GitBase<git_odb_backend, OdbBackendRaw>(raw) {
+class MemPack(raw: OdbBackendRaw) : RawWrapper<git_odb_backend, OdbBackendRaw>(raw) {
     constructor(memory: Memory, handler: CPointer<git_odb_backend>) : this(OdbBackendRaw(memory, handler))
 
     constructor(

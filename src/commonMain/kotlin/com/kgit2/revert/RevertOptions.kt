@@ -2,7 +2,7 @@ package com.kgit2.revert
 
 import com.kgit2.annotations.Raw
 import com.kgit2.checkout.CheckoutOptions
-import com.kgit2.memory.GitBase
+import com.kgit2.memory.RawWrapper
 import com.kgit2.merge.MergeOptions
 import kotlinx.cinterop.pointed
 import kotlinx.cinterop.ptr
@@ -17,7 +17,7 @@ class RevertOptions(
     raw: RevertOptionsRaw = RevertOptionsRaw(initial = {
         git_revert_options_init(this, GIT_REVERT_OPTIONS_VERSION)
     }),
-) : GitBase<git_revert_options, RevertOptionsRaw>(raw) {
+) : RawWrapper<git_revert_options, RevertOptionsRaw>(raw) {
     var mainLine: UInt = raw.handler.pointed.mainline
         set(value) {
             field = value

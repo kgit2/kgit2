@@ -2,7 +2,7 @@ package com.kgit2.time
 
 import com.kgit2.annotations.Raw
 import com.kgit2.common.memory.Memory
-import com.kgit2.memory.GitBase
+import com.kgit2.memory.RawWrapper
 import kotlinx.cinterop.cValue
 import kotlinx.cinterop.convert
 import kotlinx.cinterop.pointed
@@ -11,7 +11,7 @@ import libgit2.git_time
 @Raw(
     base = git_time::class,
 )
-class Time(raw: TimeRaw) : GitBase<git_time, TimeRaw>(raw) {
+class Time(raw: TimeRaw) : RawWrapper<git_time, TimeRaw>(raw) {
     constructor(memory: Memory, value: git_time) : this(TimeRaw(memory, value))
 
     constructor(memory: Memory, value: TimeValue) : this(TimeRaw(memory, value))

@@ -2,7 +2,7 @@ package com.kgit2.index
 
 import com.kgit2.annotations.Raw
 import com.kgit2.common.memory.Memory
-import com.kgit2.memory.GitBase
+import com.kgit2.memory.RawWrapper
 import kotlinx.cinterop.cValue
 import kotlinx.cinterop.pointed
 import libgit2.git_index_time
@@ -10,7 +10,7 @@ import libgit2.git_index_time
 @Raw(
     base = git_index_time::class,
 )
-class IndexTime(raw: IndexTimeRaw) : GitBase<git_index_time, IndexTimeRaw>(raw) {
+class IndexTime(raw: IndexTimeRaw) : RawWrapper<git_index_time, IndexTimeRaw>(raw) {
     constructor(memory: Memory, raw: git_index_time) : this(IndexTimeRaw(memory, raw))
 
     constructor(memory: Memory, value: IndexTimeValue) : this(IndexTimeRaw(memory, value))

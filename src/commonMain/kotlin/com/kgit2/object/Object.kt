@@ -6,7 +6,7 @@ import com.kgit2.blob.Blob
 import com.kgit2.commit.Commit
 import com.kgit2.common.extend.errorCheck
 import com.kgit2.common.memory.Memory
-import com.kgit2.memory.GitBase
+import com.kgit2.memory.RawWrapper
 import com.kgit2.oid.Oid
 import com.kgit2.model.toKString
 import com.kgit2.model.withGitBuf
@@ -25,7 +25,7 @@ import libgit2.git_object_type
     base = git_object::class,
     free = "git_object_free",
 )
-class Object(raw: ObjectRaw) : GitBase<git_object, ObjectRaw>(raw) {
+class Object(raw: ObjectRaw) : RawWrapper<git_object, ObjectRaw>(raw) {
     constructor(memory: Memory, handler: ObjectPointer) : this(ObjectRaw(memory, handler))
 
     constructor(

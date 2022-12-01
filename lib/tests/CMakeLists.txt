@@ -5,7 +5,12 @@ set(CMAKE_C_STANDARD 17)
 
 add_executable(tests main.c args.h args.c common.h common.c)
 
-set(CMAKE_PREFIX_PATH ${CMAKE_SOURCE_DIR}/../libgit2 ${CMAKE_SOURCE_DIR}/../libssh2)
+set(
+        CMAKE_PREFIX_PATH
+        ${CMAKE_SOURCE_DIR}/../build/dist/libgit2
+        ${CMAKE_SOURCE_DIR}/../build/dist/libssh2
+        /opt/homebrew/opt/openssl@3
+)
 
 find_package(PkgConfig REQUIRED)
 

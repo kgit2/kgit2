@@ -4,7 +4,7 @@ import com.kgit2.annotations.Raw
 import com.kgit2.common.extend.errorCheck
 import com.kgit2.common.extend.toBoolean
 import com.kgit2.common.memory.Memory
-import com.kgit2.memory.GitBase
+import com.kgit2.memory.RawWrapper
 import com.kgit2.`object`.ObjectType
 import kotlinx.cinterop.*
 import libgit2.*
@@ -12,7 +12,7 @@ import libgit2.*
 @Raw(
     base = git_oid::class,
 )
-class Oid(raw: OidRaw) : GitBase<git_oid, OidRaw>(raw) {
+class Oid(raw: OidRaw) : RawWrapper<git_oid, OidRaw>(raw) {
     constructor(memory: Memory, handler: git_oid) : this(OidRaw(memory, handler))
 
     constructor(memory: Memory, handler: OidPointer) : this(OidRaw(memory, handler))

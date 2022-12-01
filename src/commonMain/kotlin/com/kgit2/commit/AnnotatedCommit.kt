@@ -3,7 +3,7 @@ package com.kgit2.commit
 import cnames.structs.git_annotated_commit
 import com.kgit2.annotations.Raw
 import com.kgit2.common.memory.Memory
-import com.kgit2.memory.GitBase
+import com.kgit2.memory.RawWrapper
 import com.kgit2.oid.Oid
 import com.kgit2.reference.Reference
 import com.kgit2.repository.Repository
@@ -16,7 +16,7 @@ import libgit2.*
     base = git_annotated_commit::class,
     free = "git_annotated_commit_free",
 )
-class AnnotatedCommit(raw: AnnotatedCommitRaw) : GitBase<git_annotated_commit, AnnotatedCommitRaw>(raw) {
+class AnnotatedCommit(raw: AnnotatedCommitRaw) : RawWrapper<git_annotated_commit, AnnotatedCommitRaw>(raw) {
     constructor(memory: Memory, handler: AnnotatedCommitPointer) : this(AnnotatedCommitRaw(memory, handler))
 
     constructor(

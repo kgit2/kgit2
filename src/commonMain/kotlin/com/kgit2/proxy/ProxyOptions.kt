@@ -3,7 +3,7 @@ package com.kgit2.proxy
 import com.kgit2.annotations.Raw
 import com.kgit2.common.extend.errorCheck
 import com.kgit2.common.memory.Memory
-import com.kgit2.memory.GitBase
+import com.kgit2.memory.RawWrapper
 import kotlinx.cinterop.cstr
 import kotlinx.cinterop.pointed
 import libgit2.GIT_PROXY_OPTIONS_VERSION
@@ -17,7 +17,7 @@ class ProxyOptions(
     raw: ProxyOptionsRaw = ProxyOptionsRaw(initial =  {
         git_proxy_options_init(this, GIT_PROXY_OPTIONS_VERSION).errorCheck()
     }),
-) : GitBase<git_proxy_options, ProxyOptionsRaw>(raw) {
+) : RawWrapper<git_proxy_options, ProxyOptionsRaw>(raw) {
     constructor(memory: Memory, handler: ProxyOptionsPointer) : this(ProxyOptionsRaw(memory, handler))
 
     var url: String? = null

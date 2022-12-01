@@ -5,7 +5,7 @@ import com.kgit2.annotations.Raw
 import com.kgit2.common.extend.toBoolean
 import com.kgit2.common.memory.Memory
 import com.kgit2.common.option.mutually.FileMode
-import com.kgit2.memory.GitBase
+import com.kgit2.memory.RawWrapper
 import com.kgit2.oid.Oid
 import com.kgit2.`object`.Object
 import com.kgit2.`object`.ObjectType
@@ -20,8 +20,8 @@ import libgit2.*
     base = git_tree_entry::class,
     free = "git_tree_entry_free",
 )
-class TreeEntry(raw: TreeEntryRaw) : GitBase<git_tree_entry, TreeEntryRaw>(raw) {
-    constructor(memory: Memory, handler: CPointer<git_tree_entry>) : this(TreeEntryRaw(memory, handler))
+class TreeEntry(raw: TreeEntryRaw) : RawWrapper<git_tree_entry, TreeEntryRaw>(raw) {
+    constructor(memory: Memory = Memory(), handler: CPointer<git_tree_entry>) : this(TreeEntryRaw(memory, handler))
 
     constructor(
         memory: Memory = Memory(),

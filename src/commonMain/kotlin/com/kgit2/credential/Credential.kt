@@ -4,7 +4,7 @@ import com.kgit2.annotations.Raw
 import com.kgit2.common.extend.errorCheck
 import com.kgit2.common.memory.Memory
 import com.kgit2.config.Config
-import com.kgit2.memory.GitBase
+import com.kgit2.memory.RawWrapper
 import kotlinx.cinterop.allocPointerTo
 import kotlinx.cinterop.ptr
 import libgit2.*
@@ -15,7 +15,7 @@ import libgit2.*
 )
 class Credential(
     raw: CredentialRaw,
-) : GitBase<git_credential, CredentialRaw>(raw) {
+) : RawWrapper<git_credential, CredentialRaw>(raw) {
     constructor(memory: Memory, handler: CredentialPointer) : this(CredentialRaw(memory, handler))
 
     constructor(

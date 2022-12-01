@@ -5,7 +5,7 @@ import com.kgit2.checkout.CheckoutOptions
 import com.kgit2.common.extend.toInt
 import com.kgit2.common.memory.Memory
 import com.kgit2.fetch.FetchOptions
-import com.kgit2.memory.GitBase
+import com.kgit2.memory.RawWrapper
 import kotlinx.cinterop.pointed
 import kotlinx.cinterop.ptr
 import libgit2.GIT_SUBMODULE_UPDATE_OPTIONS_VERSION
@@ -19,7 +19,7 @@ class SubmoduleUpdateOptions(
     raw: SubmoduleUpdateOptionsRaw = SubmoduleUpdateOptionsRaw(initial = {
         git_submodule_update_options_init(this, GIT_SUBMODULE_UPDATE_OPTIONS_VERSION)
     }),
-) : GitBase<git_submodule_update_options, SubmoduleUpdateOptionsRaw>(raw) {
+) : RawWrapper<git_submodule_update_options, SubmoduleUpdateOptionsRaw>(raw) {
     constructor(memory: Memory, handler: SubmoduleUpdateOptionsPointer) : this(
         SubmoduleUpdateOptionsRaw(
             memory,

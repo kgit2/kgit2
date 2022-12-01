@@ -2,7 +2,7 @@ package com.kgit2.certificate
 
 import com.kgit2.annotations.Raw
 import com.kgit2.common.memory.Memory
-import com.kgit2.memory.GitBase
+import com.kgit2.memory.RawWrapper
 import kotlinx.cinterop.pointed
 import kotlinx.cinterop.reinterpret
 import libgit2.git_cert
@@ -10,7 +10,7 @@ import libgit2.git_cert
 @Raw(
     base = git_cert::class,
 )
-class Cert(raw: CertRaw) : GitBase<git_cert, CertRaw>(raw) {
+class Cert(raw: CertRaw) : RawWrapper<git_cert, CertRaw>(raw) {
     constructor(
         memory: Memory,
         handler: CertPointer,

@@ -3,7 +3,7 @@ package com.kgit2.status
 import com.kgit2.common.extend.errorCheck
 import com.kgit2.common.memory.Memory
 import com.kgit2.memory.BeforeFree
-import com.kgit2.memory.GitBase
+import com.kgit2.memory.RawWrapper
 import com.kgit2.memory.Raw
 import kotlinx.cinterop.*
 import libgit2.GIT_STATUS_OPTIONS_VERSION
@@ -35,7 +35,7 @@ class StatusOptionsRaw(
     }
 }
 
-class StatusOptions(raw: StatusOptionsRaw) : GitBase<git_status_options, StatusOptionsRaw>(raw) {
+class StatusOptions(raw: StatusOptionsRaw) : RawWrapper<git_status_options, StatusOptionsRaw>(raw) {
     constructor(
         memory: Memory = Memory(),
         handler: StatusOptionsPointer = memory.alloc<git_status_options>().ptr,

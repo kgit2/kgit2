@@ -2,6 +2,13 @@ package com.kgit2.credential
 
 import com.kgit2.certificate.Cert
 import com.kgit2.common.error.GitErrorCode
+import com.kgit2.common.extend.toBoolean
+import com.kgit2.common.memory.Memory
+import kotlinx.cinterop.*
+import libgit2.git_cert
+import libgit2.git_credential
+import libgit2.git_credential_acquire_cb
+import libgit2.git_transport_certificate_check_cb
 
 /**
  * Credential acquisition callback.
@@ -26,6 +33,26 @@ import com.kgit2.common.error.GitErrorCode
  */
 typealias CredentialAcquireCallback = (credential: Credential, url: String, usernameFromUrl: String?, allowedTypes: CredentialType) -> GitErrorCode
 
+interface CredentialAcquireCallbackPayload {
+    var credentialAcquireCallback: CredentialAcquireCallback?
+}
+
+val staticCredentialAcquireCallback: git_credential_acquire_cb = staticCFunction {
+        credential: CPointer<CPointerVar<git_credential>>?,
+        url: CPointer<ByteVar>?,
+        usernameFromUrl: CPointer<ByteVar>?,
+        allowedTypes: UInt,
+        payload: COpaquePointer?
+    ->
+    val callback = payload!!.asStableRef<CredentialAcquireCallbackPayload>().get()
+    callback.credentialAcquireCallback!!.invoke(
+        Credential(Memory(), credential!!.pointed.value!!),
+        url!!.toKString(),
+        usernameFromUrl!!.toKString(),
+        CredentialType(allowedTypes)
+    ).value
+}
+
 /**
  * Callback for the user's custom certificate checks.
  *
@@ -38,3 +65,17 @@ typealias CredentialAcquireCallback = (credential: Credential, url: String, user
  *         the existing validity determination should be honored
  */
 typealias CertificateCheckCallback = (cert: Cert, valid: Boolean, host: String) -> GitErrorCode
+
+interface CertificateCheckCallbackPayload {
+    var certificateCheckCallback: CertificateCheckCallback?
+}
+
+val staticCertificateCheckCallback: git_transport_certificate_check_cb = staticCFunction {
+        cert: CPointer<git_cert>?,
+        valid: Int,
+        host: CPointer<ByteVar>?,
+        payload: COpaquePointer?,
+    ->
+    val callback = payload!!.asStableRef<CertificateCheckCallbackPayload>().get()
+    callback.certificateCheckCallback!!.invoke(Cert(Memory(), cert!!), valid.toBoolean(), host!!.toKString()).value
+}

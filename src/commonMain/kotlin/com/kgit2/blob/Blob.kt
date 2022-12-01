@@ -4,7 +4,7 @@ import cnames.structs.git_blob
 import com.kgit2.annotations.Raw
 import com.kgit2.common.extend.toBoolean
 import com.kgit2.common.memory.Memory
-import com.kgit2.memory.GitBase
+import com.kgit2.memory.RawWrapper
 import com.kgit2.oid.Oid
 import com.kgit2.`object`.Object
 import kotlinx.cinterop.convert
@@ -22,7 +22,7 @@ import libgit2.git_blob_rawsize
     base = git_blob::class,
     free = "git_blob_free",
 )
-class Blob(raw: BlobRaw) : GitBase<git_blob, BlobRaw>(raw) {
+class Blob(raw: BlobRaw) : RawWrapper<git_blob, BlobRaw>(raw) {
     constructor(memory: Memory, handler: BlobPointer) : this(BlobRaw(memory, handler))
 
     val id: Oid = Oid(raw.memory, git_blob_id(raw.handler)!!)

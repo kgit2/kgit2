@@ -4,7 +4,7 @@ import cnames.structs.git_worktree
 import com.kgit2.annotations.Raw
 import com.kgit2.common.extend.errorCheck
 import com.kgit2.common.memory.Memory
-import com.kgit2.memory.GitBase
+import com.kgit2.memory.RawWrapper
 import com.kgit2.model.toKString
 import com.kgit2.model.withGitBuf
 import com.kgit2.repository.Repository
@@ -17,7 +17,7 @@ import libgit2.*
     base = git_worktree::class,
     free = "git_worktree_free",
 )
-class Worktree(raw: WorktreeRaw) : GitBase<git_worktree, WorktreeRaw>(raw) {
+class Worktree(raw: WorktreeRaw) : RawWrapper<git_worktree, WorktreeRaw>(raw) {
     constructor(memory: Memory, handler: WorktreePointer) : this(WorktreeRaw(memory, handler))
 
     constructor(

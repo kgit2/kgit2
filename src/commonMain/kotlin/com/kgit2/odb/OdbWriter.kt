@@ -2,7 +2,7 @@ package com.kgit2.odb
 
 import com.kgit2.common.extend.errorCheck
 import com.kgit2.common.memory.Memory
-import com.kgit2.memory.GitBase
+import com.kgit2.memory.RawWrapper
 import kotlinx.cinterop.allocPointerTo
 import kotlinx.cinterop.convert
 import libgit2.git_odb_stream
@@ -11,7 +11,7 @@ import okio.Buffer
 import okio.Sink
 import okio.Timeout
 
-class OdbWriter(raw: OdbStreamRaw) : GitBase<git_odb_stream, OdbStreamRaw>(raw), Sink {
+class OdbWriter(raw: OdbStreamRaw) : RawWrapper<git_odb_stream, OdbStreamRaw>(raw), Sink {
     constructor(memory: Memory, handler: OdbStreamPointer) : this(OdbStreamRaw(memory, handler))
 
     constructor(

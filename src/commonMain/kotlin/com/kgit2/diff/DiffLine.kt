@@ -3,16 +3,14 @@ package com.kgit2.diff
 import com.kgit2.annotations.Raw
 import com.kgit2.common.error.GitErrorCode
 import com.kgit2.common.memory.Memory
-import com.kgit2.memory.GitBase
+import com.kgit2.memory.RawWrapper
 import kotlinx.cinterop.*
 import libgit2.git_diff_line
-
-typealias DiffLineCallback = (delta: DiffDelta?, hunk: DiffHunk?, line: DiffLine?) -> GitErrorCode
 
 @Raw(
     base = git_diff_line::class,
 )
-class DiffLine(raw: DiffLineRaw) : GitBase<git_diff_line, DiffLineRaw>(raw) {
+class DiffLine(raw: DiffLineRaw) : RawWrapper<git_diff_line, DiffLineRaw>(raw) {
     constructor(
         memory: Memory = Memory(),
         handler: DiffLinePointer = memory.alloc<git_diff_line>().ptr,

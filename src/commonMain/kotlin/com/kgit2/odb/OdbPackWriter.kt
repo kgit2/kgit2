@@ -1,73 +1,58 @@
 package com.kgit2.odb
 
+import com.kgit2.annotations.Raw
 import com.kgit2.checkout.IndexerProgressCallback
-import com.kgit2.common.error.GitErrorCode
+import com.kgit2.checkout.IndexerProgressCallbackPayload
+import com.kgit2.checkout.staticIndexerProgressCallback
+import com.kgit2.common.extend.asStableRef
 import com.kgit2.common.extend.errorCheck
 import com.kgit2.common.memory.Memory
-import com.kgit2.index.IndexerProgress
-import com.kgit2.memory.BeforeFree
-import com.kgit2.memory.GitBase
-import com.kgit2.memory.Raw
+import com.kgit2.memory.*
 import kotlinx.cinterop.*
 import libgit2.git_indexer_progress
+import libgit2.git_odb_write_pack
 import libgit2.git_odb_writepack
 import okio.Buffer
 import okio.Sink
 import okio.Timeout
+import kotlin.native.internal.Cleaner
+import kotlin.native.internal.createCleaner
 
-typealias OdbPackWriterPointer = CPointer<git_odb_writepack>
+typealias OdbPackWriterProgress = IndexerProgressCallback
 
-typealias OdbPackWriterSecondaryPointer = CPointerVar<git_odb_writepack>
+typealias OdbPackWriterProgressInitial = (Memory, StableRef<OdbPackWriter.CallbacksPayload>) -> OdbWritepackSecondaryInitial
 
-typealias OdbPackWriterInitial = OdbPackWriterSecondaryPointer.(Memory, OdbPackWriter.Progress) -> Unit
-
-class OdbPackWriterRaw(
-    memory: Memory,
-    handler: OdbPackWriterPointer,
-    val progress: CPointerVar<git_indexer_progress> = memory.allocPointerTo(),
-) : Raw<git_odb_writepack>(memory, handler) {
-    constructor(
-        memory: Memory = Memory(),
-        handler: OdbPackWriterSecondaryPointer = memory.allocPointerTo(),
-        progress: OdbPackWriter.Progress = OdbPackWriter.Progress(),
-        initial: OdbPackWriterInitial? = null,
-    ) : this(memory, handler.apply {
-        runCatching {
-            initial?.invoke(handler, memory, progress)
-        }.onFailure {
-            memory.free()
-        }.getOrThrow()
-    }.value!!)
-
-    override var beforeFree: BeforeFree? = {
-        handler.pointed.free?.invoke(handler)
-    }
-}
-
+@Raw(
+    base = git_odb_writepack::class,
+    beforeFree = "handler.pointed.free?.invoke(handler)"
+)
 class OdbPackWriter(
-    raw: OdbPackWriterRaw,
-    protected val progress: Progress,
-) : GitBase<git_odb_writepack, OdbPackWriterRaw>(raw), Sink {
-    constructor(memory: Memory, handler: CPointer<git_odb_writepack>) : this(
-        OdbPackWriterRaw(memory, handler),
-        Progress()
-    )
+    raw: OdbWritepackRaw,
+    override val callbacksPayload: CallbacksPayload = CallbacksPayload(),
+    override val stableRef: StableRef<CallbacksPayload> = callbacksPayload.asStableRef(),
+) : RawWrapper<git_odb_writepack, OdbWritepackRaw>(raw),
+    CallbackAble<git_odb_writepack, OdbWritepackRaw, OdbPackWriter.CallbacksPayload>, Sink {
+    constructor(memory: Memory, handler: CPointer<git_odb_writepack>) : this(OdbWritepackRaw(memory, handler))
 
     constructor(
         memory: Memory = Memory(),
-        handler: OdbPackWriterSecondaryPointer = memory.allocPointerTo(),
-        progress: Progress = Progress(),
-        initial: OdbPackWriterInitial? = null,
-    ) : this(OdbPackWriterRaw(memory, handler, progress, initial), progress)
+        secondary: OdbWritepackSecondaryPointer = memory.allocPointerTo(),
+        callbacksPayload: CallbacksPayload = CallbacksPayload(),
+        stableRef: StableRef<CallbacksPayload> = callbacksPayload.asStableRef(),
+        initial: OdbPackWriterProgressInitial,
+    ) : this(OdbWritepackRaw(memory, secondary, initial(memory, stableRef)), callbacksPayload, stableRef)
 
-    fun setProgress(progressCallback: IndexerProgressCallback) {
-        progress.progressCallback = progressCallback
+    override val cleaner: Cleaner = createCleaner(raw to stableRef) {
+        it.second.dispose()
+        it.first.free()
     }
+
+    var progress: OdbPackWriterProgress? by callbacksPayload::indexerProgressCallback
 
     fun commit() {
         raw.handler.pointed.commit?.invoke(
             raw.handler,
-            raw.progress.value!!
+            raw.memory.alloc<git_indexer_progress>().ptr
         )?.errorCheck()
     }
 
@@ -84,11 +69,24 @@ class OdbPackWriter(
             raw.handler,
             source.readByteArray(byteCount).refTo(0).getPointer(raw.memory),
             byteCount.convert(),
-            raw.progress.value
+            raw.memory.alloc<git_indexer_progress>().ptr
         )?.errorCheck()
     }
 
-    class Progress(var progressCallback: IndexerProgressCallback? = null) : IndexerProgressCallback {
-        override fun invoke(progress: IndexerProgress): GitErrorCode = progressCallback?.invoke(progress) ?: GitErrorCode.Ok
+    class CallbacksPayload : ICallbacksPayload, IndexerProgressCallbackPayload {
+        override var indexerProgressCallback: IndexerProgressCallback? = null
+    }
+
+    companion object {
+        fun odbWritePack(odb: Odb): OdbPackWriter = OdbPackWriter(initial = { _, stableRef ->
+            {
+                git_odb_write_pack(
+                    this.ptr,
+                    odb.raw.handler,
+                    staticIndexerProgressCallback,
+                    stableRef.asCPointer()
+                ).errorCheck()
+            }
+        })
     }
 }

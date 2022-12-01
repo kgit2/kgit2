@@ -2,7 +2,7 @@ package com.kgit2.rebase
 
 import com.kgit2.annotations.Raw
 import com.kgit2.common.memory.Memory
-import com.kgit2.memory.GitBase
+import com.kgit2.memory.RawWrapper
 import com.kgit2.oid.Oid
 import kotlinx.cinterop.*
 import libgit2.git_rebase_operation
@@ -10,7 +10,7 @@ import libgit2.git_rebase_operation
 @Raw(
     base = git_rebase_operation::class,
 )
-class RebaseOperation(raw: RebaseOperationRaw) : GitBase<git_rebase_operation, RebaseOperationRaw>(raw) {
+class RebaseOperation(raw: RebaseOperationRaw) : RawWrapper<git_rebase_operation, RebaseOperationRaw>(raw) {
     constructor(
         memory: Memory = Memory(),
         handler: RebaseOperationPointer = memory.alloc<git_rebase_operation>().ptr,

@@ -3,10 +3,8 @@ package com.kgit2.status
 import cnames.structs.git_status_list
 import com.kgit2.annotations.Raw
 import com.kgit2.common.memory.Memory
-import com.kgit2.memory.GitBase
 import com.kgit2.memory.IterableBase
-import kotlinx.atomicfu.AtomicInt
-import kotlinx.atomicfu.atomic
+import com.kgit2.memory.RawWrapper
 import kotlinx.cinterop.allocPointerTo
 import kotlinx.cinterop.convert
 import libgit2.git_status_byindex
@@ -16,7 +14,7 @@ import libgit2.git_status_list_entrycount
     base = git_status_list::class,
     free = "git_status_list_free",
 )
-class StatusList(raw: StatusListRaw) : IterableBase<git_status_list, StatusListRaw, StatusEntry>(raw) {
+class StatusList(raw: StatusListRaw) : RawWrapper<git_status_list, StatusListRaw>(raw), IterableBase<StatusEntry> {
     constructor(memory: Memory, handler: StatusListPointer) : this(StatusListRaw(memory, handler))
 
     constructor(

@@ -35,7 +35,7 @@ enum class RepositoryInitFlat(val value: git_repository_init_flag_t) {
     ;
 
     companion object {
-        fun fromRaw(value: git_repository_init_flag_t): RepositoryInitFlat {
+        fun from(value: git_repository_init_flag_t): RepositoryInitFlat {
             return when (value) {
                 GIT_REPOSITORY_INIT_BARE -> Bare
                 GIT_REPOSITORY_INIT_NO_REINIT -> NoReInit
@@ -57,7 +57,7 @@ enum class RepositoryInitMode(val value: git_repository_init_mode_t) {
     ;
 
     companion object {
-        fun fromRaw(value: git_repository_init_mode_t): RepositoryInitMode {
+        fun from(value: git_repository_init_mode_t): RepositoryInitMode {
             return when (value) {
                 GIT_REPOSITORY_INIT_SHARED_UMASK -> UMask
                 GIT_REPOSITORY_INIT_SHARED_GROUP -> Group

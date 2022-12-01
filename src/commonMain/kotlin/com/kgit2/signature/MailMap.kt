@@ -4,7 +4,7 @@ import cnames.structs.git_mailmap
 import com.kgit2.annotations.Raw
 import com.kgit2.common.extend.errorCheck
 import com.kgit2.common.memory.Memory
-import com.kgit2.memory.GitBase
+import com.kgit2.memory.RawWrapper
 import kotlinx.cinterop.convert
 import kotlinx.cinterop.ptr
 import libgit2.git_mailmap_add_entry
@@ -16,7 +16,7 @@ import libgit2.git_mailmap_resolve_signature
     base = git_mailmap::class,
     free = "git_mailmap_free",
 )
-class MailMap(raw: MailmapRaw) : GitBase<git_mailmap, MailmapRaw>(raw) {
+class MailMap(raw: MailmapRaw) : RawWrapper<git_mailmap, MailmapRaw>(raw) {
     constructor(memory: Memory, handler: MailmapPointer) : this(MailmapRaw(memory, handler))
 
     constructor(buf: String? = null) : this(MailmapRaw {

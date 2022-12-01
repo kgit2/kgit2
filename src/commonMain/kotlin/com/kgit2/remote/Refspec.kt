@@ -5,7 +5,7 @@ import com.kgit2.annotations.Raw
 import com.kgit2.common.extend.errorCheck
 import com.kgit2.common.memory.Memory
 import com.kgit2.fetch.Direction
-import com.kgit2.memory.GitBase
+import com.kgit2.memory.RawWrapper
 import com.kgit2.model.toKString
 import com.kgit2.model.withGitBuf
 import kotlinx.cinterop.toKString
@@ -15,7 +15,7 @@ import libgit2.*
     base = git_refspec::class,
     free = "git_refspec_free"
 )
-class Refspec(raw: RefspecRaw) : GitBase<git_refspec, RefspecRaw>(raw) {
+class Refspec(raw: RefspecRaw) : RawWrapper<git_refspec, RefspecRaw>(raw) {
     constructor(memory: Memory, handler: RefspecPointer) : this(RefspecRaw(memory, handler))
 
     val direction = Direction.fromRaw(git_refspec_direction(raw.handler))

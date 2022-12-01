@@ -2,7 +2,7 @@ package com.kgit2.config
 
 import com.kgit2.annotations.Raw
 import com.kgit2.common.memory.Memory
-import com.kgit2.memory.GitBase
+import com.kgit2.memory.RawWrapper
 import kotlinx.cinterop.allocPointerTo
 import kotlinx.cinterop.pointed
 import kotlinx.cinterop.toKString
@@ -13,7 +13,7 @@ import libgit2.git_config_entry
     free = "git_config_entry_free",
     shouldFreeOnFailure = true,
 )
-class ConfigEntry(raw: ConfigEntryRaw) : GitBase<git_config_entry, ConfigEntryRaw>(raw) {
+class ConfigEntry(raw: ConfigEntryRaw) : RawWrapper<git_config_entry, ConfigEntryRaw>(raw) {
     constructor(memory: Memory, handler: ConfigEntryPointer) : this(ConfigEntryRaw(memory, handler))
 
     constructor(

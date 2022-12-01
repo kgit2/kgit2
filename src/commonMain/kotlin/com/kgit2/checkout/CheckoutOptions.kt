@@ -1,6 +1,7 @@
 package com.kgit2.checkout
 
 import com.kgit2.annotations.Raw
+import com.kgit2.common.extend.asStableRef
 import com.kgit2.common.extend.errorCheck
 import com.kgit2.common.extend.toBoolean
 import com.kgit2.common.extend.toInt
@@ -8,12 +9,16 @@ import com.kgit2.common.memory.Memory
 import com.kgit2.common.option.mutually.FileMode
 import com.kgit2.common.option.mutually.FileOpenFlags
 import com.kgit2.diff.DiffFile
-import com.kgit2.memory.GitBase
+import com.kgit2.memory.CallbackAble
+import com.kgit2.memory.ICallbacksPayload
+import com.kgit2.memory.RawWrapper
+import com.kgit2.memory.createCleaner
 import com.kgit2.model.toList
 import kotlinx.cinterop.*
 import libgit2.GIT_CHECKOUT_OPTIONS_VERSION
 import libgit2.git_checkout_options
 import libgit2.git_checkout_options_init
+import kotlin.native.internal.Cleaner
 
 @Raw(
     base = git_checkout_options::class,
@@ -22,12 +27,35 @@ class CheckoutOptions(
     raw: CheckoutOptionsRaw = CheckoutOptionsRaw(initial = {
         git_checkout_options_init(this.getPointer(it), GIT_CHECKOUT_OPTIONS_VERSION).errorCheck()
     }),
-) : GitBase<git_checkout_options, CheckoutOptionsRaw>(raw) {
+) : RawWrapper<git_checkout_options, CheckoutOptionsRaw>(raw),
+    CallbackAble<git_checkout_options, CheckoutOptionsRaw, CheckoutOptions.CallbacksPayload> {
     constructor(
         memory: Memory = Memory(),
         handler: CheckoutOptionsPointer,
         initial: CheckoutOptionsInitial? = null,
     ) : this(CheckoutOptionsRaw(memory, handler, initial))
+
+    override val callbacksPayload: CallbacksPayload = CallbacksPayload()
+
+    override val stableRef: StableRef<CallbacksPayload> = callbacksPayload.asStableRef()
+
+    override val cleaner: Cleaner = createCleaner()
+
+    inner class CallbacksPayload : ICallbacksPayload, CheckoutNotifyCallbackPayload, CheckoutProgressCallbackPayload {
+        override var checkoutProgressCallback: CheckoutProgressCallback? = null
+            set(value) {
+                field = value
+                raw.handler.pointed.progress_payload = value?.let { stableRef.asCPointer() }
+                raw.handler.pointed.progress_cb = value?.let { staticCheckoutProgressCallback }
+            }
+
+        override var checkoutNotifyCallback: CheckoutNotifyCallback? = null
+            set(value) {
+                field = value
+                raw.handler.pointed.notify_payload = value?.let { stableRef.asCPointer() }
+                raw.handler.pointed.notify_cb = value?.let { staticCheckoutNotifyCallback }
+            }
+    }
 
     val strategy: CheckoutStrategyOpts = CheckoutStrategyOpts(raw.handler.pointed.checkout_strategy) {
         raw.handler.pointed.checkout_strategy = it
@@ -74,42 +102,13 @@ class CheckoutOptions(
      * Must be a class instance that implements CheckoutNotifyCallback
      * Which can be cast to `Any`
      */
-    var notifyCallback: CheckoutNotifyCallback? = null
-        set(value) {
-            field = value
-            raw.handler.pointed.notify_payload = StableRef.create(value as Any).asCPointer()
-            raw.handler.pointed.notify_cb = staticCFunction { why, path, baseline, target, workdir, payload ->
-                val callbackPayload = payload!!.asStableRef<CheckoutNotifyCallback>()
-                val result = callbackPayload.get().invoke(
-                    CheckoutNotificationType.fromRaw(why),
-                    path?.toKString(),
-                    DiffFile(Memory(), baseline!!),
-                    DiffFile(Memory(), target!!),
-                    DiffFile(Memory(), workdir!!),
-                ).value
-                callbackPayload.dispose()
-                result
-            }
-        }
+    var notifyCallback: CheckoutNotifyCallback? by callbacksPayload::checkoutNotifyCallback
 
     /**
      * Must be a class instance that implements CheckoutProgressCallback
      * Which can be cast to `Any`
      */
-    var progressCallback: CheckoutProgressCallback? = null
-        set(value) {
-            field = value
-            raw.handler.pointed.progress_payload = StableRef.create(value as Any).asCPointer()
-            raw.handler.pointed.progress_cb = staticCFunction { path, completedSteps, totalSteps, payload ->
-                val callbackPayload = payload!!.asStableRef<CheckoutProgressCallback>()
-                callbackPayload.get().invoke(
-                    path!!.toKString(),
-                    completedSteps,
-                    totalSteps
-                )
-                callbackPayload.dispose()
-            }
-        }
+    var progressCallback: CheckoutProgressCallback? by callbacksPayload::checkoutProgressCallback
 
     private val paths: MutableList<String> = raw.handler.pointed.paths.ptr.toList().toMutableList()
 

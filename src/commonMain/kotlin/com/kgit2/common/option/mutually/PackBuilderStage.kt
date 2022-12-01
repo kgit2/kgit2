@@ -11,12 +11,8 @@ enum class PackBuilderStage(val value: git_packbuilder_stage_t) {
     // Deltafication of the pack
     Deltafication(GIT_PACKBUILDER_DELTAFICATION);
 
-    fun toRaw(): git_packbuilder_stage_t {
-        return value
-    }
-
     companion object {
-        fun fromRaw(raw: git_packbuilder_stage_t): PackBuilderStage {
+        fun from(raw: git_packbuilder_stage_t): PackBuilderStage {
             return when (raw) {
                 GIT_PACKBUILDER_ADDING_OBJECTS -> AddingObjects
                 GIT_PACKBUILDER_DELTAFICATION -> Deltafication
