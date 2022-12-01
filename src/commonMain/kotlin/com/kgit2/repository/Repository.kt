@@ -34,6 +34,8 @@ import com.kgit2.model.toKString
 import com.kgit2.model.toList
 import com.kgit2.model.withGitBuf
 import com.kgit2.model.withGitStrArray
+import com.kgit2.note.Note
+import com.kgit2.note.NoteIterator
 import com.kgit2.`object`.Object
 import com.kgit2.`object`.ObjectType
 import com.kgit2.odb.Odb
@@ -623,23 +625,30 @@ class Repository(raw: RepositoryRaw) : RawWrapper<git_repository, RepositoryRaw>
     val Note = NoteModule()
 
     inner class NoteModule {
-        // fun note(author: Signature, committer: Signature, notesRef: String?, oid: Oid, note: String, force: Boolean) {
-        //     TODO()
-        // }
+        fun note(author: Signature, committer: Signature, notesRef: String?, oid: Oid, note: String, force: Boolean): Oid = Oid {
+            git_note_create(
+                this,
+                raw.handler,
+                notesRef,
+                author.raw.handler,
+                committer.raw.handler,
+                oid.raw.handler,
+                note,
+                force.toInt()
+            ).errorCheck()
+        }
 
-        // fun notes(notesRef: String?): NoteIterator {
-        //     TODO()
-        // }
+        fun notes(notesRef: String?): NoteIterator = NoteIterator {
+            git_note_iterator_new(this.ptr, raw.handler, notesRef).errorCheck()
+        }
 
-        // fun find(id: Oid, noteRef: String?): Note = Note() {
-        //     git_note_read(this.ptr, raw.handler, noteRef, id.raw.handler).errorCheck()
-        //     TODO()
-        // }
+        fun find(id: Oid, notesRef: String?): Note = Note() {
+            git_note_read(this.ptr, raw.handler, notesRef, id.raw.handler).errorCheck()
+        }
 
         fun delete(author: Signature, committer: Signature, notesRef: String?, oid: Oid) {
             git_note_remove(raw.handler, notesRef, author.raw.handler, committer.raw.handler, oid.raw.handler)
                 .errorCheck()
-            TODO()
         }
     }
 
