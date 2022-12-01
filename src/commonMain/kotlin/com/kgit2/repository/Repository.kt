@@ -721,12 +721,14 @@ class Repository(raw: RepositoryRaw) : RawWrapper<git_repository, RepositoryRaw>
             git_remote_set_pushurl(raw.handler, name, url).errorCheck()
         }
 
-        // fun fetchHeadForeach(callback: (refName: String, remoteUrl: String, remoteTarget: Oid, isMerge: Boolean) -> Boolean) {
-        //     git_fetchhead_foreach(raw.handler) { ref, oid, isMerge, _ ->
-        //         callback(ref.toKString(), Oid(oid), isMerge.toBoolean())
-        //         0
-        //     }.errorCheck()
-        // }
+        fun fetchHeadForeach(callback: RepositoryFetchHeadForeachCallback) {
+            val callbackPayload = object : RepositoryFetchHeadForeachCallbackPayload {
+                override var repositoryFetchHeadForeachCallback: RepositoryFetchHeadForeachCallback? = callback
+            }.asStableRef()
+            git_repository_fetchhead_foreach(raw.handler, staticRepositoryFetchHeadForeachCallback, callbackPayload.asCPointer())
+                .errorCheck()
+            callbackPayload.dispose()
+        }
     }
 
     val Reference = ReferenceModule()
