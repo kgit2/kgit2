@@ -4,6 +4,7 @@ import cnames.structs.git_repository
 import com.kgit2.common.error.GitErrorCode
 import com.kgit2.common.extend.toBoolean
 import com.kgit2.common.memory.Memory
+import com.kgit2.oid.Oid
 import com.kgit2.remote.Remote
 import kotlinx.cinterop.*
 import libgit2.*
@@ -74,4 +75,26 @@ val staticRemoteCreateCallback: git_remote_create_cb = staticCFunction {
             name!!.toKString(),
             url!!.toKString(),
         )?.value ?: GitErrorCode.Ok.value
+}
+
+typealias RepositoryFetchHeadForeachCallback = (refname: String, remoteUrl: String, oid: Oid, isMerge: Boolean) -> GitErrorCode
+
+interface RepositoryFetchHeadForeachCallbackPayload {
+    var repositoryFetchHeadForeachCallback: RepositoryFetchHeadForeachCallback?
+}
+
+val staticRepositoryFetchHeadForeachCallback: git_repository_fetchhead_foreach_cb = staticCFunction {
+        refname: CPointer<ByteVar>?,
+        remoteUrl: CPointer<ByteVar>?,
+        oid: CPointer<git_oid>?,
+        isMerge: UInt,
+        payload: COpaquePointer?
+    ->
+    val callback = payload?.asStableRef<RepositoryFetchHeadForeachCallbackPayload>()?.get()
+    callback?.repositoryFetchHeadForeachCallback?.invoke(
+        refname!!.toKString(),
+        remoteUrl!!.toKString(),
+        Oid(handler = oid!!),
+        isMerge.convert<Int>().toBoolean(),
+    )?.value ?: GitErrorCode.Ok.value
 }
