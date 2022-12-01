@@ -3,7 +3,7 @@ package com.kgit2.odb
 import cnames.structs.git_odb_object
 import com.kgit2.annotations.Raw
 import com.kgit2.common.memory.Memory
-import com.kgit2.memory.GitBase
+import com.kgit2.memory.RawWrapper
 import com.kgit2.oid.Oid
 import com.kgit2.`object`.ObjectType
 import kotlinx.cinterop.allocPointerTo
@@ -19,7 +19,7 @@ import libgit2.git_odb_object_type
 )
 class OdbObject(
     raw: OdbObjectRaw,
-) : GitBase<git_odb_object, OdbObjectRaw>(raw) {
+) : RawWrapper<git_odb_object, OdbObjectRaw>(raw) {
     constructor(memory: Memory, handler: OdbObjectPointer) : this(OdbObjectRaw(memory, handler))
 
     constructor(

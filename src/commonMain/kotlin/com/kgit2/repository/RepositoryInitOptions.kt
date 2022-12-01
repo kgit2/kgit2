@@ -3,7 +3,7 @@ package com.kgit2.repository
 import com.kgit2.annotations.Raw
 import com.kgit2.common.extend.errorCheck
 import com.kgit2.common.memory.Memory
-import com.kgit2.memory.GitBase
+import com.kgit2.memory.RawWrapper
 import kotlinx.cinterop.cstr
 import kotlinx.cinterop.pointed
 import kotlinx.cinterop.toKString
@@ -18,7 +18,7 @@ class RepositoryInitOptions(
     raw: RepositoryInitOptionsRaw = RepositoryInitOptionsRaw(initial = {
         git_repository_init_init_options(this, GIT_REPOSITORY_INIT_OPTIONS_VERSION).errorCheck()
     }),
-) : GitBase<git_repository_init_options, RepositoryInitOptionsRaw>(raw) {
+) : RawWrapper<git_repository_init_options, RepositoryInitOptionsRaw>(raw) {
     constructor(memory: Memory, handler: RepositoryInitOptionsPointer) : this(RepositoryInitOptionsRaw(memory, handler))
 
     var flags: UInt = RepositoryInitFlat.MkDir.value
@@ -133,17 +133,4 @@ class RepositoryInitOptions(
         this.origin_url = url
         return this
     }
-
-    // fun toRaw(memory: Memory): CValuesRef<git_repository_init_options> {
-    //     val opts = memory.alloc<git_repository_init_options>()
-    //     assertEquals(git_repository_init_init_options(opts.ptr, GIT_REPOSITORY_INIT_OPTIONS_VERSION), 0)
-    //     opts.flags = this@RepositoryInitOptions.flags
-    //     opts.mode = this@RepositoryInitOptions.mode
-    //     opts.workdir_path = this@RepositoryInitOptions.workdir_path?.cstr?.getPointer(memory)
-    //     opts.description = this@RepositoryInitOptions.description?.cstr?.getPointer(memory)
-    //     opts.template_path = this@RepositoryInitOptions.template_path?.cstr?.getPointer(memory)
-    //     opts.initial_head = this@RepositoryInitOptions.initial_head?.cstr?.getPointer(memory)
-    //     opts.origin_url = this@RepositoryInitOptions.origin_url?.cstr?.getPointer(memory)
-    //     return opts.ptr
-    // }
 }

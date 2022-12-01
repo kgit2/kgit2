@@ -2,15 +2,14 @@ package com.kgit2.odb
 
 import cnames.structs.git_odb
 import com.kgit2.annotations.Raw
+import com.kgit2.common.extend.asStableRef
 import com.kgit2.common.extend.errorCheck
 import com.kgit2.common.extend.toBoolean
 import com.kgit2.common.memory.Memory
 import com.kgit2.common.memory.memoryScoped
-import com.kgit2.index.IndexerProgress
-import com.kgit2.memory.GitBase
+import com.kgit2.memory.RawWrapper
 import com.kgit2.oid.Oid
 import com.kgit2.`object`.ObjectType
-import com.kgit2.oid.OidPointer
 import kotlinx.cinterop.*
 import libgit2.*
 
@@ -18,7 +17,7 @@ import libgit2.*
     base = git_odb::class,
     free = "git_odb_free"
 )
-class Odb(raw: OdbRaw) : GitBase<git_odb, OdbRaw>(raw) {
+class Odb(raw: OdbRaw) : RawWrapper<git_odb, OdbRaw>(raw) {
     constructor(memory: Memory, handler: OdbPointer) : this(OdbRaw(memory, handler))
 
     constructor(
@@ -66,20 +65,7 @@ class Odb(raw: OdbRaw) : GitBase<git_odb, OdbRaw>(raw) {
         git_odb_write(this, raw.handler, data.refTo(0), data.size.toULong(), type.value).errorCheck()
     }
 
-    fun packWriter(): OdbPackWriter = OdbPackWriter { _, progress ->
-        val progressCallback: git_indexer_progress_cb = staticCFunction { gitProgress, payload ->
-            val callbackPayload = payload!!.asStableRef<OdbPackWriter.Progress>()
-            val result = callbackPayload.get().invoke(IndexerProgress.fromHandler(gitProgress!!.pointed)).value
-            callbackPayload.dispose()
-            result
-        }
-        git_odb_write_pack(
-            this.ptr,
-            raw.handler,
-            progressCallback,
-            StableRef.create(progress).asCPointer()
-        ).errorCheck()
-    }
+    fun packWriter(): OdbPackWriter = OdbPackWriter.odbWritePack(this)
 
     fun exists(oid: Oid): Boolean = git_odb_exists(raw.handler, oid.raw.handler).toBoolean()
 
@@ -95,17 +81,14 @@ class Odb(raw: OdbRaw) : GitBase<git_odb, OdbRaw>(raw) {
     fun addDiskAlternate(path: String) = git_odb_add_disk_alternate(raw.handler, path).errorCheck()
 
     fun addMemPackBackend(priority: Int) {
-        val mempack = MemPack { git_mempack_new(this.ptr).errorCheck() }
-        git_odb_add_backend(raw.handler, mempack.raw.handler, priority).errorCheck()
+        val memPack = MemPack { git_mempack_new(this.ptr).errorCheck() }
+        git_odb_add_backend(raw.handler, memPack.raw.handler, priority).errorCheck()
     }
 
-    fun forEach(callback: (Oid) -> Int) {
-        val callbackPointer: git_odb_foreach_cb = staticCFunction { oid: OidPointer?, payload: COpaquePointer? ->
-            val callbackPayload = payload!!.asStableRef<(Oid) -> Int>()
-            val result = callbackPayload.get().invoke(Oid(Memory(), oid!!))
-            callbackPayload.dispose()
-            result
-        }
-        git_odb_foreach(raw.handler, callbackPointer, StableRef.create(callback).asCPointer()).errorCheck()
+    fun forEach(callback: OdbForEachCallback) {
+        val callbackPayload = object : OdbForEachCallbackPayload {
+            override var odbForEachCallback: OdbForEachCallback? = callback
+        }.asStableRef()
+        git_odb_foreach(raw.handler, staticOdbForEachCallback, callbackPayload.asCPointer()).errorCheck()
     }
 }

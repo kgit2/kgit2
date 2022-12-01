@@ -3,7 +3,7 @@ package com.kgit2.fetch
 import com.kgit2.annotations.Raw
 import com.kgit2.common.memory.Memory
 import com.kgit2.common.option.mutually.AutoTagOption
-import com.kgit2.memory.GitBase
+import com.kgit2.memory.RawWrapper
 import com.kgit2.model.toList
 import com.kgit2.proxy.ProxyOptions
 import com.kgit2.remote.RemoteCallbacks
@@ -16,7 +16,7 @@ import libgit2.git_fetch_options
 )
 class FetchOptions(
     raw: FetchOptionsRaw = FetchOptionsRaw(),
-) : GitBase<git_fetch_options, FetchOptionsRaw>(raw) {
+) : RawWrapper<git_fetch_options, FetchOptionsRaw>(raw) {
     constructor(memory: Memory, handler: FetchOptionsPointer) : this(FetchOptionsRaw(memory, handler))
 
     val callbacks: RemoteCallbacks = RemoteCallbacks(Memory(), raw.handler.pointed.callbacks.ptr)
@@ -53,9 +53,7 @@ class FetchOptions(
 
     fun customHeaders(process: MutableList<String>.() -> Unit) {
         process(customHeaders)
-        memScoped {
-            raw.handler.pointed.custom_headers.strings = customHeaders.toCStringArray(this)
-        }
+        raw.handler.pointed.custom_headers.strings = customHeaders.toCStringArray(raw.memory)
         raw.handler.pointed.custom_headers.count = customHeaders.size.convert()
     }
 }

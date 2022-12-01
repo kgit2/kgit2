@@ -3,16 +3,16 @@ package com.kgit2.memory
 import kotlinx.atomicfu.atomic
 import kotlinx.cinterop.CPointed
 
-abstract class IterableBase<T : CPointed, R : Raw<T>, E>(raw: R) : GitBase<T, R>(raw), Iterable<E> {
-    abstract val size: Long
+interface IterableBase<E> : Iterable<E> {
+    val size: Long
 
-    abstract operator fun get(index: Long): E
+    operator fun get(index: Long): E
 
-    override fun iterator(): Iterator<E> = InnerIterator()
+    override fun iterator(): Iterator<E> = InnerIterator(this)
 
-    open inner class InnerIterator : Iterator<E> {
+    open class InnerIterator<E>(val owner: IterableBase<E>) : Iterator<E> {
         val index = atomic(-1L)
-        override fun hasNext(): Boolean = index.value < (size - 1)
-        override fun next(): E = get(index.incrementAndGet())
+        override fun hasNext(): Boolean = index.value < (owner.size - 1)
+        override fun next(): E = owner[index.incrementAndGet()]
     }
 }

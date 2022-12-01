@@ -1,9 +1,11 @@
 package com.kgit2.apply
 
 import com.kgit2.annotations.Raw
-import com.kgit2.diff.DiffDelta
 import com.kgit2.diff.DiffHunk
-import com.kgit2.memory.GitBase
+import com.kgit2.memory.CallbackAble
+import com.kgit2.memory.ICallbacksPayload
+import com.kgit2.memory.RawWrapper
+import com.kgit2.memory.createCleaner
 import kotlinx.cinterop.StableRef
 import kotlinx.cinterop.asStableRef
 import kotlinx.cinterop.pointed
@@ -12,7 +14,6 @@ import libgit2.GIT_APPLY_OPTIONS_VERSION
 import libgit2.git_apply_options
 import libgit2.git_apply_options_init
 import kotlin.native.internal.Cleaner
-import kotlin.native.internal.createCleaner
 
 @Raw(
     base = git_apply_options::class,
@@ -21,45 +22,33 @@ class ApplyOptions(
     raw: ApplyOptionsRaw = ApplyOptionsRaw(initial = {
         git_apply_options_init(this, GIT_APPLY_OPTIONS_VERSION)
     }),
-) : GitBase<git_apply_options, ApplyOptionsRaw>(raw) {
-    inner class CallbackPayload {
-        var deltaCallback: ApplyDeltaCallback? = null
-        var hunkCallback: ApplyHunkCallback? = null
-    }
+) : RawWrapper<git_apply_options, ApplyOptionsRaw>(raw),
+    CallbackAble<git_apply_options, ApplyOptionsRaw, ApplyOptions.CallbackPayload> {
 
-    private val callbackPayload = CallbackPayload()
-    private val stableRef = StableRef.create(callbackPayload)
+    override val callbacksPayload: CallbackPayload = CallbackPayload()
+    override val stableRef: StableRef<CallbackPayload> = StableRef.create(callbacksPayload)
 
     init {
         raw.handler.pointed.payload = stableRef.asCPointer()
     }
 
-    override val cleaner: Cleaner = createCleaner(raw to stableRef) {
-        it.second.dispose()
-        it.first.free()
+    override val cleaner: Cleaner = createCleaner()
+
+    var deltaCallback: ApplyDeltaCallback? by callbacksPayload::applyDeltaCallback
+
+    var hunkCallback: ApplyHunkCallback? by callbacksPayload::applyHunkCallback
+
+    inner class CallbackPayload : ICallbacksPayload, ApplyDeltaCallbackPayload, ApplyHunkCallbackPayload {
+        override var applyDeltaCallback: ApplyDeltaCallback? = null
+            set(value) {
+                field = value
+                raw.handler.pointed.delta_cb = value?.let { staticApplyDeltaCallback }
+            }
+
+        override var applyHunkCallback: ApplyHunkCallback? = null
+            set(value) {
+                field = value
+                raw.handler.pointed.hunk_cb = value?.let { staticApplyHunkCallback }
+            }
     }
-
-    var deltaCallback: ApplyDeltaCallback?
-        get() = callbackPayload.deltaCallback
-        set(value) {
-            callbackPayload.deltaCallback = value
-            if (value != null) {
-                raw.handler.pointed.delta_cb = staticCFunction { delta, payload ->
-                    payload!!.asStableRef<CallbackPayload>().get()
-                        .deltaCallback!!.invoke(DiffDelta(handler = delta!!)).value
-                }
-            }
-        }
-
-    var hunkCallback: ApplyHunkCallback?
-        get() = callbackPayload.hunkCallback
-        set(value) {
-            callbackPayload.hunkCallback = value
-            if (value != null) {
-                raw.handler.pointed.hunk_cb = staticCFunction { hunk, payload ->
-                    payload!!.asStableRef<CallbackPayload>().get()
-                        .hunkCallback!!.invoke(DiffHunk(handler = hunk!!)).value
-                }
-            }
-        }
 }

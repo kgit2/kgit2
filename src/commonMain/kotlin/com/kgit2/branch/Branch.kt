@@ -6,7 +6,7 @@ import com.kgit2.common.extend.toBoolean
 import com.kgit2.common.extend.toInt
 import com.kgit2.common.memory.Memory
 import com.kgit2.common.memory.memoryScoped
-import com.kgit2.memory.GitBase
+import com.kgit2.memory.RawWrapper
 import com.kgit2.reference.ReferencePointer
 import com.kgit2.reference.ReferenceRaw
 import com.kgit2.reference.ReferenceSecondaryInitial
@@ -17,7 +17,7 @@ import libgit2.*
 /**
  * In-memory representation of a reference.
  */
-class Branch(raw: ReferenceRaw) : GitBase<git_reference, ReferenceRaw>(raw) {
+class Branch(raw: ReferenceRaw) : RawWrapper<git_reference, ReferenceRaw>(raw) {
     constructor(memory: Memory, handler: ReferencePointer) : this(ReferenceRaw(memory, handler))
 
     constructor(

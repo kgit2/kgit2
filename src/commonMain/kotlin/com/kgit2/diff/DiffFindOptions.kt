@@ -1,7 +1,7 @@
 package com.kgit2.diff
 
 import com.kgit2.annotations.Raw
-import com.kgit2.memory.GitBase
+import com.kgit2.memory.RawWrapper
 import kotlinx.cinterop.pointed
 import libgit2.GIT_DIFF_FIND_OPTIONS_VERSION
 import libgit2.git_diff_find_options
@@ -18,7 +18,7 @@ class DiffFindOptions(
     raw: DiffFindOptionsRaw = DiffFindOptionsRaw(initial = {
         git_diff_find_options_init(this, GIT_DIFF_FIND_OPTIONS_VERSION)
     })
-) : GitBase<git_diff_find_options, DiffFindOptionsRaw>(raw) {
+) : RawWrapper<git_diff_find_options, DiffFindOptionsRaw>(raw) {
 
     /**
      * Combination of git_diff_find_t values (default GIT_DIFF_FIND_BY_CONFIG).

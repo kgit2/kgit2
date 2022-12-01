@@ -3,7 +3,7 @@ package com.kgit2.remote
 import com.kgit2.annotations.Raw
 import com.kgit2.common.extend.toBoolean
 import com.kgit2.common.memory.Memory
-import com.kgit2.memory.GitBase
+import com.kgit2.memory.RawWrapper
 import com.kgit2.oid.Oid
 import kotlinx.cinterop.allocPointerTo
 import kotlinx.cinterop.pointed
@@ -14,7 +14,7 @@ import libgit2.git_remote_head
 @Raw(
     base = git_remote_head::class,
 )
-class RemoteHead(raw: RemoteHeadRaw) : GitBase<git_remote_head, RemoteHeadRaw>(raw) {
+class RemoteHead(raw: RemoteHeadRaw) : RawWrapper<git_remote_head, RemoteHeadRaw>(raw) {
     constructor(memory: Memory, handler: RemoteHeadPointer) : this(RemoteHeadRaw(memory, handler))
 
     constructor(

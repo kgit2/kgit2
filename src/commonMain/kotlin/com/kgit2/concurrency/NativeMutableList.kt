@@ -1,4 +1,4 @@
-package com.kgit2.memory.collections
+package com.kgit2.concurrency
 
 import kotlin.native.concurrent.AtomicReference
 

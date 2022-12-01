@@ -3,7 +3,7 @@ package com.kgit2.merge
 import com.kgit2.annotations.Raw
 import com.kgit2.common.memory.Memory
 import com.kgit2.diff.DiffSimilarityMetric
-import com.kgit2.memory.GitBase
+import com.kgit2.memory.RawWrapper
 import kotlinx.cinterop.cstr
 import kotlinx.cinterop.pointed
 import kotlinx.cinterop.toKString
@@ -18,7 +18,7 @@ class MergeOptions(
     raw: MergeOptionsRaw = MergeOptionsRaw(initial = {
         git_merge_options_init(this, GIT_MERGE_OPTIONS_VERSION)
     })
-) : GitBase<git_merge_options, MergeOptionsRaw>(raw) {
+) : RawWrapper<git_merge_options, MergeOptionsRaw>(raw) {
     constructor(memory: Memory = Memory(), handler: MergeOptionsPointer) : this(MergeOptionsRaw(memory, handler))
 
     val flags: MergeFlag = MergeFlag(raw.handler.pointed.flags) {

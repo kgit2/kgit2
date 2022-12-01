@@ -4,10 +4,8 @@ typealias ${module.moduleName}Value = CValue<${module.git2Name}>
 </#if>
 typealias ${module.moduleName}Pointer = CPointer<${module.git2Name}>
 
-<#if module.structVar>
 typealias ${module.moduleName}Initial = ${module.moduleName}Pointer.(Memory) -> Unit
 
-</#if>
 typealias ${module.moduleName}SecondaryPointer = CPointerVar<${module.git2Name}>
 
 typealias ${module.moduleName}SecondaryInitial = ${module.moduleName}SecondaryPointer.(Memory) -> Unit
@@ -18,14 +16,14 @@ class ${module.moduleName}Raw(
 ) : Raw<${module.git2Name}>(memory, handler) {
     constructor(
         memory: Memory,
-        handler: ${module.git2Name},
-    ) : this(memory, handler.ptr)
+        struct: ${module.git2Name},
+    ) : this(memory, struct.ptr)
 
     <#if module.structVar>
     constructor(
         memory: Memory,
-        handler: ${module.moduleName}Value,
-    ) : this(memory, handler.getPointer(memory))
+        value: ${module.moduleName}Value,
+    ) : this(memory, value.getPointer(memory))
 
     constructor(
         memory: Memory = Memory(),
@@ -36,13 +34,13 @@ class ${module.moduleName}Raw(
         runCatching {
             initial?.invoke(handler, memory)
         }.onFailure {
-            <#if module.freeOnFailure?has_content>
+            <#if module.pointerFree?has_content>
             <#if module.shouldFreeOnFailure>
             if (shouldFreeOnFailure) {
-                ${module.freeOnFailure}(handler)
+                ${module.pointerFree}
             }
             <#else>
-            ${module.freeOnFailure}(handler)
+            ${module.pointerFree}
             </#if>
             </#if>
             memory.free()
@@ -59,22 +57,30 @@ class ${module.moduleName}Raw(
         runCatching {
             secondaryInitial?.invoke(secondary, memory)
         }.onFailure {
-            <#if module.freeOnFailure?has_content>
+        <#if module.secondaryFree?has_content>
             <#if module.shouldFreeOnFailure>
             if (shouldFreeOnFailure) {
-                ${module.freeOnFailure}(secondary.value)
+                ${module.secondaryFree}
             }
             <#else>
-            ${module.freeOnFailure}(secondary.value)
+            ${module.secondaryFree}
             </#if>
+        <#elseif module.pointerFree?has_content>
+            <#if module.shouldFreeOnFailure>
+            if (shouldFreeOnFailure) {
+                ${module.pointerFree}
+            }
+            <#else>
+            ${module.pointerFree}
             </#if>
+        </#if>
             memory.free()
         }.getOrThrow()
     }.value!!)
-    <#if module.freeOnFailure?has_content>
+    <#if module.beforeFree?has_content>
 
     override var beforeFree: BeforeFree? = {
-        ${module.freeOnFailure}(handler)
+        ${module.beforeFree}
     }
     </#if>
 }

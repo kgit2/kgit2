@@ -3,7 +3,7 @@ package com.kgit2.note
 import cnames.structs.git_note
 import com.kgit2.annotations.Raw
 import com.kgit2.common.memory.Memory
-import com.kgit2.memory.GitBase
+import com.kgit2.memory.RawWrapper
 import com.kgit2.oid.Oid
 import com.kgit2.signature.Signature
 import kotlinx.cinterop.allocPointerTo
@@ -18,7 +18,7 @@ import libgit2.git_note_message
     base = git_note::class,
     free = "git_note_free",
 )
-class Note(raw: NoteRaw) : GitBase<git_note, NoteRaw>(raw) {
+class Note(raw: NoteRaw) : RawWrapper<git_note, NoteRaw>(raw) {
     constructor(memory: Memory, handler: NotePointer) : this(NoteRaw(memory, handler))
 
     constructor(

@@ -3,16 +3,14 @@ package com.kgit2.diff
 import com.kgit2.annotations.Raw
 import com.kgit2.common.error.GitErrorCode
 import com.kgit2.common.memory.Memory
-import com.kgit2.memory.GitBase
+import com.kgit2.memory.RawWrapper
 import kotlinx.cinterop.*
 import libgit2.git_diff_hunk
-
-typealias DiffHunkCallback = (delta: DiffDelta?, hunk: DiffHunk?) -> GitErrorCode
 
 @Raw(
     base = git_diff_hunk::class,
 )
-class DiffHunk(raw: DiffHunkRaw) : GitBase<git_diff_hunk, DiffHunkRaw>(raw) {
+class DiffHunk(raw: DiffHunkRaw) : RawWrapper<git_diff_hunk, DiffHunkRaw>(raw) {
     constructor(
         memory: Memory = Memory(),
         handler: DiffHunkPointer = memory.alloc<git_diff_hunk>().ptr,

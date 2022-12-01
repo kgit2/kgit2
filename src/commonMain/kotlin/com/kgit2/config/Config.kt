@@ -7,7 +7,7 @@ import com.kgit2.common.extend.toBoolean
 import com.kgit2.common.extend.toInt
 import com.kgit2.common.memory.Memory
 import com.kgit2.common.memory.memoryScoped
-import com.kgit2.memory.GitBase
+import com.kgit2.memory.RawWrapper
 import com.kgit2.model.toKString
 import com.kgit2.model.withGitBuf
 import com.kgit2.repository.Repository
@@ -18,7 +18,7 @@ import libgit2.*
     base = git_config::class,
     free = "git_config_free",
 )
-class Config(raw: ConfigRaw) : GitBase<git_config, ConfigRaw>(raw) {
+class Config(raw: ConfigRaw) : RawWrapper<git_config, ConfigRaw>(raw) {
     constructor(memory: Memory, handler: ConfigPointer) : this(ConfigRaw(memory, handler))
 
     constructor(

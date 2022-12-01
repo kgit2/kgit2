@@ -5,7 +5,7 @@ import com.kgit2.annotations.Raw
 import com.kgit2.common.extend.errorCheck
 import com.kgit2.common.extend.toInt
 import com.kgit2.common.memory.Memory
-import com.kgit2.memory.GitBase
+import com.kgit2.memory.RawWrapper
 import com.kgit2.oid.Oid
 import com.kgit2.repository.Repository
 import kotlinx.cinterop.allocPointerTo
@@ -17,7 +17,7 @@ import libgit2.*
     base = git_submodule::class,
     free = "git_submodule_free",
 )
-class Submodule(raw: SubmoduleRaw) : GitBase<git_submodule, SubmoduleRaw>(raw) {
+class Submodule(raw: SubmoduleRaw) : RawWrapper<git_submodule, SubmoduleRaw>(raw) {
     constructor(memory: Memory, handler: SubmodulePointer) : this(SubmoduleRaw(memory, handler))
 
     constructor(
@@ -40,7 +40,7 @@ class Submodule(raw: SubmoduleRaw) : GitBase<git_submodule, SubmoduleRaw>(raw) {
 
     val workdirId: Oid? = git_submodule_wd_id(raw.handler)?.let { Oid(Memory(), it) }
 
-    val ignoreRule: SubmoduleIgnore = SubmoduleIgnore.fromRaw(git_submodule_ignore(raw.handler))
+    val ignoreRule: SubmoduleIgnore = SubmoduleIgnore.from(git_submodule_ignore(raw.handler))
 
     val updateStrategy: SubmoduleUpdate = SubmoduleUpdate.fromRaw(git_submodule_update_strategy(raw.handler))
 

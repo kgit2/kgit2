@@ -2,7 +2,7 @@ package com.kgit2.remote
 
 import com.kgit2.annotations.Raw
 import com.kgit2.common.memory.Memory
-import com.kgit2.memory.GitBase
+import com.kgit2.memory.RawWrapper
 import com.kgit2.proxy.ProxyOptions
 import kotlinx.cinterop.pointed
 import kotlinx.cinterop.ptr
@@ -13,7 +13,7 @@ import libgit2.git_push_options
 )
 class PushOptions(
     raw: PushOptionsRaw = PushOptionsRaw(),
-) : GitBase<git_push_options, PushOptionsRaw>(raw) {
+) : RawWrapper<git_push_options, PushOptionsRaw>(raw) {
 
     /**
      * Callbacks to use for this push operation

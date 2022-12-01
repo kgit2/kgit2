@@ -2,7 +2,7 @@ package com.kgit2.signature
 
 import com.kgit2.annotations.Raw
 import com.kgit2.common.memory.Memory
-import com.kgit2.memory.GitBase
+import com.kgit2.memory.RawWrapper
 import com.kgit2.time.Time
 import kotlinx.cinterop.*
 import libgit2.git_signature
@@ -15,7 +15,7 @@ import kotlin.native.internal.createCleaner
     base = git_signature::class,
     free = "git_signature_free",
 )
-class Signature(raw: SignatureRaw) : GitBase<git_signature, SignatureRaw>(raw) {
+class Signature(raw: SignatureRaw) : RawWrapper<git_signature, SignatureRaw>(raw) {
     constructor(memory: Memory = Memory(), handler: CPointer<git_signature>) : this(SignatureRaw(memory, handler))
 
     constructor(

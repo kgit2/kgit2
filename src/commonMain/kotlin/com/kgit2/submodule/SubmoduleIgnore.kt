@@ -11,7 +11,7 @@ enum class SubmoduleIgnore(val value: git_submodule_ignore_t) {
     ;
 
     companion object {
-        fun fromRaw(value: git_submodule_ignore_t): SubmoduleIgnore {
+        fun from(value: git_submodule_ignore_t): SubmoduleIgnore {
             return when (value) {
                 GIT_SUBMODULE_IGNORE_NONE -> None
                 GIT_SUBMODULE_IGNORE_UNTRACKED -> Untracked

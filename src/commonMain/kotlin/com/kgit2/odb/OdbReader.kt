@@ -2,7 +2,7 @@ package com.kgit2.odb
 
 import com.kgit2.common.extend.errorCheck
 import com.kgit2.common.memory.Memory
-import com.kgit2.memory.GitBase
+import com.kgit2.memory.RawWrapper
 import kotlinx.cinterop.allocPointerTo
 import kotlinx.cinterop.convert
 import kotlinx.cinterop.refTo
@@ -12,7 +12,7 @@ import okio.Buffer
 import okio.Source
 import okio.Timeout
 
-class OdbReader(raw: OdbStreamRaw) : GitBase<git_odb_stream, OdbStreamRaw>(raw), Source {
+class OdbReader(raw: OdbStreamRaw) : RawWrapper<git_odb_stream, OdbStreamRaw>(raw), Source {
     constructor(memory: Memory, handler: OdbStreamPointer) : this(OdbStreamRaw(memory, handler))
 
     constructor(

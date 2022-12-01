@@ -11,7 +11,7 @@ import com.kgit2.common.option.mutually.AutoTagOption
 import com.kgit2.fetch.Direction
 import com.kgit2.fetch.FetchOptions
 import com.kgit2.index.IndexerProgress
-import com.kgit2.memory.GitBase
+import com.kgit2.memory.RawWrapper
 import com.kgit2.model.toKString
 import com.kgit2.model.toList
 import com.kgit2.model.withGitBuf
@@ -25,7 +25,7 @@ import libgit2.*
     base = git_remote::class,
     free = "git_remote_free",
 )
-class Remote(raw: RemoteRaw) : GitBase<git_remote, RemoteRaw>(raw) {
+class Remote(raw: RemoteRaw) : RawWrapper<git_remote, RemoteRaw>(raw) {
     constructor(memory: Memory, handler: RemotePointer) : this(RemoteRaw(memory, handler))
 
     constructor(

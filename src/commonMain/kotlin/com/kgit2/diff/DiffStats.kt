@@ -3,7 +3,7 @@ package com.kgit2.diff
 import cnames.structs.git_diff_stats
 import com.kgit2.annotations.Raw
 import com.kgit2.common.memory.Memory
-import com.kgit2.memory.GitBase
+import com.kgit2.memory.RawWrapper
 import com.kgit2.model.toKString
 import com.kgit2.model.withGitBuf
 import kotlinx.cinterop.allocPointerTo
@@ -17,7 +17,7 @@ import libgit2.git_diff_stats_to_buf
     base = git_diff_stats::class,
     free = "git_diff_stats_free"
 )
-class DiffStats(raw: DiffStatsRaw) : GitBase<git_diff_stats, DiffStatsRaw>(raw) {
+class DiffStats(raw: DiffStatsRaw) : RawWrapper<git_diff_stats, DiffStatsRaw>(raw) {
     constructor(
         memory: Memory = Memory(),
         secondary: DiffStatsSecondaryPointer = memory.allocPointerTo(),

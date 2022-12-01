@@ -17,6 +17,7 @@ import com.kgit2.commit.AnnotatedCommit
 import com.kgit2.commit.Commit
 import com.kgit2.common.error.GitError
 import com.kgit2.common.error.GitErrorCode
+import com.kgit2.common.extend.asStableRef
 import com.kgit2.common.extend.errorCheck
 import com.kgit2.common.extend.toBoolean
 import com.kgit2.common.extend.toInt
@@ -25,7 +26,7 @@ import com.kgit2.common.memory.memoryScoped
 import com.kgit2.config.Config
 import com.kgit2.diff.Diff
 import com.kgit2.index.Index
-import com.kgit2.memory.GitBase
+import com.kgit2.memory.RawWrapper
 import com.kgit2.merge.MergeAnalysisFlag
 import com.kgit2.merge.MergeOptions
 import com.kgit2.merge.MergePreferenceFlag
@@ -49,6 +50,10 @@ import com.kgit2.status.StatusFlag
 import com.kgit2.status.StatusList
 import com.kgit2.status.StatusOptions
 import com.kgit2.submodule.Submodule
+import com.kgit2.tag.Tag
+import com.kgit2.tag.TagForeachCallback
+import com.kgit2.tag.TagForeachCallbackPayload
+import com.kgit2.tag.staticTagForeachCallback
 import com.kgit2.tree.Tree
 import com.kgit2.worktree.Worktree
 import kotlinx.cinterop.*
@@ -58,7 +63,7 @@ import libgit2.*
     base = git_repository::class,
     free = "git_repository_free",
 )
-class Repository(raw: RepositoryRaw) : GitBase<git_repository, RepositoryRaw>(raw) {
+class Repository(raw: RepositoryRaw) : RawWrapper<git_repository, RepositoryRaw>(raw) {
     constructor(memory: Memory, handler: RepositoryPointer) : this(RepositoryRaw(memory, handler))
 
     constructor(
@@ -434,8 +439,20 @@ class Repository(raw: RepositoryRaw) : GitBase<git_repository, RepositoryRaw>(ra
     val Rebase = RebaseModule()
 
     inner class RebaseModule {
-        fun rebase(branch: AnnotatedCommit?, upstream: AnnotatedCommit?, onto: AnnotatedCommit?, options: RebaseOptions?): Rebase = Rebase {
-            git_rebase_init(this.ptr, raw.handler, branch?.raw?.handler, upstream?.raw?.handler, onto?.raw?.handler, options?.raw?.handler).errorCheck()
+        fun rebase(
+            branch: AnnotatedCommit?,
+            upstream: AnnotatedCommit?,
+            onto: AnnotatedCommit?,
+            options: RebaseOptions?,
+        ): Rebase = Rebase {
+            git_rebase_init(
+                this.ptr,
+                raw.handler,
+                branch?.raw?.handler,
+                upstream?.raw?.handler,
+                onto?.raw?.handler,
+                options?.raw?.handler
+            ).errorCheck()
         }
 
         fun openRebase(options: RebaseOptions?): Rebase = Rebase {
@@ -451,7 +468,13 @@ class Repository(raw: RepositoryRaw) : GitBase<git_repository, RepositoryRaw>(ra
         }
 
         fun applyToTree(tree: Tree, diff: Diff, options: ApplyOptions?): Index = Index {
-            git_apply_to_tree(this.ptr, raw.handler, tree.raw.handler, diff.raw.handler, options?.raw?.handler).errorCheck()
+            git_apply_to_tree(
+                this.ptr,
+                raw.handler,
+                tree.raw.handler,
+                diff.raw.handler,
+                options?.raw?.handler
+            ).errorCheck()
         }
     }
 
@@ -462,9 +485,17 @@ class Repository(raw: RepositoryRaw) : GitBase<git_repository, RepositoryRaw>(ra
             git_revert(raw.handler, commit.raw.handler, options?.raw?.handler).errorCheck()
         }
 
-        fun revertCommit(revertCommit: Commit, outCommit: Commit, mainline: Int, options: MergeOptions? = null): Index = Index {
-            git_revert_commit(this.ptr, raw.handler, revertCommit.raw.handler, outCommit.raw.handler, mainline.convert(), options?.raw?.handler).errorCheck()
-        }
+        fun revertCommit(revertCommit: Commit, outCommit: Commit, mainline: Int, options: MergeOptions? = null): Index =
+            Index {
+                git_revert_commit(
+                    this.ptr,
+                    raw.handler,
+                    revertCommit.raw.handler,
+                    outCommit.raw.handler,
+                    mainline.convert(),
+                    options?.raw?.handler
+                ).errorCheck()
+            }
     }
 
     val Branch = BranchModule()
@@ -536,41 +567,57 @@ class Repository(raw: RepositoryRaw) : GitBase<git_repository, RepositoryRaw>(ra
     val Tag = TagModule()
 
     inner class TagModule {
-        // fun tag(name: String, target: Object, tagger: Signature, message: String, force: String): Tag/Oid? {
-        //     TODO()
-        // }
+        fun createTag(name: String, target: Object, tagger: Signature, message: String, force: String): Oid = Oid {
+            git_tag_create(
+                this,
+                raw.handler,
+                name,
+                target.raw.handler,
+                tagger.raw.handler,
+                message,
+                force.toInt()
+            ).errorCheck()
+        }
 
-        // fun annotationTag(name: String, target: Object, tagger: Signature, message: String): Tag/Oid? {
-        //     TODO()
-        // }
+        fun annotationTag(name: String, target: Object, tagger: Signature, message: String): Oid = Oid {
+            git_tag_annotation_create(
+                this,
+                raw.handler,
+                name,
+                target.raw.handler,
+                tagger.raw.handler,
+                message
+            ).errorCheck()
+        }
 
-        // fun lightweightTag(name: String, target: Object, force: Boolean): Oid = Oid() {
-        //     git_tag_create_lightweight(this.ptr, raw.handler, name, target.raw.handler, force.toInt()).errorCheck()
-        //     TODO()
-        // }
+        fun lightweightTag(name: String, target: Object, force: Boolean): Oid = Oid {
+            git_tag_create_lightweight(this, raw.handler, name, target.raw.handler, force.toInt()).errorCheck()
+        }
 
-        // fun find(id: Oid): Tag = Tag() {
-        //     git_tag_lookup(this.ptr, raw.handler, id.raw.handler).errorCheck()
-        //     TODO()
-        // }
+        fun find(id: Oid): Tag = Tag {
+            git_tag_lookup(this.ptr, raw.handler, id.raw.handler).errorCheck()
+        }
 
         fun delete(name: String) {
             git_tag_delete(raw.handler, name).errorCheck()
-            TODO()
         }
 
-        // TODO
-        // fun tagNames(glob: String): StringIterator = StringIterator() {
-        //     git_tag_list_match(this.ptr, glob, raw.handler).errorCheck()
-        // }
+        fun tagNames(glob: String): List<String> = withGitStrArray {
+            git_tag_list_match(it, glob, raw.handler).errorCheck()
+            it.toList()
+        }
 
-        // TODO
-        // fun forEach(callback: (tag: Tag) -> Unit) {
-        //     git_tag_foreach(raw.handler) { tag, _ ->
-        //         callback(Tag(tag))
-        //         0
-        //     }.errorCheck()
-        // }
+        fun forEach(callback: TagForeachCallback) {
+            val callbackPayload = object : TagForeachCallbackPayload {
+                override var tagForeachCallback: TagForeachCallback? = callback
+            }.asStableRef()
+            git_tag_foreach(
+                raw.handler,
+                staticTagForeachCallback,
+                callbackPayload.asCPointer()
+            ).errorCheck()
+            callbackPayload.dispose()
+        }
     }
 
     val Note = NoteModule()

@@ -2,12 +2,13 @@ package com.kgit2.index
 
 import cnames.structs.git_index
 import com.kgit2.annotations.Raw
-import com.kgit2.common.extend.asCPointer
+import com.kgit2.common.extend.asStableRef
 import com.kgit2.common.extend.errorCheck
 import com.kgit2.common.extend.toBoolean
 import com.kgit2.common.extend.toInt
 import com.kgit2.common.memory.Memory
 import com.kgit2.memory.IterableBase
+import com.kgit2.memory.RawWrapper
 import com.kgit2.model.withGitStrArray
 import com.kgit2.oid.Oid
 import com.kgit2.repository.Repository
@@ -22,15 +23,13 @@ import libgit2.*
     base = git_index::class,
     free = "git_index_free",
 )
-class Index(raw: IndexRaw) : IterableBase<git_index, IndexRaw, IndexEntry>(raw) {
-    constructor(memory: Memory, handler: IndexPointer) : this(IndexRaw(memory, handler))
-
+class Index(raw: IndexRaw) : RawWrapper<git_index, IndexRaw>(raw), IterableBase<IndexEntry> {
     constructor(
         memory: Memory = Memory(),
         secondary: IndexSecondaryPointer = memory.allocPointerTo(),
         secondaryInitial: IndexSecondaryInitial = {
             git_index_new(this.ptr)
-        }
+        },
     ) : this(IndexRaw(memory, secondary, secondaryInitial))
 
     constructor(path: String) : this(secondaryInitial = {
@@ -52,52 +51,74 @@ class Index(raw: IndexRaw) : IterableBase<git_index, IndexRaw, IndexEntry>(raw) 
     }
 
     fun addFromBuffer(entry: IndexEntry, buffer: ByteArray) {
-        git_index_add_frombuffer(raw.handler, entry.memCopy().raw.handler, buffer.refTo(0), buffer.size.convert()).errorCheck()
+        git_index_add_frombuffer(
+            raw.handler,
+            entry.memCopy().raw.handler,
+            buffer.refTo(0),
+            buffer.size.convert()
+        ).errorCheck()
     }
 
     fun addPath(path: String) {
         git_index_add_bypath(raw.handler, path).errorCheck()
     }
 
-    fun addAll(pathSpecs: Collection<String>, options: IndexAddOptions, indexMatchedPathCallback: IndexMatchedPathCallback) {
-        withGitStrArray(pathSpecs) { strArray ->
-            git_index_add_all(
-                raw.handler,
-                strArray,
-                options.flags,
-                indexMatchedPathCallback.toRawCB(),
-                indexMatchedPathCallback.asCPointer()
-            ).errorCheck()
-        }
+    fun addAll(
+        pathSpecs: Collection<String>,
+        options: IndexAddOptions,
+        indexMatchedPathCallback: IndexMatchedPathCallback,
+    ) = withGitStrArray(pathSpecs) { strArray ->
+        val stableRef = object : IndexMatchedPathCallbackPayload {
+            override var indexMatchedPathCallback: IndexMatchedPathCallback? = indexMatchedPathCallback
+        }.asStableRef()
+        git_index_add_all(
+            raw.handler,
+            strArray,
+            options.flags,
+            staticIndexMatchedPathCallback,
+            stableRef.asCPointer()
+        ).errorCheck()
+        stableRef.dispose()
     }
 
-    fun removeAll(pathSpecs: Collection<String>, indexMatchedPathCallback: IndexMatchedPathCallback?) {
-        withGitStrArray(pathSpecs) { strArray ->
-            git_index_remove_all(
-                raw.handler,
-                strArray,
-                indexMatchedPathCallback?.toRawCB(),
-                indexMatchedPathCallback?.asCPointer()
-            ).errorCheck()
-        }
+    fun removeAll(
+        pathSpecs: Collection<String>,
+        indexMatchedPathCallback: IndexMatchedPathCallback?,
+    ) = withGitStrArray(pathSpecs) { strArray ->
+        val stableRef = object : IndexMatchedPathCallbackPayload {
+            override var indexMatchedPathCallback: IndexMatchedPathCallback? = indexMatchedPathCallback
+        }.asStableRef()
+        git_index_remove_all(
+            raw.handler,
+            strArray,
+            staticIndexMatchedPathCallback,
+            stableRef.asCPointer()
+        ).errorCheck()
+        stableRef.dispose()
     }
 
-    fun updateAll(pathSpecs: Collection<String>, indexMatchedPathCallback: IndexMatchedPathCallback?) {
-        withGitStrArray(pathSpecs) { strArray ->
-            git_index_update_all(
-                raw.handler,
-                strArray,
-                indexMatchedPathCallback?.toRawCB(),
-                indexMatchedPathCallback?.asCPointer()
-            ).errorCheck()
-        }
+    fun updateAll(
+        pathSpecs: Collection<String>,
+        indexMatchedPathCallback: IndexMatchedPathCallback?,
+    ) = withGitStrArray(pathSpecs) { strArray ->
+        val stableRef = object : IndexMatchedPathCallbackPayload {
+            override var indexMatchedPathCallback: IndexMatchedPathCallback? = indexMatchedPathCallback
+        }.asStableRef()
+        git_index_update_all(
+            raw.handler,
+            strArray,
+            staticIndexMatchedPathCallback,
+            stableRef.asCPointer()
+        ).errorCheck()
+        stableRef.dispose()
     }
 
     fun clear() {
         git_index_clear(raw.handler).errorCheck()
     }
 
-    override operator fun get(index: Long): IndexEntry = IndexEntry(handler = git_index_get_byindex(raw.handler, index.convert())!!)
+    override operator fun get(index: Long): IndexEntry =
+        IndexEntry(handler = git_index_get_byindex(raw.handler, index.convert())!!)
 
     fun get(path: String, stage: Int): IndexEntry? = git_index_get_bypath(raw.handler, path, stage.convert())?.let {
         IndexEntry(handler = it)
@@ -105,7 +126,8 @@ class Index(raw: IndexRaw) : IterableBase<git_index, IndexRaw, IndexEntry>(raw) 
 
     fun removeByPath(path: String) = git_index_remove_bypath(raw.handler, path).errorCheck()
 
-    fun removeDir(path: String, stage: Int) = git_index_remove_directory(raw.handler, path, stage.convert()).errorCheck()
+    fun removeDir(path: String, stage: Int) =
+        git_index_remove_directory(raw.handler, path, stage.convert()).errorCheck()
 
     fun conflicts(): IndexConflictIterator = IndexConflictIterator() {
         git_index_conflict_iterator_new(this.ptr, raw.handler)

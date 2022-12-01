@@ -2,7 +2,7 @@ package com.kgit2.repository
 
 import com.kgit2.annotations.Raw
 import com.kgit2.common.memory.Memory
-import com.kgit2.memory.GitBase
+import com.kgit2.memory.RawWrapper
 import com.kgit2.`object`.Object
 import kotlinx.cinterop.alloc
 import kotlinx.cinterop.convert
@@ -13,7 +13,7 @@ import libgit2.*
 @Raw(
     base = git_revspec::class,
 )
-class RevSpec(raw: RevspecRaw = RevspecRaw()) : GitBase<git_revspec, RevspecRaw>(raw) {
+class RevSpec(raw: RevspecRaw = RevspecRaw()) : RawWrapper<git_revspec, RevspecRaw>(raw) {
     constructor(
         memory: Memory = Memory(),
         handler: RevspecPointer = memory.alloc<git_revspec>().ptr,

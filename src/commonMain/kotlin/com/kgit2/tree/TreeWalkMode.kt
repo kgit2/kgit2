@@ -10,7 +10,7 @@ enum class TreeWalkMode(val value: git_treewalk_mode) {
     ;
 
     companion object {
-        fun fromRaw(value: git_treewalk_mode): TreeWalkMode {
+        fun from(value: git_treewalk_mode): TreeWalkMode {
             return when (value) {
                 GIT_TREEWALK_PRE -> PreOrder
                 GIT_TREEWALK_POST -> PostOrder

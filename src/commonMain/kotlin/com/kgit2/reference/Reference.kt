@@ -8,7 +8,7 @@ import com.kgit2.common.extend.errorCheck
 import com.kgit2.common.extend.toBoolean
 import com.kgit2.common.extend.toInt
 import com.kgit2.common.memory.Memory
-import com.kgit2.memory.GitBase
+import com.kgit2.memory.RawWrapper
 import com.kgit2.oid.Oid
 import com.kgit2.`object`.Object
 import com.kgit2.`object`.ObjectType
@@ -21,7 +21,7 @@ import libgit2.*
     base = git_reference::class,
     free = "git_reference_free",
 )
-class Reference(raw: ReferenceRaw) : GitBase<git_reference, ReferenceRaw>(raw) {
+class Reference(raw: ReferenceRaw) : RawWrapper<git_reference, ReferenceRaw>(raw) {
     constructor(memory: Memory, handler: ReferencePointer) : this(ReferenceRaw(memory, handler))
 
     constructor(

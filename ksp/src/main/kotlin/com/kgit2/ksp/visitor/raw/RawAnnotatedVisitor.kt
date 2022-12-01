@@ -29,11 +29,15 @@ class RawAnnotatedVisitor(
         val argumentMap = rawAnnotation.arguments.associateBy { it.name!!.asString() }
         val superTypeOfBase = argumentMap[Raw::base.name]!!.accept(argumentVisitor, Unit)
         val structVar = superTypeOfBase.any { it.declaration.simpleName.asString() == "CStructVar" }
+        val free = argumentMap[Raw::free.name]!!.value as String?
         fileModel.modules.add(
             RawDeclareModel(
                 git2Name = (argumentMap[Raw::base.name]!!.value as KSType).declaration.simpleName.asString(),
                 structVar = structVar,
-                freeOnFailure = argumentMap[Raw::free.name]?.value as String?,
+                free = free,
+                pointerFree = argumentMap[Raw::pointerFree.name]?.value as String? ?: free?.let { "$it(handler)" },
+                secondaryFree = argumentMap[Raw::secondaryFree.name]?.value as String? ?: free?.let { "$it(secondary.value)" },
+                beforeFree = argumentMap[Raw::beforeFree.name]?.value as String? ?: free?.let { "$it(handler)" },
                 shouldFreeOnFailure = (argumentMap[Raw::shouldFreeOnFailure.name]?.value as Boolean?) ?: false,
             )
         )

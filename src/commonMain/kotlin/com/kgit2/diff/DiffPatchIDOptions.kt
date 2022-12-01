@@ -1,8 +1,7 @@
 package com.kgit2.diff
 
 import com.kgit2.annotations.Raw
-import com.kgit2.memory.GitBase
-import kotlinx.cinterop.pointed
+import com.kgit2.memory.RawWrapper
 import libgit2.GIT_DIFF_PATCHID_OPTIONS_VERSION
 import libgit2.git_diff_patchid_options
 import libgit2.git_diff_patchid_options_init
@@ -14,4 +13,4 @@ class DiffPatchIDOptions(
     raw: DiffPatchidOptionsRaw = DiffPatchidOptionsRaw(initial = {
         git_diff_patchid_options_init(this, GIT_DIFF_PATCHID_OPTIONS_VERSION)
     })
-) : GitBase<git_diff_patchid_options, DiffPatchidOptionsRaw>(raw)
+) : RawWrapper<git_diff_patchid_options, DiffPatchidOptionsRaw>(raw)

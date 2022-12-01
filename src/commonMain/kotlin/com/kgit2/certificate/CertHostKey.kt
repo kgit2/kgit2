@@ -2,7 +2,7 @@ package com.kgit2.certificate
 
 import com.kgit2.annotations.Raw
 import com.kgit2.common.memory.Memory
-import com.kgit2.memory.GitBase
+import com.kgit2.memory.RawWrapper
 import kotlinx.cinterop.pointed
 import kotlinx.cinterop.readBytes
 import kotlinx.cinterop.toKString
@@ -11,7 +11,7 @@ import libgit2.git_cert_hostkey
 @Raw(
     base = git_cert_hostkey::class,
 )
-class CertHostKey(raw: CertHostkeyRaw) : GitBase<git_cert_hostkey, CertHostkeyRaw>(raw) {
+class CertHostKey(raw: CertHostkeyRaw) : RawWrapper<git_cert_hostkey, CertHostkeyRaw>(raw) {
     constructor(
         memory: Memory,
         handler: CertHostkeyPointer,
