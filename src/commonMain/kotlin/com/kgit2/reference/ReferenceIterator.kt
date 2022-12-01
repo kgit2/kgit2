@@ -14,8 +14,6 @@ import libgit2.git_reference_next
     free = "git_reference_iterator_free"
 )
 class ReferenceIterator(raw: ReferenceIteratorRaw) : IteratorBase<git_reference_iterator, ReferenceIteratorRaw, Reference>(raw) {
-    constructor(memory: Memory, handler: ReferenceIteratorPointer) : this(ReferenceIteratorRaw(memory, handler))
-
     constructor(
         memory: Memory = Memory(),
         secondary: ReferenceIteratorSecondaryPointer = memory.allocPointerTo(),

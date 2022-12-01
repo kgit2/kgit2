@@ -625,7 +625,14 @@ class Repository(raw: RepositoryRaw) : RawWrapper<git_repository, RepositoryRaw>
     val Note = NoteModule()
 
     inner class NoteModule {
-        fun note(author: Signature, committer: Signature, notesRef: String?, oid: Oid, note: String, force: Boolean): Oid = Oid {
+        fun note(
+            author: Signature,
+            committer: Signature,
+            notesRef: String?,
+            oid: Oid,
+            note: String,
+            force: Boolean,
+        ): Oid = Oid {
             git_note_create(
                 this,
                 raw.handler,
@@ -725,7 +732,11 @@ class Repository(raw: RepositoryRaw) : RawWrapper<git_repository, RepositoryRaw>
             val callbackPayload = object : RepositoryFetchHeadForeachCallbackPayload {
                 override var repositoryFetchHeadForeachCallback: RepositoryFetchHeadForeachCallback? = callback
             }.asStableRef()
-            git_repository_fetchhead_foreach(raw.handler, staticRepositoryFetchHeadForeachCallback, callbackPayload.asCPointer())
+            git_repository_fetchhead_foreach(
+                raw.handler,
+                staticRepositoryFetchHeadForeachCallback,
+                callbackPayload.asCPointer()
+            )
                 .errorCheck()
             callbackPayload.dispose()
         }
@@ -736,12 +747,10 @@ class Repository(raw: RepositoryRaw) : RawWrapper<git_repository, RepositoryRaw>
     inner class ReferenceModule {
         fun reference(name: String, id: Oid, force: Boolean, log_message: String): Reference = Reference {
             git_reference_create(this.ptr, raw.handler, name, id.raw.handler, force.toInt(), log_message).errorCheck()
-            TODO()
         }
 
         fun findReference(name: String): Reference = Reference {
             git_reference_lookup(this.ptr, raw.handler, name).errorCheck()
-            TODO()
         }
 
         fun references(): ReferenceIterator = ReferenceIterator {
@@ -763,7 +772,6 @@ class Repository(raw: RepositoryRaw) : RawWrapper<git_repository, RepositoryRaw>
                     current_id.raw.handler,
                     log_message
                 ).errorCheck()
-                TODO()
             }
 
         fun referenceSymbolic(name: String, target: String, force: Boolean, log_message: String): Reference =
@@ -776,7 +784,6 @@ class Repository(raw: RepositoryRaw) : RawWrapper<git_repository, RepositoryRaw>
                     force.toInt(),
                     log_message
                 ).errorCheck()
-                TODO()
             }
 
         fun referenceSymbolicMatching(
@@ -786,15 +793,23 @@ class Repository(raw: RepositoryRaw) : RawWrapper<git_repository, RepositoryRaw>
             currentValue: String,
             log_message: String,
         ): Reference = Reference {
-            TODO()
+            git_reference_symbolic_create_matching(
+                this.ptr,
+                raw.handler,
+                name,
+                target,
+                force.toInt(),
+                currentValue,
+                log_message
+            ).errorCheck()
         }
 
         fun resolveReferenceFromShortName(shortName: String): Reference = Reference {
-            TODO()
+            git_reference_dwim(this.ptr, raw.handler, shortName).errorCheck()
         }
 
-        fun referenceToAnnotatedCommit(reference: Reference): AnnotatedCommit {
-            TODO()
+        fun referenceToAnnotatedCommit(reference: Reference): AnnotatedCommit = AnnotatedCommit {
+            git_annotated_commit_from_ref(this.ptr, raw.handler, reference.raw.handler).errorCheck()
         }
     }
 
