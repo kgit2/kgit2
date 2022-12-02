@@ -30,7 +30,6 @@ class RawAnnotatedVisitor(
         val superTypeOfBase = argumentMap[Raw::base.name]!!.accept(argumentVisitor, Unit)
         val structVar = superTypeOfBase.any { it.declaration.simpleName.asString() == "CStructVar" }
         val free = argumentMap[Raw::free.name]!!.value as String?
-        logger.info((argumentMap[Raw::base.name]!!.value as KSType).declaration.simpleName.asString())
         fileModel.modules.add(
             RawDeclareModel(
                 git2Name = (argumentMap[Raw::base.name]!!.value as KSType).declaration.simpleName.asString(),

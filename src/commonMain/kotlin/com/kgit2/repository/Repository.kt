@@ -816,8 +816,8 @@ class Repository(raw: RepositoryRaw) : RawWrapper<git_repository, RepositoryRaw>
     val Oid = OidModule()
 
     inner class OidModule {
-        fun refNameToOid(refName: String): Oid {
-            TODO()
+        fun refNameToOid(refName: String): Oid = Oid {
+            git_reference_name_to_id(this, raw.handler, refName).errorCheck()
         }
     }
 
