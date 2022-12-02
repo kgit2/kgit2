@@ -898,16 +898,16 @@ class Repository(raw: RepositoryRaw) : RawWrapper<git_repository, RepositoryRaw>
     inner class IgnoreModule {
         fun addRule(rules: String) {
             git_ignore_add_rule(raw.handler, rules).errorCheck()
-            TODO()
         }
 
         fun clearRules() {
             git_ignore_clear_internal_rules(raw.handler).errorCheck()
-            TODO()
         }
 
-        fun isIgnored(path: String): Boolean {
-            TODO()
+        fun isIgnored(path: String): Boolean = memoryScoped {
+            val result = alloc<IntVar>()
+            git_ignore_path_is_ignored(result.ptr, raw.handler, path).errorCheck()
+            result.value.toBoolean()
         }
     }
 
