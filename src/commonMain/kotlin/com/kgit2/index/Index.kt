@@ -9,7 +9,8 @@ import com.kgit2.common.extend.toInt
 import com.kgit2.common.memory.Memory
 import com.kgit2.memory.IterableBase
 import com.kgit2.memory.RawWrapper
-import com.kgit2.model.withGitStrArray
+import com.kgit2.model.StrArray
+import com.kgit2.model.toStrArray
 import com.kgit2.oid.Oid
 import com.kgit2.repository.Repository
 import com.kgit2.tree.Tree
@@ -67,13 +68,13 @@ class Index(raw: IndexRaw) : RawWrapper<git_index, IndexRaw>(raw), IterableBase<
         pathSpecs: Collection<String>,
         options: IndexAddOptions,
         indexMatchedPathCallback: IndexMatchedPathCallback,
-    ) = withGitStrArray(pathSpecs) { strArray ->
+    ) {
         val stableRef = object : IndexMatchedPathCallbackPayload {
             override var indexMatchedPathCallback: IndexMatchedPathCallback? = indexMatchedPathCallback
         }.asStableRef()
         git_index_add_all(
             raw.handler,
-            strArray,
+            pathSpecs.toStrArray().raw.handler,
             options.flags,
             staticIndexMatchedPathCallback,
             stableRef.asCPointer()
@@ -84,13 +85,13 @@ class Index(raw: IndexRaw) : RawWrapper<git_index, IndexRaw>(raw), IterableBase<
     fun removeAll(
         pathSpecs: Collection<String>,
         indexMatchedPathCallback: IndexMatchedPathCallback?,
-    ) = withGitStrArray(pathSpecs) { strArray ->
+    ) {
         val stableRef = object : IndexMatchedPathCallbackPayload {
             override var indexMatchedPathCallback: IndexMatchedPathCallback? = indexMatchedPathCallback
         }.asStableRef()
         git_index_remove_all(
             raw.handler,
-            strArray,
+            pathSpecs.toStrArray().raw.handler,
             staticIndexMatchedPathCallback,
             stableRef.asCPointer()
         ).errorCheck()
@@ -100,13 +101,13 @@ class Index(raw: IndexRaw) : RawWrapper<git_index, IndexRaw>(raw), IterableBase<
     fun updateAll(
         pathSpecs: Collection<String>,
         indexMatchedPathCallback: IndexMatchedPathCallback?,
-    ) = withGitStrArray(pathSpecs) { strArray ->
+    ) {
         val stableRef = object : IndexMatchedPathCallbackPayload {
             override var indexMatchedPathCallback: IndexMatchedPathCallback? = indexMatchedPathCallback
         }.asStableRef()
         git_index_update_all(
             raw.handler,
-            strArray,
+            pathSpecs.toStrArray().raw.handler,
             staticIndexMatchedPathCallback,
             stableRef.asCPointer()
         ).errorCheck()

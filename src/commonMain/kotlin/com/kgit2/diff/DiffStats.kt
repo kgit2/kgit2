@@ -4,8 +4,7 @@ import cnames.structs.git_diff_stats
 import com.kgit2.annotations.Raw
 import com.kgit2.common.memory.Memory
 import com.kgit2.memory.RawWrapper
-import com.kgit2.model.toKString
-import com.kgit2.model.withGitBuf
+import com.kgit2.model.Buf
 import kotlinx.cinterop.allocPointerTo
 import kotlinx.cinterop.convert
 import libgit2.git_diff_stats_deletions
@@ -30,9 +29,8 @@ class DiffStats(raw: DiffStatsRaw) : RawWrapper<git_diff_stats, DiffStatsRaw>(ra
 
     val deletions: ULong = git_diff_stats_deletions(raw.handler)
 
-    fun toBuf(formatType: DiffStatsFormatType, width: ULong): String? = withGitBuf {
-        git_diff_stats_to_buf(it, raw.handler, formatType.value, width.convert())
-        it.toKString()
+    fun toBuf(formatType: DiffStatsFormatType, width: ULong): Buf = Buf {
+        git_diff_stats_to_buf(this, raw.handler, formatType.value, width.convert())
     }
 
     override fun toString(): String {

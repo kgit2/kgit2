@@ -5,10 +5,8 @@ import com.kgit2.annotations.Raw
 import com.kgit2.common.extend.errorCheck
 import com.kgit2.common.memory.Memory
 import com.kgit2.memory.RawWrapper
-import com.kgit2.model.toKString
-import com.kgit2.model.withGitBuf
+import com.kgit2.model.Buf
 import com.kgit2.repository.Repository
-import kotlinx.cinterop.allocPointerTo
 import kotlinx.cinterop.ptr
 import kotlinx.cinterop.toKString
 import libgit2.*
@@ -18,31 +16,30 @@ import libgit2.*
     free = "git_worktree_free",
 )
 class Worktree(raw: WorktreeRaw) : RawWrapper<git_worktree, WorktreeRaw>(raw) {
-    constructor(memory: Memory, handler: WorktreePointer) : this(WorktreeRaw(memory, handler))
+    constructor(handler: WorktreePointer) : this(WorktreeRaw(Memory(), handler))
 
     constructor(
-        memory: Memory = Memory(),
-        secondary: WorktreeSecondaryPointer = memory.allocPointerTo(),
         secondaryInitial: WorktreeSecondaryInitial? = null,
-    ) : this(WorktreeRaw(memory, secondary, secondaryInitial))
+    ) : this(WorktreeRaw(secondaryInitial = secondaryInitial))
 
     constructor(repository: Repository) : this(secondaryInitial = {
         git_worktree_open_from_repository(this.ptr, repository.raw.handler).errorCheck()
     })
 
-    val name: String?
-        get() = git_worktree_name(raw.handler)?.toKString()
+    val name: String? = git_worktree_name(raw.handler)?.toKString()
 
-    val path: String?
-        get() = git_worktree_path(raw.handler)?.toKString()
+    val path: String? = git_worktree_path(raw.handler)?.toKString()
 
-    val isLocked: WorktreeStatus
-        get() = withGitBuf {
-            when (git_worktree_is_locked(it, raw.handler)) {
-                0 -> WorktreeStatus.Unlocked
-                else -> WorktreeStatus.Locked(it.toKString())
-            }
+    fun isLocked(): WorktreeStatus {
+        var result: Int = -1
+        val buf = Buf  {
+            result = git_worktree_is_locked(this, raw.handler)
         }
+        return when (result) {
+            0 -> WorktreeStatus.Unlocked
+            else -> WorktreeStatus.Locked(buf.buffer!!.toKString())
+        }
+    }
 
     fun validate() {
         git_worktree_validate(raw.handler).errorCheck()

@@ -7,9 +7,8 @@ import com.kgit2.commit.Commit
 import com.kgit2.common.extend.errorCheck
 import com.kgit2.common.memory.Memory
 import com.kgit2.memory.RawWrapper
+import com.kgit2.model.Buf
 import com.kgit2.oid.Oid
-import com.kgit2.model.toKString
-import com.kgit2.model.withGitBuf
 import com.kgit2.tag.Tag
 import com.kgit2.tree.Tree
 import kotlinx.cinterop.allocPointerTo
@@ -36,9 +35,8 @@ class Object(raw: ObjectRaw) : RawWrapper<git_object, ObjectRaw>(raw) {
 
     val oid: Oid = Oid(Memory(), git_object_id(raw.handler)!!)
 
-    val shortId: String = withGitBuf { buf ->
-        git_object_short_id(buf, raw.handler).errorCheck()
-        buf.toKString()!!
+    val shortId: Buf = Buf {
+        git_object_short_id(this, raw.handler).errorCheck()
     }
 
     val type: ObjectType = ObjectType.fromRaw(git_object_type(raw.handler))

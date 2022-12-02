@@ -3,6 +3,7 @@ package com.kgit2.config
 import com.kgit2.kgitRunTest
 import com.kgit2.utils.withTempDir
 import io.github.aakira.napier.Napier
+import kotlinx.cinterop.toKString
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -41,7 +42,7 @@ class ConfigTest {
             assertTrue(config.getBool("foo.k1"))
             assertEquals(1, config.getInt32("foo.k2"))
             assertEquals(2L, config.getInt64("foo.k3"))
-            assertEquals("bar", config.getStringBuf("foo.k4"))
+            assertEquals("bar", config.getStringBuf("foo.k4").buffer?.toKString())
 
             val entries = config.getEntries()
             assertEquals(4, entries.list.size)

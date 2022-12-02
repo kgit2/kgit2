@@ -8,8 +8,7 @@ import com.kgit2.common.extend.toInt
 import com.kgit2.common.memory.Memory
 import com.kgit2.common.memory.memoryScoped
 import com.kgit2.memory.RawWrapper
-import com.kgit2.model.toKString
-import com.kgit2.model.withGitBuf
+import com.kgit2.model.Buf
 import com.kgit2.repository.Repository
 import kotlinx.cinterop.*
 import libgit2.*
@@ -47,24 +46,28 @@ class Config(raw: ConfigRaw) : RawWrapper<git_config, ConfigRaw>(raw) {
     }
 
     companion object {
-        fun findGlobal(): String = withGitBuf { buf ->
-            git_config_find_global(buf).errorCheck()
-            buf.toKString()!!
+        fun findGlobal(): String = with(Buf {
+            git_config_find_global(this).errorCheck()
+        }) {
+            this.buffer!!.toKString()
         }
 
-        fun findSystem(): String = withGitBuf { buf ->
-            git_config_find_system(buf).errorCheck()
-            buf.toKString()!!
+        fun findSystem(): String = with(Buf {
+            git_config_find_system(this).errorCheck()
+        }) {
+            this.buffer!!.toKString()
         }
 
-        fun findXDG(): String = withGitBuf { buf ->
-            git_config_find_xdg(buf).errorCheck()
-            buf.toKString()!!
+        fun findXDG(): String = with(Buf {
+            git_config_find_xdg(this).errorCheck()
+        }) {
+            this.buffer!!.toKString()
         }
 
-        fun findProgramdata(): String = withGitBuf { buf ->
-            git_config_find_programdata(buf).errorCheck()
-            buf.toKString()!!
+        fun findProgramdata(): String = with(Buf {
+            git_config_find_programdata(this).errorCheck()
+        }) {
+            this.buffer!!.toKString()
         }
 
         fun parseInt32(value: String): Int? {
@@ -104,9 +107,10 @@ class Config(raw: ConfigRaw) : RawWrapper<git_config, ConfigRaw>(raw) {
         fun parsePath(value: String): String? {
             if (value.isEmpty()) return null
             return runCatching {
-                withGitBuf { buf ->
-                    git_config_parse_path(buf, value).errorCheck()
-                    buf.toKString()
+                with(Buf {
+                    git_config_parse_path(this, value).errorCheck()
+                }) {
+                    this.buffer?.toKString()
                 }
             }.getOrNull()
         }
@@ -199,20 +203,20 @@ class Config(raw: ConfigRaw) : RawWrapper<git_config, ConfigRaw>(raw) {
      * defined level. A higher level means a higher priority. The
      * first occurrence of the variable will be returned here.
      */
-    fun getStringBuf(name: String): String {
+    fun getStringBuf(name: String): Buf {
         if (name.isEmpty()) throw IllegalArgumentException("name is empty")
-        return withGitBuf { buf ->
-            git_config_get_string_buf(buf, raw.handler, name).errorCheck()
-            buf.toKString()!!
+        return Buf {
+            git_config_get_string_buf(this, raw.handler, name).errorCheck()
         }
     }
 
     fun getPath(name: String): String? {
         if (name.isEmpty()) return null
         return runCatching {
-            withGitBuf { buf ->
-                git_config_get_path(buf, raw.handler, name).errorCheck()
-                buf.toKString()
+            with(Buf {
+                git_config_get_path(this, raw.handler, name).errorCheck()
+            }) {
+                this.buffer?.toKString()
             }
         }.getOrNull()
     }
