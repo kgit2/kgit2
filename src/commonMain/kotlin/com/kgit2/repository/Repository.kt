@@ -824,9 +824,8 @@ class Repository(raw: RepositoryRaw) : RawWrapper<git_repository, RepositoryRaw>
     val Object = ObjectModule()
 
     inner class ObjectModule {
-        fun findObject(oid: Oid, type: ObjectType? = null): Object = Object {
-            git_object_lookup(this.ptr, raw.handler, oid.raw.handler, type?.value ?: ObjectType.Any.value).errorCheck()
-            TODO()
+        fun findObject(oid: Oid, type: ObjectType = ObjectType.Any): Object = Object {
+            git_object_lookup(this.ptr, raw.handler, oid.raw.handler, type.value).errorCheck()
         }
     }
 
