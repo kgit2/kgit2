@@ -887,11 +887,10 @@ class Repository(raw: RepositoryRaw) : RawWrapper<git_repository, RepositoryRaw>
     val AnnotatedCommit = AnnotatedCommitModule()
 
     inner class AnnotatedCommitModule {
-        // fun annotatedCommitFromFetchHead(branchName: String, remoteUrl: String, id: Oid): AnnotatedCommit =
-        //     AnnotatedCommit() {
-        //         git_annotated_commit_from_fetchhead(this.ptr, raw.handler, branchName, refName, remoteUrl).errorCheck()
-        //         TODO()
-        //     }
+        fun annotatedCommitFromFetchHead(branchName: String, remoteUrl: String, id: Oid): AnnotatedCommit =
+            AnnotatedCommit() {
+                git_annotated_commit_from_fetchhead(this.ptr, raw.handler, branchName, remoteUrl, id.raw.handler).errorCheck()
+            }
     }
 
     val Ignore = IgnoreModule()
