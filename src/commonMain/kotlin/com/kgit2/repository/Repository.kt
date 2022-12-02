@@ -48,6 +48,7 @@ import com.kgit2.reference.ReferenceIterator
 import com.kgit2.remote.Remote
 import com.kgit2.revert.RevertOptions
 import com.kgit2.signature.Signature
+import com.kgit2.stash.*
 import com.kgit2.status.StatusFlag
 import com.kgit2.status.StatusList
 import com.kgit2.status.StatusOptions
@@ -832,26 +833,29 @@ class Repository(raw: RepositoryRaw) : RawWrapper<git_repository, RepositoryRaw>
     val Stash = StashModule()
 
     inner class StashModule {
-        // fun stash(stasher: Signature, message: String, flags: StashFlags): Oid {
-        //     TODO()
-        // }
+        fun stash(stasher: Signature, message: String, flags: StashFlags): Oid = Oid {
+            git_stash_save(this, raw.handler, stasher.raw.handler, message, flags.value).errorCheck()
+        }
 
-        // fun apply(index: Int, options: StashApplyOptions): Oid {
-        //     TODO()
-        // }
+        fun apply(index: ULong, options: StashApplyOptions) {
+            git_stash_apply(raw.handler, index, options.raw.handler).errorCheck()
+        }
 
-        // fun forEach(callback: (index: Int, message: String, stashId: Oid) -> Unit) {
-        //     TODO()
-        // }
+        fun pop(index: ULong, options: StashApplyOptions) {
+            git_stash_pop(raw.handler, index, options.raw.handler).errorCheck()
+        }
 
-        // fun drop(index: Int) {
-        //     git_stash_drop(raw.handler, index).errorCheck()
-        //     TODO()
-        // }
+        fun forEach(callback: StashCallback) {
+            val callbackPayload = object : StashCallbackPayload {
+                override var stashCallback: StashCallback? = callback
+            }.asStableRef()
+            git_stash_foreach(raw.handler, staticStashCallback, callbackPayload.asCPointer()).errorCheck()
+            callbackPayload.dispose()
+        }
 
-        // fun pop(index: Int, options: StashApplyOptions) {
-        //     TODO()
-        // }
+        fun drop(index: ULong) {
+            git_stash_drop(raw.handler, index).errorCheck()
+        }
     }
 
     val Config = ConfigModule()
