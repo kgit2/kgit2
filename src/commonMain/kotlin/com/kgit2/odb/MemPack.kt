@@ -4,8 +4,7 @@ import com.kgit2.annotations.Raw
 import com.kgit2.common.extend.errorCheck
 import com.kgit2.common.memory.Memory
 import com.kgit2.memory.RawWrapper
-import com.kgit2.model.toKString
-import com.kgit2.model.withGitBuf
+import com.kgit2.model.Buf
 import com.kgit2.repository.Repository
 import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.allocPointerTo
@@ -25,9 +24,8 @@ class MemPack(raw: OdbBackendRaw) : RawWrapper<git_odb_backend, OdbBackendRaw>(r
         secondaryInitial: OdbBackendSecondaryInitial? = null,
     ) : this(OdbBackendRaw(memory, secondary, secondaryInitial))
 
-    fun dump(repository: Repository) = withGitBuf {
-        git_mempack_dump(it, repository.raw.handler, raw.handler).errorCheck()
-        it.toKString()
+    fun dump(repository: Repository): Buf = Buf {
+        git_mempack_dump(this, repository.raw.handler, raw.handler).errorCheck()
     }
 
     fun reset() = git_mempack_reset(raw.handler).errorCheck()

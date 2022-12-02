@@ -30,10 +30,7 @@ import com.kgit2.memory.RawWrapper
 import com.kgit2.merge.MergeAnalysisFlag
 import com.kgit2.merge.MergeOptions
 import com.kgit2.merge.MergePreferenceFlag
-import com.kgit2.model.toKString
-import com.kgit2.model.toList
-import com.kgit2.model.withGitBuf
-import com.kgit2.model.withGitStrArray
+import com.kgit2.model.*
 import com.kgit2.note.Note
 import com.kgit2.note.NoteIterator
 import com.kgit2.`object`.Object
@@ -108,11 +105,10 @@ class Repository(raw: RepositoryRaw) : RawWrapper<git_repository, RepositoryRaw>
         }
 
         fun discover(path: String): Repository {
-            val discoverPath = withGitBuf { buf ->
-                git_repository_discover(buf, path, 1, null).errorCheck()
-                buf.toKString()!!
+            val discoverPath = Buf {
+                git_repository_discover(this, path, 1, null).errorCheck()
             }
-            return open(discoverPath)
+            return open(discoverPath.buffer!!.toKString())
         }
 
         fun clone(url: String, localPath: String, cloneOptions: CloneOptions): Repository = Repository {
@@ -147,11 +143,11 @@ class Repository(raw: RepositoryRaw) : RawWrapper<git_repository, RepositoryRaw>
     val isEmpty: Boolean
         get() = git_repository_is_empty(raw.handler).toBoolean()
 
-    val noteDefaultRef: String
-        get() = withGitBuf { buf ->
-            git_note_default_ref(buf, raw.handler).errorCheck()
-            buf.toKString()!!
-        }
+    val noteDefaultRef: String = with(Buf {
+        git_note_default_ref(this, raw.handler).errorCheck()
+    }) {
+        this.buffer!!.toKString()
+    }
 
     val state: RepositoryState
         get() = RepositoryState.fromInt(git_repository_state(raw.handler).convert())
@@ -173,13 +169,14 @@ class Repository(raw: RepositoryRaw) : RawWrapper<git_repository, RepositoryRaw>
         git_repository_set_namespace(raw.handler, null).errorCheck()
     }
 
-    val message: String? = withGitBuf { buf ->
-        runCatching {
-            git_repository_message(buf, raw.handler).errorCheck()
-        }.onFailure {
-            if (it is GitError && it.code == GitErrorCode.NotFound) return@withGitBuf null
-        }.getOrThrow()
-        buf.toKString()
+    val message: String? = with(runCatching {
+        Buf {
+            git_repository_message(this, raw.handler).errorCheck()
+        }
+    }.onFailure {
+        if (it !is GitError || it.code != GitErrorCode.NotFound) throw it
+    }.getOrNull()) {
+        this?.buffer?.toKString()
     }
 
     fun removeMessage() {
@@ -222,20 +219,21 @@ class Repository(raw: RepositoryRaw) : RawWrapper<git_repository, RepositoryRaw>
             message: String,
             tree: Tree,
             parents: List<Commit>,
-        ): String? = withGitBuf { buf ->
-            git_commit_create_buffer(
-                buf,
-                raw.handler,
-                author.raw.handler,
-                committer.raw.handler,
-                null,
-                message,
-                tree.raw.handler,
-                parents.size.convert(),
-                parents.map { it.raw.handler }.toCValues()
-            ).errorCheck()
-            buf.toKString()
-        }
+        ): Buf? = runCatching {
+            Buf {
+                git_commit_create_buffer(
+                    this,
+                    raw.handler,
+                    author.raw.handler,
+                    committer.raw.handler,
+                    null,
+                    message,
+                    tree.raw.handler,
+                    parents.size.convert(),
+                    parents.map { it.raw.handler }.toCValues()
+                ).errorCheck()
+            }
+        }.getOrNull()
 
         fun commitSigned(commitContent: String, signature: String, signatureField: String?): Oid = Oid {
             git_commit_create_with_signature(
@@ -263,11 +261,8 @@ class Repository(raw: RepositoryRaw) : RawWrapper<git_repository, RepositoryRaw>
             git_reset(raw.handler, target.raw.handler, type.value, checkoutOptions.raw.handler).errorCheck()
         }
 
-        fun resetDefault(target: Object, paths: Collection<String>) {
-            withGitStrArray(paths) {
-                git_reset_default(raw.handler, target.raw.handler, it).errorCheck()
-            }
-        }
+        fun resetDefault(target: Object, paths: Collection<String>) =
+            git_reset_default(raw.handler, target.raw.handler, paths.toStrArray().raw.handler).errorCheck()
 
         fun head(): Reference = Reference {
             git_repository_head(this.ptr, raw.handler).errorCheck()
@@ -533,37 +528,40 @@ class Repository(raw: RepositoryRaw) : RawWrapper<git_repository, RepositoryRaw>
         /**
          * @param refName complete name of the remote tracking branch.
          */
-        fun branchRemoteName(refName: String): String? = withGitBuf { buf ->
+        fun branchRemoteName(refName: String): String? = with(
             runCatching {
-                git_branch_remote_name(buf, raw.handler, refName).errorCheck()
+                Buf { git_branch_remote_name(this, raw.handler, refName).errorCheck() }
             }.onFailure {
-                if (it is GitError && it.code == GitErrorCode.NotFound) return@withGitBuf null
-            }.getOrThrow()
-            buf.toKString()
+                if (it !is GitError || it.code != GitErrorCode.NotFound) throw it
+            }.getOrNull()
+        ) {
+            this?.buffer?.toKString()
         }
 
         /**
          * @param refName reference name of the local branch.
          */
-        fun branchUpstreamName(refName: String): String? = withGitBuf { buf ->
+        fun branchUpstreamName(refName: String): String? = with(
             runCatching {
-                git_branch_upstream_name(buf, raw.handler, refName).errorCheck()
+                Buf { git_branch_upstream_name(this, raw.handler, refName).errorCheck() }
             }.onFailure {
-                if (it is GitError && it.code == GitErrorCode.NotFound) return@withGitBuf null
-            }.getOrThrow()
-            buf.toKString()
+                if (it !is GitError || it.code != GitErrorCode.NotFound) throw it
+            }.getOrNull()
+        ) {
+            this?.buffer?.toKString()
         }
 
         /**
          * @param refName the full name of the branch
          */
-        fun branchUpstreamRemote(refName: String): String? = withGitBuf { buf ->
+        fun branchUpstreamRemote(refName: String): String? = with(
             runCatching {
-                git_branch_upstream_remote(buf, raw.handler, refName).errorCheck()
+                Buf { git_branch_upstream_remote(this, raw.handler, refName).errorCheck() }
             }.onFailure {
-                if (it is GitError && it.code == GitErrorCode.NotFound) return@withGitBuf null
-            }.getOrThrow()
-            buf.toKString()
+                if (it !is GitError || it.code != GitErrorCode.NotFound) throw it
+            }.getOrNull()
+        ) {
+            this?.buffer?.toKString()
         }
     }
 
@@ -605,10 +603,9 @@ class Repository(raw: RepositoryRaw) : RawWrapper<git_repository, RepositoryRaw>
             git_tag_delete(raw.handler, name).errorCheck()
         }
 
-        fun tagNames(glob: String): List<String> = withGitStrArray {
-            git_tag_list_match(it, glob, raw.handler).errorCheck()
-            it.toList()
-        }
+        fun tagNames(glob: String): StrArray = StrArray(StrarrayRaw(initial = {
+            git_tag_list_match(this, glob, raw.handler).errorCheck()
+        }))
 
         fun forEach(callback: TagForeachCallback) {
             val callbackPayload = object : TagForeachCallbackPayload {
@@ -683,10 +680,9 @@ class Repository(raw: RepositoryRaw) : RawWrapper<git_repository, RepositoryRaw>
     val Remote = RemoteModule()
 
     inner class RemoteModule {
-        fun remoteList(): List<String> = withGitStrArray {
-            git_remote_list(it, raw.handler).errorCheck()
-            it.toList()
-        }
+        fun remoteList(): StrArray = StrArray(StrarrayRaw(initial = {
+            git_remote_list(this, raw.handler).errorCheck()
+        }))
 
         fun findRemote(name: String): Remote = Remote {
             git_remote_lookup(this.ptr, raw.handler, name).errorCheck()
@@ -708,10 +704,9 @@ class Repository(raw: RepositoryRaw) : RawWrapper<git_repository, RepositoryRaw>
             git_remote_delete(raw.handler, name).errorCheck()
         }
 
-        fun remoteRename(oldName: String, newName: String): List<String> = withGitStrArray {
-            git_remote_rename(it, raw.handler, oldName, newName).errorCheck()
-            it.toList()
-        }
+        fun remoteRename(oldName: String, newName: String): StrArray = StrArray(StrarrayRaw(initial = {
+            git_remote_rename(this, raw.handler, oldName, newName).errorCheck()
+        }))
 
         fun remoteAddFetch(name: String, refspec: String) {
             git_remote_add_fetch(raw.handler, name, refspec).errorCheck()
@@ -871,16 +866,27 @@ class Repository(raw: RepositoryRaw) : RawWrapper<git_repository, RepositoryRaw>
     inner class SignatureModule {
         fun signatureNow(name: String, email: String): Signature = Signature {
             git_signature_now(this.ptr, name, email).errorCheck()
-            TODO()
         }
 
         fun signatureDefault(): Signature = Signature {
             git_signature_default(this.ptr, raw.handler).errorCheck()
-            TODO()
         }
 
-        fun extractSignature(commitId: Oid, signatureField: String?) {
-            TODO()
+        fun extractSignature(commitId: Oid, signatureField: String?): Pair<Buf, Buf> {
+            lateinit var signature: Buf
+            lateinit var signData: Buf
+            signature = Buf sig@{
+                signData = Buf data@{
+                    git_commit_extract_signature(
+                        this@sig,
+                        this@data,
+                        raw.handler,
+                        commitId.raw.handler,
+                        signatureField
+                    ).errorCheck()
+                }
+            }
+            return signature to signData
         }
     }
 
@@ -889,7 +895,13 @@ class Repository(raw: RepositoryRaw) : RawWrapper<git_repository, RepositoryRaw>
     inner class AnnotatedCommitModule {
         fun annotatedCommitFromFetchHead(branchName: String, remoteUrl: String, id: Oid): AnnotatedCommit =
             AnnotatedCommit() {
-                git_annotated_commit_from_fetchhead(this.ptr, raw.handler, branchName, remoteUrl, id.raw.handler).errorCheck()
+                git_annotated_commit_from_fetchhead(
+                    this.ptr,
+                    raw.handler,
+                    branchName,
+                    remoteUrl,
+                    id.raw.handler
+                ).errorCheck()
             }
     }
 
@@ -955,10 +967,8 @@ class Repository(raw: RepositoryRaw) : RawWrapper<git_repository, RepositoryRaw>
 
         fun findSubmodule(name: String): Submodule = Submodule {
             git_submodule_lookup(this.ptr, raw.handler, name).errorCheck()
-            TODO()
         }
 
-        // TODO()
         // fun submoduleStatus(name: String, ignore: SubmoduleIgnore): SubmoduleStatus {
         //     val status = alloc<git_submodule_status_tVar>()
         //     git_submodule_status(status.ptr, raw.handler, name, ignore.value).errorCheck()

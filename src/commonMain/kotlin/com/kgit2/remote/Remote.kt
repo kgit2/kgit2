@@ -12,10 +12,7 @@ import com.kgit2.fetch.Direction
 import com.kgit2.fetch.FetchOptions
 import com.kgit2.index.IndexerProgress
 import com.kgit2.memory.RawWrapper
-import com.kgit2.model.toKString
-import com.kgit2.model.toList
-import com.kgit2.model.withGitBuf
-import com.kgit2.model.withGitStrArray
+import com.kgit2.model.*
 import com.kgit2.proxy.ProxyOptions
 import com.kgit2.repository.Repository
 import kotlinx.cinterop.*
@@ -59,9 +56,8 @@ class Remote(raw: RemoteRaw) : RawWrapper<git_remote, RemoteRaw>(raw) {
 
     var pushUrl: String = git_remote_pushurl(raw.handler)!!.toKString()
 
-    val defaultBranch: String = withGitBuf { buf ->
-        git_remote_default_branch(buf, raw.handler).errorCheck()
-        buf.toKString()!!
+    val defaultBranch: Buf = Buf {
+        git_remote_default_branch(this, raw.handler).errorCheck()
     }
 
     companion object {
@@ -110,9 +106,7 @@ class Remote(raw: RemoteRaw) : RawWrapper<git_remote, RemoteRaw>(raw) {
     }
 
     fun fetch(refSpecs: Collection<String>, option: FetchOptions? = null, reflogMessage: String? = null) =
-        withGitStrArray(refSpecs) { refSpecsArray ->
-            git_remote_fetch(raw.handler, refSpecsArray, option?.raw?.handler, reflogMessage).errorCheck()
-        }
+        git_remote_fetch(raw.handler, refSpecs.toStrArray().raw.handler, option?.raw?.handler, reflogMessage).errorCheck()
 
     fun updateTips(
         callbacks: RemoteCallbacks,
@@ -129,9 +123,8 @@ class Remote(raw: RemoteRaw) : RawWrapper<git_remote, RemoteRaw>(raw) {
         ).errorCheck()
     }
 
-    fun push(refSpecs: Collection<String>, option: PushOptions? = null) = withGitStrArray(refSpecs) { refSpecsArray ->
-        git_remote_push(raw.handler, refSpecsArray, option?.raw?.handler).errorCheck()
-    }
+    fun push(refSpecs: Collection<String>, option: PushOptions? = null) =
+        git_remote_push(raw.handler, refSpecs.toStrArray().raw.handler, option?.raw?.handler).errorCheck()
 
     fun stats(): IndexerProgress {
         val indexerProgress = git_remote_stats(raw.handler)!!
@@ -152,13 +145,11 @@ class Remote(raw: RemoteRaw) : RawWrapper<git_remote, RemoteRaw>(raw) {
         git_remote_prune(raw.handler, callbacks.raw.handler).errorCheck()
     }
 
-    fun fetchRefspecs(): List<String> = withGitStrArray { refspecsArray ->
-        git_remote_get_fetch_refspecs(refspecsArray, raw.handler).errorCheck()
-        refspecsArray.toList()
-    }
+    fun fetchRefspecs(): StrArray = StrArray(StrarrayRaw(initial = {
+        git_remote_get_fetch_refspecs(this, raw.handler).errorCheck()
+    }))
 
-    fun pushRefspecs(): List<String> = withGitStrArray { refspecsArray ->
-        git_remote_get_push_refspecs(refspecsArray, raw.handler).errorCheck()
-        refspecsArray.toList()
-    }
+    fun pushRefspecs(): StrArray = StrArray(StrarrayRaw(initial = {
+        git_remote_get_push_refspecs(this, raw.handler).errorCheck()
+    }))
 }

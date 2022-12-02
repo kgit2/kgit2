@@ -6,8 +6,7 @@ import com.kgit2.common.extend.errorCheck
 import com.kgit2.common.memory.Memory
 import com.kgit2.fetch.Direction
 import com.kgit2.memory.RawWrapper
-import com.kgit2.model.toKString
-import com.kgit2.model.withGitBuf
+import com.kgit2.model.Buf
 import kotlinx.cinterop.toKString
 import libgit2.*
 
@@ -36,13 +35,11 @@ class Refspec(raw: RefspecRaw) : RawWrapper<git_refspec, RefspecRaw>(raw) {
         return git_refspec_string(raw.handler)!!.toKString()
     }
 
-    fun transform(refName: String): String = withGitBuf { buf ->
-        git_refspec_transform(buf, raw.handler, refName).errorCheck()
-        buf.toKString()!!
+    fun transform(refName: String): Buf = Buf {
+        git_refspec_transform(this, raw.handler, refName).errorCheck()
     }
 
-    fun rtransform(refName: String): String = withGitBuf { buf ->
-        git_refspec_rtransform(buf, raw.handler, refName).errorCheck()
-        buf.toKString()!!
+    fun rtransform(refName: String): Buf = Buf { buf ->
+        git_refspec_rtransform(this, raw.handler, refName).errorCheck()
     }
 }
