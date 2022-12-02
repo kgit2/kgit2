@@ -50,6 +50,9 @@ import com.kgit2.status.StatusFlag
 import com.kgit2.status.StatusList
 import com.kgit2.status.StatusOptions
 import com.kgit2.submodule.Submodule
+import com.kgit2.submodule.SubmoduleIgnore
+import com.kgit2.submodule.SubmoduleStatus
+import com.kgit2.submodule.SubmoduleUpdate
 import com.kgit2.tag.Tag
 import com.kgit2.tag.TagForeachCallback
 import com.kgit2.tag.TagForeachCallbackPayload
@@ -969,25 +972,22 @@ class Repository(raw: RepositoryRaw) : RawWrapper<git_repository, RepositoryRaw>
             git_submodule_lookup(this.ptr, raw.handler, name).errorCheck()
         }
 
-        // fun submoduleStatus(name: String, ignore: SubmoduleIgnore): SubmoduleStatus {
-        //     val status = alloc<git_submodule_status_tVar>()
-        //     git_submodule_status(status.ptr, raw.handler, name, ignore.value).errorCheck()
-        //     return SubmoduleStatus(status.value)
-        // }
+        fun submoduleStatus(name: String, ignore: SubmoduleIgnore): SubmoduleStatus = memoryScoped {
+            val status = alloc<git_submodule_status_tVar>()
+            git_submodule_status(status.ptr, raw.handler, name, ignore.value).errorCheck()
+            return SubmoduleStatus(status.value)
+        }
 
-        // TODO()
-        // fun submoduleSetIgnore(name: String, ignore: SubmoduleIgnore) {
-        //     git_submodule_set_ignore(raw.handler, name, ignore.value).errorCheck()
-        // }
+        fun submoduleSetIgnore(name: String, ignore: SubmoduleIgnore) {
+            git_submodule_set_ignore(raw.handler, name, ignore.value).errorCheck()
+        }
 
-        //TODO()
-        // fun submoduleSetUpdate(name: String, update: SubmoduleUpdate) {
-        //     git_submodule_set_update(raw.handler, name, update.value).errorCheck()
-        // }
+        fun submoduleSetUpdate(name: String, update: SubmoduleUpdate) {
+            git_submodule_set_update(raw.handler, name, update.value).errorCheck()
+        }
 
         fun submoduleSetUrl(name: String, url: String) {
             git_submodule_set_url(raw.handler, name, url).errorCheck()
-            TODO()
         }
     }
 
