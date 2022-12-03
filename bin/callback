@@ -1,0 +1,3 @@
+#!/usr/bin/env sh
+cd generator
+cargo run --color=always --package generator --bin callback -- "$@"

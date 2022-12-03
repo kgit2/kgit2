@@ -1,8 +1,6 @@
 package com.kgit2.memory
 
-import libgit2.git_strarray_dispose
-
-interface MutableIterableBase<E> : MutableList<E> {
+interface MutableListBase<E> : MutableList<E> {
     val innerList: MutableList<E>
 
     fun updateRaw(list: List<E>)
