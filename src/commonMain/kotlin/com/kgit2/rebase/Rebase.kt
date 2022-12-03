@@ -6,6 +6,7 @@ import com.kgit2.common.extend.errorCheck
 import com.kgit2.common.memory.Memory
 import com.kgit2.index.Index
 import com.kgit2.memory.IteratorBase
+import com.kgit2.memory.RawWrapper
 import com.kgit2.oid.Oid
 import com.kgit2.signature.Signature
 import kotlinx.cinterop.allocPointerTo
@@ -17,7 +18,7 @@ import libgit2.*
     base = git_rebase::class,
     free = "git_rebase_free",
 )
-class Rebase(raw: RebaseRaw) : IteratorBase<git_rebase, RebaseRaw, RebaseOperation>(raw) {
+class Rebase(raw: RebaseRaw) : RawWrapper<git_rebase, RebaseRaw>(raw), Iterable<RebaseOperation> {
     constructor(
         memory: Memory = Memory(),
         secondary: RebaseSecondaryPointer = memory.allocPointerTo(),
@@ -51,9 +52,13 @@ class Rebase(raw: RebaseRaw) : IteratorBase<git_rebase, RebaseRaw, RebaseOperati
         git_rebase_finish(raw.handler, signature?.raw?.handler).errorCheck()
     }
 
-    override fun nextRaw(): Result<RebaseOperation> = runCatching {
-        RebaseOperation(secondaryInitial = {
-            git_rebase_next(this.ptr, raw.handler).errorCheck()
-        })
+    override fun iterator(): Iterator<RebaseOperation> = InnerIterator()
+
+    inner class InnerIterator : IteratorBase<RebaseOperation>() {
+        override fun nextRaw(): Result<RebaseOperation> = runCatching {
+            RebaseOperation(secondaryInitial = {
+                git_rebase_next(this.ptr, raw.handler).errorCheck()
+            })
+        }
     }
 }

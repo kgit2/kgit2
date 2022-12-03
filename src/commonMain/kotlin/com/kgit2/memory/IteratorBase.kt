@@ -6,7 +6,7 @@ import com.kgit2.concurrency.NativeMutableList
 import kotlinx.atomicfu.atomic
 import kotlinx.cinterop.CPointed
 
-abstract class IteratorBase<T : CPointed, R : Raw<T>, E>(raw: R) : RawWrapper<T, R>(raw), Iterator<E> {
+abstract class IteratorBase<E> : Iterator<E> {
     protected val cache = NativeMutableList<E>()
     protected val index = atomic(-1)
 
@@ -30,4 +30,9 @@ abstract class IteratorBase<T : CPointed, R : Raw<T>, E>(raw: R) : RawWrapper<T,
     override fun next(): E = cache[index.incrementAndGet()]
 
     val list by lazy { asSequence().toList() }
+
+    protected fun resetCache() {
+        cache.clear()
+        index.value = -1
+    }
 }

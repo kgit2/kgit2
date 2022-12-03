@@ -1,5 +1,6 @@
 package com.kgit2.repository
 
+import cnames.structs.git_remote
 import cnames.structs.git_repository
 import com.kgit2.common.error.GitErrorCode
 import com.kgit2.common.extend.toBoolean
@@ -70,11 +71,11 @@ val staticRemoteCreateCallback: git_remote_create_cb = staticCFunction {
     ->
     val callback = payload?.asStableRef<CloneOptions.CallbacksPayload>()?.get()
     callback?.remoteCreateCallback?.invoke(
-            Remote(Memory(), remote!!.pointed.value!!),
-            Repository(Memory(), repository!!),
-            name!!.toKString(),
-            url!!.toKString(),
-        )?.value ?: GitErrorCode.Ok.value
+        Remote(Memory(), remote!!.pointed.value!!),
+        Repository(Memory(), repository!!),
+        name!!.toKString(),
+        url!!.toKString(),
+    )?.value ?: GitErrorCode.Ok.value
 }
 
 typealias RepositoryFetchHeadForeachCallback = (refname: String, remoteUrl: String, oid: Oid, isMerge: Boolean) -> GitErrorCode
@@ -88,7 +89,7 @@ val staticRepositoryFetchHeadForeachCallback: git_repository_fetchhead_foreach_c
         remoteUrl: CPointer<ByteVar>?,
         oid: CPointer<git_oid>?,
         isMerge: UInt,
-        payload: COpaquePointer?
+        payload: COpaquePointer?,
     ->
     val callback = payload?.asStableRef<RepositoryFetchHeadForeachCallbackPayload>()?.get()
     callback?.repositoryFetchHeadForeachCallback?.invoke(
@@ -97,4 +98,17 @@ val staticRepositoryFetchHeadForeachCallback: git_repository_fetchhead_foreach_c
         Oid(handler = oid!!),
         isMerge.convert<Int>().toBoolean(),
     )?.value ?: GitErrorCode.Ok.value
+}
+
+typealias RevwalkHideCallback = (oid: Oid) -> GitErrorCode
+
+interface RevwalkHideCallbackPayload {
+    var revwalkHideCallback: RevwalkHideCallback?
+}
+
+val staticRevwalkHideCallback: git_revwalk_hide_cb = staticCFunction {
+        oid: CPointer<git_oid>?, payload: COpaquePointer?,
+    ->
+    val callbackPayload = payload?.asStableRef<RevwalkHideCallbackPayload>()?.get()
+    callbackPayload?.revwalkHideCallback?.invoke(Oid(handler = oid!!))?.value ?: GitErrorCode.Ok.value
 }

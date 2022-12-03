@@ -1,3 +1,4 @@
+use cli_clipboard::{ClipboardContext, ClipboardProvider};
 use convert_case::{Case, Casing};
 use std::env;
 use std::fmt::{Display, Formatter};
@@ -77,10 +78,9 @@ val {}: {} = staticCFunction {{
 fn main() {
     let args: Vec<String> = env::args().collect();
     if args.len() != 3 {
-        helper()
+        println!("Usage : callback [lg_name] [param_count]");
+        panic!("args error");
     }
-    // let lg_name = "git_stash_cb";
-    // let param_count = 4;
     let lg_name = &args[1];
     let param_count = args[2].parse::<i32>().unwrap();
     let k_name = lg_name
@@ -90,11 +90,7 @@ fn main() {
 
     let payload = Payload::new(&k_name);
     let static_cb = StaticCallback::new(&k_name, lg_name, param_count, &payload.payload_name);
-    println!("{}", payload);
-    println!("{}", static_cb);
-}
-
-fn helper() {
-    println!("Usage : callback [lg_name] [param_count]");
-    panic!("args error");
+    let code = format!("{}\n{}\n", payload, static_cb);
+    let mut ctx = ClipboardContext::new().unwrap();
+    ctx.set_contents(code).unwrap();
 }

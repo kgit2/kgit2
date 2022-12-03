@@ -1179,9 +1179,9 @@ class Repository(raw: RepositoryRaw) : RawWrapper<git_repository, RepositoryRaw>
     val Rev = RevModule()
 
     inner class RevModule {
-        // fun revWalk(): RevWalk {
-        //     TODO()
-        // }
+        fun revWalk(): Revwalk = Revwalk {
+            git_revwalk_new(this.ptr, raw.handler).errorCheck()
+        }
 
         fun revParse(spec: String): RevSpec = RevSpec {
             git_revparse(this, raw.handler, spec).errorCheck()
