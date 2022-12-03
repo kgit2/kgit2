@@ -99,7 +99,7 @@ allprojects {
             // logging.captureStandardOutput(LogLevel.DEBUG)
             group = "ksp"
             // TODO("should delete this line")
-            this.enabled = false
+            // this.enabled = false
         }
     }
 }
