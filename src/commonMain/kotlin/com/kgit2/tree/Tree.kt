@@ -22,10 +22,8 @@ class Tree(raw: TreeRaw) : RawWrapper<git_tree, TreeRaw>(raw) {
     constructor(memory: Memory = Memory(), handler: CPointer<git_tree>) : this(TreeRaw(memory, handler))
 
     constructor(
-        memory: Memory = Memory(),
-        secondary: TreeSecondaryPointer = memory.allocPointerTo(),
         secondaryInitial: TreeSecondaryInitial? = null,
-    ) : this(TreeRaw(memory, secondary, secondaryInitial))
+    ) : this(TreeRaw(secondaryInitial = secondaryInitial))
 
     val id: Oid = Oid(Memory(), git_tree_id(raw.handler)!!)
 

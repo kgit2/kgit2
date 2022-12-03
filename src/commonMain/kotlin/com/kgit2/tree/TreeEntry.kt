@@ -6,12 +6,11 @@ import com.kgit2.common.extend.toBoolean
 import com.kgit2.common.memory.Memory
 import com.kgit2.common.option.mutually.FileMode
 import com.kgit2.memory.RawWrapper
-import com.kgit2.oid.Oid
 import com.kgit2.`object`.Object
 import com.kgit2.`object`.ObjectType
+import com.kgit2.oid.Oid
 import com.kgit2.repository.Repository
 import kotlinx.cinterop.CPointer
-import kotlinx.cinterop.allocPointerTo
 import kotlinx.cinterop.ptr
 import kotlinx.cinterop.toKString
 import libgit2.*
@@ -25,9 +24,8 @@ class TreeEntry(raw: TreeEntryRaw) : RawWrapper<git_tree_entry, TreeEntryRaw>(ra
 
     constructor(
         memory: Memory = Memory(),
-        secondary: TreeEntrySecondaryPointer = memory.allocPointerTo(),
         secondaryInitial: TreeEntrySecondaryInitial? = null,
-    ) : this(TreeEntryRaw(memory, secondary, secondaryInitial))
+    ) : this(TreeEntryRaw(memory = memory, secondaryInitial = secondaryInitial))
 
     val id: Oid = Oid(Memory(), git_tree_entry_id(raw.handler)!!)
 

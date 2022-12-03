@@ -62,6 +62,7 @@ import com.kgit2.tag.TagForeachCallback
 import com.kgit2.tag.TagForeachCallbackPayload
 import com.kgit2.tag.staticTagForeachCallback
 import com.kgit2.tree.Tree
+import com.kgit2.tree.TreeBuilder
 import com.kgit2.worktree.Worktree
 import kotlinx.cinterop.*
 import libgit2.*
@@ -1113,12 +1114,13 @@ class Repository(raw: RepositoryRaw) : RawWrapper<git_repository, RepositoryRaw>
     val Tree = TreeModule()
 
     inner class TreeModule {
-        fun findTree(oid: Oid): Tree {
-            TODO()
+        fun findTree(oid: Oid): Tree = Tree {
+            git_tree_lookup(this.ptr, raw.handler, oid.raw.handler).errorCheck()
         }
 
-        // TODO
-        // fun treeBuilder(tree: Tree?): TreeBuilder
+        fun treeBuilder(tree: Tree?): TreeBuilder = TreeBuilder {
+            git_treebuilder_new(this.ptr, raw.handler, tree?.raw?.handler).errorCheck()
+        }
     }
 
     val Worktree = WorktreeModule()

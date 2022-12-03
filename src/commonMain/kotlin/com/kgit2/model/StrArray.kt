@@ -3,7 +3,7 @@ package com.kgit2.model
 import com.kgit2.annotations.Raw
 import com.kgit2.common.extend.errorCheck
 import com.kgit2.common.memory.Memory
-import com.kgit2.memory.MutableIterableBase
+import com.kgit2.memory.MutableListBase
 import com.kgit2.memory.RawWrapper
 import kotlinx.cinterop.convert
 import kotlinx.cinterop.cstr
@@ -21,7 +21,7 @@ class StrArray(
     raw: StrarrayRaw = StrarrayRaw(initial = {}),
     override val innerList: MutableList<String> = mutableListOf(),
 ) : RawWrapper<git_strarray, StrarrayRaw>(raw),
-    MutableIterableBase<String> {
+    MutableListBase<String> {
     constructor(memory: Memory, struct: git_strarray) : this(StrarrayRaw(memory, struct))
 
     constructor(contents: Collection<String>? = null) : this(StrarrayRaw(initial = {})) {

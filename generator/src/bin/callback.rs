@@ -1,4 +1,5 @@
 use convert_case::{Case, Casing};
+use std::env;
 use std::fmt::{Display, Formatter};
 
 struct Payload<'a> {
@@ -64,8 +65,7 @@ val {}: {} = staticCFunction {{
     ->
     val callbackPayload = payload?.asStableRef<{}>()?.get()
     0
-}}
-        ",
+}}",
             self.cb_name,
             self.lg_name,
             "_, ".repeat(self.param_count as usize - 1),
@@ -75,8 +75,14 @@ val {}: {} = staticCFunction {{
 }
 
 fn main() {
-    let lg_name = "git_stash_cb";
-    let param_count = 4;
+    let args: Vec<String> = env::args().collect();
+    if args.len() != 3 {
+        helper()
+    }
+    // let lg_name = "git_stash_cb";
+    // let param_count = 4;
+    let lg_name = &args[1];
+    let param_count = args[2].parse::<i32>().unwrap();
     let k_name = lg_name
         .replace("git_", "")
         .replace("_cb", "_callback")
@@ -86,4 +92,9 @@ fn main() {
     let static_cb = StaticCallback::new(&k_name, lg_name, param_count, &payload.payload_name);
     println!("{}", payload);
     println!("{}", static_cb);
+}
+
+fn helper() {
+    println!("Usage : callback [lg_name] [param_count]");
+    panic!("args error");
 }
