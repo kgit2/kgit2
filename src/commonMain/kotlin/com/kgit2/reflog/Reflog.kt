@@ -8,7 +8,9 @@ import com.kgit2.common.memory.Memory
 import com.kgit2.memory.IterableBase
 import com.kgit2.memory.RawWrapper
 import com.kgit2.oid.Oid
+import com.kgit2.repository.Repository
 import com.kgit2.signature.Signature
+import kotlinx.cinterop.ptr
 import libgit2.*
 
 @Raw(
@@ -17,6 +19,10 @@ import libgit2.*
 )
 class Reflog(raw: ReflogRaw) : RawWrapper<git_reflog, ReflogRaw>(raw), IterableBase<ReflogEntry> {
     constructor(secondaryInitial: ReflogSecondaryInitial) : this(ReflogRaw(secondaryInitial = secondaryInitial))
+
+    constructor(repository: Repository, name: String) : this(secondaryInitial = {
+        git_reflog_read(this.ptr, repository.raw.handler, name).errorCheck()
+    })
 
     fun append(oid: Oid, committer: Signature, message: String? = null) {
         git_reflog_append(raw.handler, oid.raw.handler, committer.raw.handler, message).errorCheck()

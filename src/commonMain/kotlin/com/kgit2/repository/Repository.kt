@@ -27,6 +27,8 @@ import com.kgit2.common.extend.toInt
 import com.kgit2.common.memory.Memory
 import com.kgit2.common.memory.memoryScoped
 import com.kgit2.config.Config
+import com.kgit2.describe.Describe
+import com.kgit2.describe.DescribeOptions
 import com.kgit2.diff.*
 import com.kgit2.index.Index
 import com.kgit2.memory.RawWrapper
@@ -1226,9 +1228,7 @@ class Repository(raw: RepositoryRaw) : RawWrapper<git_repository, RepositoryRaw>
     val Reflog = ReflogModule()
 
     inner class ReflogModule {
-        fun read(name: String): Reflog = Reflog {
-            git_reflog_read(this.ptr, raw.handler, name).errorCheck()
-        }
+        fun read(name: String): Reflog = Reflog(this@Repository, name)
 
         fun rename(oldName: String, newName: String) {
             git_reflog_rename(raw.handler, oldName, newName).errorCheck()
@@ -1242,17 +1242,13 @@ class Repository(raw: RepositoryRaw) : RawWrapper<git_repository, RepositoryRaw>
     val Blame = BlameModule()
 
     inner class BlameModule {
-        fun blame(path: String, options: BlameOptions): Blame = Blame {
-            git_blame_file(this.ptr, raw.handler, path, options.raw.handler).errorCheck()
-        }
+        fun blame(path: String, options: BlameOptions): Blame = Blame(this@Repository, path, options)
     }
 
     val Describe = DescribeModule()
 
     inner class DescribeModule {
-        // fun describe(options: DescribeOptions): Describe {
-        //     TODO()
-        // }
+        fun describe(options: DescribeOptions): Describe = Describe(this@Repository, options)
     }
 
     val Attr = AttrModule()
