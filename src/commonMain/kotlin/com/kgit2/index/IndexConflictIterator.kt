@@ -5,6 +5,7 @@ import com.kgit2.annotations.Raw
 import com.kgit2.common.extend.errorCheck
 import com.kgit2.common.memory.Memory
 import com.kgit2.memory.IteratorBase
+import com.kgit2.memory.RawWrapper
 import kotlinx.cinterop.allocPointerTo
 import kotlinx.cinterop.ptr
 import libgit2.git_index_conflict_next
@@ -14,28 +15,33 @@ import libgit2.git_index_conflict_next
     free = "git_index_conflict_iterator_free",
 )
 class IndexConflictIterator(raw: IndexConflictIteratorRaw) :
-    IteratorBase<
-        git_index_conflict_iterator,
-        IndexConflictIteratorRaw,
-        Triple<IndexEntry, IndexEntry, IndexEntry>
-    >(raw) {
+    RawWrapper<git_index_conflict_iterator, IndexConflictIteratorRaw>(raw), Iterable<Triple<IndexEntry, IndexEntry, IndexEntry>> {
     constructor(
         memory: Memory = Memory(),
         secondary: IndexConflictIteratorSecondaryPointer = memory.allocPointerTo(),
         initial: IndexConflictIteratorSecondaryInitial? = null,
     ) : this(IndexConflictIteratorRaw(memory, secondary, initial))
 
-    override fun nextRaw(): Result<Triple<IndexEntry, IndexEntry, IndexEntry>> = runCatching {
-        lateinit var ancestor: IndexEntry
-        lateinit var ours: IndexEntry
-        lateinit var theirs: IndexEntry
-        ancestor = IndexEntry(secondaryInitial = ancestor@ {
-            ours = IndexEntry(secondaryInitial = ours@ {
-                theirs = IndexEntry(secondaryInitial = theirs@ {
-                    git_index_conflict_next((this@ancestor).ptr, (this@ours).ptr, (this@theirs).ptr, raw.handler).errorCheck()
+    inner class InnerIterator : IteratorBase<Triple<IndexEntry, IndexEntry, IndexEntry>>() {
+        override fun nextRaw(): Result<Triple<IndexEntry, IndexEntry, IndexEntry>> = runCatching {
+            lateinit var ancestor: IndexEntry
+            lateinit var ours: IndexEntry
+            lateinit var theirs: IndexEntry
+            ancestor = IndexEntry(secondaryInitial = ancestor@{
+                ours = IndexEntry(secondaryInitial = ours@{
+                    theirs = IndexEntry(secondaryInitial = theirs@{
+                        git_index_conflict_next(
+                            (this@ancestor).ptr,
+                            (this@ours).ptr,
+                            (this@theirs).ptr,
+                            raw.handler
+                        ).errorCheck()
+                    })
                 })
             })
-        })
-        Triple(ancestor, ours, theirs)
+            Triple(ancestor, ours, theirs)
+        }
     }
+
+    override fun iterator(): Iterator<Triple<IndexEntry, IndexEntry, IndexEntry>> = InnerIterator()
 }
