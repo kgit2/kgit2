@@ -6,6 +6,8 @@ import cnames.structs.git_repository
 import com.kgit2.annotations.Raw
 import com.kgit2.apply.ApplyLocation
 import com.kgit2.apply.ApplyOptions
+import com.kgit2.blame.Blame
+import com.kgit2.blame.BlameOptions
 import com.kgit2.blob.Blob
 import com.kgit2.blob.BlobWriter
 import com.kgit2.branch.Branch
@@ -1203,12 +1205,19 @@ class Repository(raw: RepositoryRaw) : RawWrapper<git_repository, RepositoryRaw>
     val Graph = GraphModule()
 
     inner class GraphModule {
-        fun graphAheadBehind(local: Oid, upstream: Oid): Pair<Int, Int> {
-            TODO()
+        fun graphAheadBehind(local: Oid, upstream: Oid): Pair<ULong, ULong> = memoryScoped {
+            val ahead = alloc<ULongVar>()
+            val behind = alloc<ULongVar>()
+            git_graph_ahead_behind(ahead.ptr, behind.ptr, raw.handler, local.raw.handler, upstream.raw.handler).errorCheck()
+            ahead.value to behind.value
         }
 
         fun graphDescendantOf(commit: Oid, ancestor: Oid): Boolean {
-            TODO()
+            return when (val result = git_graph_descendant_of(raw.handler, commit.raw.handler, ancestor.raw.handler)) {
+                1 -> true
+                0 -> false
+                else -> throw GitError(GitErrorCode.fromRaw(result))
+            }
         }
     }
 
@@ -1231,9 +1240,9 @@ class Repository(raw: RepositoryRaw) : RawWrapper<git_repository, RepositoryRaw>
     val Blame = BlameModule()
 
     inner class BlameModule {
-        // fun blame(path: String, options: BlamOptions): Blame {
-        //     TODO()
-        // }
+        fun blame(path: String, options: BlameOptions): Blame = Blame {
+            git_blame_file(this.ptr, raw.handler, path, options.raw.handler).errorCheck()
+        }
     }
 
     val Describe = DescribeModule()

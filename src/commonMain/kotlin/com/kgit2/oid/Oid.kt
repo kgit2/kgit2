@@ -59,6 +59,10 @@ class Oid(raw: OidRaw) : RawWrapper<git_oid, OidRaw>(raw) {
 
     fun copy(): Oid = Oid { git_oid_cpy(this, raw.handler).errorCheck() }
 
+    fun copyFrom(other: Oid) {
+        git_oid_cpy(raw.handler, other.raw.handler).errorCheck()
+    }
+
     operator fun compareTo(other: Oid): Int {
         return git_oid_cmp(raw.handler, other.raw.handler)
     }

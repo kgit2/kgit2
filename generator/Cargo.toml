@@ -12,6 +12,7 @@ convert_case = "0.6.0"
 colored = "2.0.0"
 tokio = { version = "1.22.0", features = ["full"] }
 tree-sitter = "0.20.9"
+cli-clipboard = "0.3.0"
 
 [build-dependencies]
 cc = "*"

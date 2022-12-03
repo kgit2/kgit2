@@ -1,14 +1,24 @@
 use cli_clipboard::{ClipboardContext, ClipboardProvider};
+use convert_case::{Case, Casing};
 use std::env;
 use std::fmt::{Display, Formatter};
 use std::io::{read_to_string, stdin};
 
-struct Flag {
-    pub flag: String,
+struct Enum {
+    pub name: String,
     pub comment: String,
+    pub prefix: String,
 }
 
-impl Display for Flag {
+impl Enum {
+    fn k_name(&self) -> String {
+        self.name
+            .replace(&self.prefix, "")
+            .to_case(Case::UpperCamel)
+    }
+}
+
+impl Display for Enum {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         writeln!(
             f,
@@ -16,8 +26,10 @@ impl Display for Flag {
 /**
  * {}
  */
- \"{}\",",
-            self.comment, self.flag
+ {}({}),",
+            self.comment,
+            self.k_name(),
+            self.name
         )
     }
 }
@@ -25,31 +37,32 @@ impl Display for Flag {
 fn main() {
     let args = env::args().collect::<Vec<String>>();
     if args.len() != 2 {
-        println!("Usage: flags [prefix]");
+        println!("Usage: enums [prefix]");
         panic!("args error");
     }
-    let prefix = &args[1];
+    let prefix = args[1].to_string();
     let content = read_to_string(stdin()).unwrap();
-    let mut flag: Option<Flag> = None;
-    let mut flags: Vec<Flag> = vec![];
+    let mut flag: Option<Enum> = None;
+    let mut enums: Vec<Enum> = vec![];
     content.lines().for_each(|line| {
-        if line.starts_with(prefix) {
+        if line.starts_with(prefix.as_str()) {
             if let Some(f) = flag.take() {
-                flags.push(f);
+                enums.push(f);
             }
-            flag = Some(Flag {
-                flag: line.to_string(),
+            flag = Some(Enum {
+                name: line.to_string(),
                 comment: String::new(),
+                prefix: prefix.clone(),
             })
         } else if let Some(f) = &mut flag {
             f.comment.push_str(line);
         }
     });
     if let Some(f) = flag.take() {
-        flags.push(f);
+        enums.push(f);
     }
     let mut code = String::new();
-    flags.iter().for_each(|f| {
+    enums.iter().for_each(|f| {
         code.push_str(&format!("{}\n", f));
     });
     let mut ctx = ClipboardContext::new().unwrap();
