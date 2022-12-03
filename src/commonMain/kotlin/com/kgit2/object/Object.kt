@@ -6,6 +6,8 @@ import com.kgit2.blob.Blob
 import com.kgit2.commit.Commit
 import com.kgit2.common.extend.errorCheck
 import com.kgit2.common.memory.Memory
+import com.kgit2.describe.Describe
+import com.kgit2.describe.DescribeOptions
 import com.kgit2.memory.RawWrapper
 import com.kgit2.model.Buf
 import com.kgit2.oid.Oid
@@ -69,5 +71,9 @@ class Object(raw: ObjectRaw) : RawWrapper<git_object, ObjectRaw>(raw) {
         val `object` = peel(ObjectType.Tree)
         `object`.raw.move()
         return Tree(`object`.raw.memory, `object`.raw.handler.reinterpret())
+    }
+
+    fun describe(options: DescribeOptions): Describe {
+        return Describe(this, options)
     }
 }
