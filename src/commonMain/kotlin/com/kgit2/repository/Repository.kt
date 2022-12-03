@@ -7,6 +7,7 @@ import com.kgit2.annotations.Raw
 import com.kgit2.apply.ApplyLocation
 import com.kgit2.apply.ApplyOptions
 import com.kgit2.blob.Blob
+import com.kgit2.blob.BlobWriter
 import com.kgit2.branch.Branch
 import com.kgit2.branch.BranchIterator
 import com.kgit2.branch.BranchType
@@ -1092,21 +1093,21 @@ class Repository(raw: RepositoryRaw) : RawWrapper<git_repository, RepositoryRaw>
     val Blob = BlobModule()
 
     inner class BlobModule {
-        fun blob(data: ByteArray): Oid {
-            TODO()
+        fun blob(data: ByteArray): Oid = Oid {
+            git_blob_create_from_buffer(this, raw.handler, data.refTo(0), data.size.toULong()).errorCheck()
         }
 
-        fun findBlob(oid: Oid): Blob {
-            TODO()
+        fun find(oid: Oid): Blob = Blob {
+            git_blob_lookup(this.ptr, raw.handler, oid.raw.handler).errorCheck()
         }
 
-        fun blobPath(path: String): Oid {
-            TODO()
+        fun createByPath(path: String): Oid = Oid {
+            git_blob_create_fromdisk(this, raw.handler, path).errorCheck()
         }
 
-        // fun blobWriter(hintPath: String? = null): BlobWriter {
-        //     TODO()
-        // }
+        fun writer(hintPath: String? = null): BlobWriter = BlobWriter {
+            git_blob_create_from_stream(this.ptr, raw.handler, hintPath).errorCheck()
+        }
     }
 
     val Tree = TreeModule()
