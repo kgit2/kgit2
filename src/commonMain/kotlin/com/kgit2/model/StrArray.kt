@@ -24,6 +24,8 @@ class StrArray(
     MutableListBase<String> {
     constructor(memory: Memory, struct: git_strarray) : this(StrarrayRaw(memory, struct))
 
+    constructor(initial: StrarrayInitial) : this(StrarrayRaw(initial = initial))
+
     constructor(contents: Collection<String>? = null) : this(StrarrayRaw(initial = {})) {
         contents?.let { addAll(it) }
     }

@@ -64,6 +64,7 @@ import com.kgit2.tag.staticTagForeachCallback
 import com.kgit2.tree.Tree
 import com.kgit2.tree.TreeBuilder
 import com.kgit2.worktree.Worktree
+import com.kgit2.worktree.WorktreeAddOptions
 import kotlinx.cinterop.*
 import libgit2.*
 
@@ -1126,17 +1127,17 @@ class Repository(raw: RepositoryRaw) : RawWrapper<git_repository, RepositoryRaw>
     val Worktree = WorktreeModule()
 
     inner class WorktreeModule {
-        // fun worktree(name: String, path: String, options: WorktreeAddOptions): Worktree {
-        //     TODO()
-        // }
+        fun worktree(name: String, path: String, options: WorktreeAddOptions): Worktree = Worktree {
+            git_worktree_add(this.ptr, raw.handler, name, path, options.raw.handler).errorCheck()
+        }
 
-        // TODO()
-        // fun worktrees(): List<String> {
-        // }
+        fun worktrees(): StrArray = StrArray {
+            git_worktree_list(this, raw.handler).errorCheck()
+        }
 
-        // TODO()
-        // fun find(name: String) {
-        // }
+        fun find(name: String): Worktree = Worktree {
+            git_worktree_lookup(this.ptr, raw.handler, name).errorCheck()
+        }
     }
 
     val Transaction = TransactionModule()
