@@ -4,11 +4,12 @@ import com.kgit2.annotations.Raw
 import com.kgit2.common.memory.Memory
 import com.kgit2.common.option.mutually.AutoTagOption
 import com.kgit2.memory.RawWrapper
-import com.kgit2.model.toList
+import com.kgit2.model.StrArray
 import com.kgit2.proxy.ProxyOptions
 import com.kgit2.remote.RemoteCallbacks
 import com.kgit2.remote.RemoteRedirect
-import kotlinx.cinterop.*
+import kotlinx.cinterop.pointed
+import kotlinx.cinterop.ptr
 import libgit2.git_fetch_options
 
 @Raw(
@@ -47,14 +48,6 @@ class FetchOptions(
             raw.handler.pointed.follow_redirects = value.value
         }
 
-    private val customHeaders: MutableList<String> = raw.handler.pointed.custom_headers.ptr.toList().toMutableList()
-
-    fun customHeaders(): List<String> = customHeaders.toList()
-
-    fun customHeaders(process: MutableList<String>.() -> Unit) {
-        process(customHeaders)
-        raw.handler.pointed.custom_headers.strings = customHeaders.toCStringArray(raw.memory)
-        raw.handler.pointed.custom_headers.count = customHeaders.size.convert()
-    }
+    val customHeaders: StrArray = StrArray(Memory(), raw.handler.pointed.custom_headers)
 }
 

@@ -17,7 +17,7 @@ class ${module.moduleName}Raw(
     constructor(
         memory: Memory,
         struct: ${module.git2Name},
-    ) : this(memory, struct.ptr)
+    ) : this(memory, interpretCPointer<${module.git2Name}>(struct.rawPtr)!!)
 
     <#if module.structVar>
     constructor(
@@ -27,7 +27,7 @@ class ${module.moduleName}Raw(
 
     constructor(
         memory: Memory = Memory(),
-        handler: ${module.moduleName}Pointer = memory.alloc<${module.git2Name}>().ptr,
+        handler: ${module.moduleName}Pointer = interpretCPointer<${module.git2Name}>(memory.alloc<${module.git2Name}>().rawPtr)!!,
         <#if module.shouldFreeOnFailure>shouldFreeOnFailure: Boolean = true,</#if>
         initial: ${module.moduleName}Initial?,
     ) : this(memory, handler.apply {
