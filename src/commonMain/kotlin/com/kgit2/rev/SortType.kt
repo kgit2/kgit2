@@ -1,4 +1,4 @@
-package com.kgit2.repository
+package com.kgit2.rev
 
 import libgit2.*
 

@@ -50,6 +50,8 @@ import com.kgit2.reference.Reference
 import com.kgit2.reference.ReferenceIterator
 import com.kgit2.reflog.Reflog
 import com.kgit2.remote.Remote
+import com.kgit2.rev.RevSpec
+import com.kgit2.rev.Revwalk
 import com.kgit2.revert.RevertOptions
 import com.kgit2.signature.Signature
 import com.kgit2.stash.*

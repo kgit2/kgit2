@@ -1,4 +1,4 @@
-package com.kgit2.repository
+package com.kgit2.rev
 
 import cnames.structs.git_revwalk
 import com.kgit2.annotations.Raw
@@ -9,6 +9,7 @@ import com.kgit2.memory.ICallbacksPayload
 import com.kgit2.memory.IteratorBase
 import com.kgit2.memory.RawWrapper
 import com.kgit2.oid.Oid
+import com.kgit2.repository.*
 import kotlinx.cinterop.StableRef
 import libgit2.*
 
