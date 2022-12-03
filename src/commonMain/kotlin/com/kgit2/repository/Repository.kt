@@ -24,13 +24,16 @@ import com.kgit2.common.extend.toInt
 import com.kgit2.common.memory.Memory
 import com.kgit2.common.memory.memoryScoped
 import com.kgit2.config.Config
-import com.kgit2.diff.Diff
+import com.kgit2.diff.*
 import com.kgit2.index.Index
 import com.kgit2.memory.RawWrapper
 import com.kgit2.merge.MergeAnalysisFlag
 import com.kgit2.merge.MergeOptions
 import com.kgit2.merge.MergePreferenceFlag
-import com.kgit2.model.*
+import com.kgit2.model.Buf
+import com.kgit2.model.StrArray
+import com.kgit2.model.StrarrayRaw
+import com.kgit2.model.toStrArray
 import com.kgit2.note.Note
 import com.kgit2.note.NoteIterator
 import com.kgit2.`object`.Object
@@ -994,59 +997,84 @@ class Repository(raw: RepositoryRaw) : RawWrapper<git_repository, RepositoryRaw>
     val Diff = DiffModule()
 
     inner class DiffModule {
-        // fun diffTreeToTree(oldTree: Tree, newTree: Tree, options: DiffOptions? = null): Diff = Diff() {
-        //     TODO()
-        //     git_diff_tree_to_tree(
-        //         this.ptr,
-        //         raw.handler,
-        //         oldTree.raw.handler,
-        //         newTree.raw.handler,
-        //         options?.raw
-        //     ).errorCheck()
-        // }
+        fun diffTreeToTree(oldTree: Tree, newTree: Tree, options: DiffOptions? = null): Diff = Diff() {
+            git_diff_tree_to_tree(
+                this.ptr,
+                raw.handler,
+                oldTree.raw.handler,
+                newTree.raw.handler,
+                options?.raw?.handler
+            ).errorCheck()
+        }
 
-        // fun diffTreeToIndex(oldTree: Tree, index: Index, options: DiffOptions? = null): Diff = Diff() {
-        //     TODO()
-        //     git_diff_tree_to_index(
-        //         this.ptr,
-        //         raw.handler,
-        //         oldTree.raw.handler,
-        //         index.raw.handler,
-        //         options?.raw
-        //     ).errorCheck()
-        // }
+        fun diffTreeToIndex(oldTree: Tree, index: Index, options: DiffOptions? = null): Diff = Diff() {
+            git_diff_tree_to_index(
+                this.ptr,
+                raw.handler,
+                oldTree.raw.handler,
+                index.raw.handler,
+                options?.raw?.handler
+            ).errorCheck()
+        }
 
-        // fun diffIndexToIndex(oldIndex: Index, newIndex: Index, options: DiffOptions? = null): Diff = Diff() {
-        //     TODO()
-        //     git_diff_index_to_index(this.ptr, oldIndex.raw.handler, newIndex.raw.handler, options?.raw).errorCheck()
-        // }
+        fun diffIndexToIndex(oldIndex: Index, newIndex: Index, options: DiffOptions? = null): Diff = Diff() {
+            git_diff_index_to_index(
+                this.ptr,
+                raw.handler,
+                oldIndex.raw.handler,
+                newIndex.raw.handler,
+                options?.raw?.handler
+            ).errorCheck()
+        }
 
-        // fun diffIndexToWorkdir(index: Index, options: DiffOptions? = null): Diff = Diff() {
-        //     TODO()
-        //     git_diff_index_to_workdir(this.ptr, raw.handler, index.raw.handler, options?.raw).errorCheck()
-        // }
+        fun diffIndexToWorkdir(index: Index, options: DiffOptions? = null): Diff = Diff() {
+            git_diff_index_to_workdir(this.ptr, raw.handler, index.raw.handler, options?.raw?.handler).errorCheck()
+        }
 
-        // fun diffTreeToWorkdir(oldTree: Tree, options: DiffOptions? = null): Diff = Diff() {
-        //     TODO()
-        //     git_diff_tree_to_workdir(this.ptr, raw.handler, oldTree.raw.handler, options?.raw).errorCheck()
-        // }
+        fun diffTreeToWorkdir(oldTree: Tree, options: DiffOptions? = null): Diff = Diff() {
+            git_diff_tree_to_workdir(this.ptr, raw.handler, oldTree.raw.handler, options?.raw?.handler).errorCheck()
+        }
 
-        // fun diffTreeToWorkdirWithIndex(oldTree: Tree, options: DiffOptions? = null): Diff = Diff() {
-        //     TODO()
-        //     git_diff_tree_to_workdir_with_index(this.ptr, raw.handler, oldTree.raw.handler, options?.raw).errorCheck()
-        // }
+        fun diffTreeToWorkdirWithIndex(oldTree: Tree, options: DiffOptions? = null): Diff = Diff() {
+            git_diff_tree_to_workdir_with_index(
+                this.ptr,
+                raw.handler,
+                oldTree.raw.handler,
+                options?.raw?.handler
+            ).errorCheck()
+        }
 
-        // fun diffBlobs(oldBlob: Blob, oldAsPath: String, newBlob: Blob, newAsPath: String, options: DiffOptions? = null, file_cb: Option<&mut FileCb<'_>>, binaryCallback: BinaryCallback?, hunkCallback: HunkCallback?, lineCallback: LineCallback?): Diff = Diff() {
-        //     TODO()
-        //     git_diff_blobs(
-        //         this.ptr,
-        //         oldBlob.raw.handler,
-        //         oldAsPath,
-        //         newBlob.raw.handler,
-        //         newAsPath,
-        //         options?.raw
-        //     ).errorCheck()
-        // }
+        fun diffBlobs(
+            oldBlob: Blob,
+            oldAsPath: String,
+            newBlob: Blob,
+            newAsPath: String,
+            options: DiffOptions? = null,
+            fileCallback: DiffFileCallback? = null,
+            binaryCallback: DiffBinaryCallback? = null,
+            hunkCallback: DiffHunkCallback? = null,
+            lineCallback: DiffLineCallback? = null
+        ) {
+            val callbackPayload = object : DiffFileCallbackPayload, DiffBinaryCallbackPayload, DiffHunkCallbackPayload, DiffLineCallbackPayload {
+                override var diffFileCallback: DiffFileCallback? = fileCallback
+                override var diffBinaryCallback: DiffBinaryCallback? = binaryCallback
+                override var diffHunkCallback: DiffHunkCallback? = hunkCallback
+                override var diffLineCallback: DiffLineCallback? = lineCallback
+            }.asStableRef()
+            git_diff_blobs(
+                oldBlob.raw.handler,
+                oldAsPath,
+                newBlob.raw.handler,
+                newAsPath,
+                options?.raw?.handler,
+                staticDiffFileCallback,
+                staticDiffBinaryCallback,
+                staticDiffHunkCallback,
+                staticDiffLineCallback,
+                callbackPayload.asCPointer()
+            ).errorCheck()
+            callbackPayload.dispose()
+        }
     }
 
     val Index = IndexModule()

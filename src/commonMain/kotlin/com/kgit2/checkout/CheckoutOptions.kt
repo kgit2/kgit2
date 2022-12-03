@@ -8,12 +8,11 @@ import com.kgit2.common.extend.toInt
 import com.kgit2.common.memory.Memory
 import com.kgit2.common.option.mutually.FileMode
 import com.kgit2.common.option.mutually.FileOpenFlags
-import com.kgit2.diff.DiffFile
 import com.kgit2.memory.CallbackAble
 import com.kgit2.memory.ICallbacksPayload
 import com.kgit2.memory.RawWrapper
 import com.kgit2.memory.createCleaner
-import com.kgit2.model.toList
+import com.kgit2.model.StrArray
 import kotlinx.cinterop.*
 import libgit2.GIT_CHECKOUT_OPTIONS_VERSION
 import libgit2.git_checkout_options
@@ -110,15 +109,5 @@ class CheckoutOptions(
      */
     var progressCallback: CheckoutProgressCallback? by callbacksPayload::checkoutProgressCallback
 
-    private val paths: MutableList<String> = raw.handler.pointed.paths.ptr.toList().toMutableList()
-
-    fun paths(): List<String> = paths
-
-    fun paths(processor: MutableList<String>.() -> Unit) {
-        paths.processor()
-        memScoped {
-            raw.handler.pointed.paths.strings = paths.toCStringArray(this)
-        }
-        raw.handler.pointed.paths.count = paths.size.convert()
-    }
+    val paths: StrArray = StrArray(Memory(), raw.handler.pointed.paths)
 }

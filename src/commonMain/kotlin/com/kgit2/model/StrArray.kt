@@ -3,34 +3,43 @@ package com.kgit2.model
 import com.kgit2.annotations.Raw
 import com.kgit2.common.extend.errorCheck
 import com.kgit2.common.memory.Memory
-import com.kgit2.memory.IterableBase
+import com.kgit2.memory.MutableIterableBase
 import com.kgit2.memory.RawWrapper
-import kotlinx.cinterop.*
+import kotlinx.cinterop.convert
+import kotlinx.cinterop.cstr
+import kotlinx.cinterop.pointed
+import kotlinx.cinterop.toCValues
 import libgit2.git_strarray
 import libgit2.git_strarray_copy
+import libgit2.git_strarray_dispose
 
 @Raw(
     base = git_strarray::class,
     free = "git_strarray_free",
 )
-class StrArray (
+class StrArray(
     raw: StrarrayRaw = StrarrayRaw(initial = {}),
-) : RawWrapper<git_strarray, StrarrayRaw>(raw), IterableBase<String?> {
-    constructor(contents: Collection<String>? = null) : this(StrarrayRaw(initial = { memory ->
-        if (contents != null) {
-            this.pointed.strings = contents.map { it.cstr.getPointer(memory) }.toCValues().getPointer(memory)
-            this.pointed.count = contents.size.convert()
-        }
-    }))
+    override val innerList: MutableList<String> = mutableListOf(),
+) : RawWrapper<git_strarray, StrarrayRaw>(raw),
+    MutableIterableBase<String> {
+    constructor(memory: Memory, struct: git_strarray) : this(StrarrayRaw(memory, struct))
+
+    constructor(contents: Collection<String>? = null) : this(StrarrayRaw(initial = {})) {
+        contents?.let { addAll(it) }
+    }
 
     fun copy(): StrArray = StrArray(StrarrayRaw(initial = {
         git_strarray_copy(this, raw.handler).errorCheck()
     }))
 
-    override val size: Long
-        get() = raw.handler.pointed.count.toLong()
+    override fun updateRaw(list: List<String>) {
+        raw.handler.pointed.strings = list.map { it.cstr.getPointer(raw.memory) }.toCValues().getPointer(raw.memory)
+        raw.handler.pointed.count = list.size.convert()
+    }
 
-    override fun get(index: Long): String? = raw.handler.pointed.strings?.get(index)?.toKString()
+    override fun clearRaw() {
+        git_strarray_dispose(raw.handler)
+    }
 }
 
 fun Collection<String>.toStrArray(): StrArray = StrArray(this)
