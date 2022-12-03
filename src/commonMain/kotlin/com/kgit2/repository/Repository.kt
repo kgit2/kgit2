@@ -46,6 +46,7 @@ import com.kgit2.rebase.Rebase
 import com.kgit2.rebase.RebaseOptions
 import com.kgit2.reference.Reference
 import com.kgit2.reference.ReferenceIterator
+import com.kgit2.reflog.Reflog
 import com.kgit2.remote.Remote
 import com.kgit2.revert.RevertOptions
 import com.kgit2.signature.Signature
@@ -61,6 +62,7 @@ import com.kgit2.tag.Tag
 import com.kgit2.tag.TagForeachCallback
 import com.kgit2.tag.TagForeachCallbackPayload
 import com.kgit2.tag.staticTagForeachCallback
+import com.kgit2.transaction.Transaction
 import com.kgit2.tree.Tree
 import com.kgit2.tree.TreeBuilder
 import com.kgit2.worktree.Worktree
@@ -816,6 +818,18 @@ class Repository(raw: RepositoryRaw) : RawWrapper<git_repository, RepositoryRaw>
         fun referenceToAnnotatedCommit(reference: Reference): AnnotatedCommit = AnnotatedCommit {
             git_annotated_commit_from_ref(this.ptr, raw.handler, reference.raw.handler).errorCheck()
         }
+
+        fun referenceHasLog(name: String): Boolean {
+            return when (val result = git_reference_has_log(raw.handler, name)) {
+                1 -> true
+                0 -> false
+                else -> throw GitError(GitErrorCode.fromRaw(result))
+            }
+        }
+
+        fun referenceEnsureLog(name: String) {
+            return git_reference_ensure_log(raw.handler, name).errorCheck()
+        }
     }
 
     val Oid = OidModule()
@@ -1143,20 +1157,20 @@ class Repository(raw: RepositoryRaw) : RawWrapper<git_repository, RepositoryRaw>
     val Transaction = TransactionModule()
 
     inner class TransactionModule {
-        // fun transaction(): Transaction {
-        //     TODO()
-        // }
+        fun transaction(): Transaction = Transaction {
+            git_transaction_new(this.ptr, raw.handler).errorCheck()
+        }
     }
 
     val Odb = OdbModule()
 
     inner class OdbModule {
-        fun odb(): Odb {
-            TODO()
+        fun odb(): Odb = Odb {
+            git_repository_odb(this.ptr, raw.handler).errorCheck()
         }
 
         fun setOdb(oid: Oid, odb: Odb) {
-            TODO()
+            git_repository_set_odb(raw.handler, odb.raw.handler).errorCheck()
         }
     }
 
@@ -1201,24 +1215,16 @@ class Repository(raw: RepositoryRaw) : RawWrapper<git_repository, RepositoryRaw>
     val Reflog = ReflogModule()
 
     inner class ReflogModule {
-        // fun read(name: String): Reflog {
-        //     TODO()
-        // }
+        fun read(name: String): Reflog = Reflog {
+            git_reflog_read(this.ptr, raw.handler, name).errorCheck()
+        }
 
         fun rename(oldName: String, newName: String) {
-            TODO()
+            git_reflog_rename(raw.handler, oldName, newName).errorCheck()
         }
 
         fun delete(name: String) {
-            TODO()
-        }
-
-        fun referenceHasLog(name: String): Boolean {
-            TODO()
-        }
-
-        fun referenceEnsureLog(name: String) {
-            TODO()
+            git_reflog_delete(raw.handler, name).errorCheck()
         }
     }
 

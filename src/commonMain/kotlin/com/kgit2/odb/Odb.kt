@@ -17,7 +17,11 @@ import libgit2.*
     base = git_odb::class,
     free = "git_odb_free"
 )
-class Odb(raw: OdbRaw) : RawWrapper<git_odb, OdbRaw>(raw) {
+class Odb(
+    raw: OdbRaw = OdbRaw(secondaryInitial = {
+        git_odb_new(this.ptr)
+    })
+) : RawWrapper<git_odb, OdbRaw>(raw) {
     constructor(memory: Memory, handler: OdbPointer) : this(OdbRaw(memory, handler))
 
     constructor(
