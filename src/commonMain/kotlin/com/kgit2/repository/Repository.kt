@@ -29,6 +29,7 @@ import com.kgit2.describe.Describe
 import com.kgit2.describe.DescribeOptions
 import com.kgit2.diff.*
 import com.kgit2.index.Index
+import com.kgit2.mailmap.Mailmap
 import com.kgit2.memory.RawWrapper
 import com.kgit2.merge.MergeAnalysisFlag
 import com.kgit2.merge.MergeOptions
@@ -211,9 +212,7 @@ class Repository(raw: RepositoryRaw) : RawWrapper<git_repository, RepositoryRaw>
 
     fun packBuilder(): Packbuilder = Packbuilder(this)
 
-    // fun mailMap(): MailMap {
-    //     TODO()
-    // }
+    fun mailMap(): Mailmap = Mailmap(this)
 
     val Commit = CommitModule()
 

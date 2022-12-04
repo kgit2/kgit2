@@ -4,9 +4,6 @@ import com.kgit2.annotations.Raw
 import com.kgit2.common.memory.Memory
 import com.kgit2.memory.RawWrapper
 import com.kgit2.`object`.Object
-import com.kgit2.repository.RevspecInitial
-import com.kgit2.repository.RevspecPointer
-import com.kgit2.repository.RevspecRaw
 import kotlinx.cinterop.alloc
 import kotlinx.cinterop.convert
 import kotlinx.cinterop.pointed
