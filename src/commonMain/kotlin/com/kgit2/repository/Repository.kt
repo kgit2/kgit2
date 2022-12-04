@@ -6,8 +6,7 @@ import cnames.structs.git_repository
 import com.kgit2.annotations.Raw
 import com.kgit2.apply.ApplyLocation
 import com.kgit2.apply.ApplyOptions
-import com.kgit2.attr.AttrCheckFlags
-import com.kgit2.attr.AttrOptions
+import com.kgit2.attr.*
 import com.kgit2.blame.Blame
 import com.kgit2.blame.BlameOptions
 import com.kgit2.blob.Blob
@@ -22,10 +21,7 @@ import com.kgit2.commit.AnnotatedCommit
 import com.kgit2.commit.Commit
 import com.kgit2.common.error.GitError
 import com.kgit2.common.error.GitErrorCode
-import com.kgit2.common.extend.asStableRef
-import com.kgit2.common.extend.errorCheck
-import com.kgit2.common.extend.toBoolean
-import com.kgit2.common.extend.toInt
+import com.kgit2.common.extend.*
 import com.kgit2.common.memory.Memory
 import com.kgit2.common.memory.memoryScoped
 import com.kgit2.config.Config
@@ -1286,5 +1282,59 @@ class Repository(raw: RepositoryRaw) : RawWrapper<git_repository, RepositoryRaw>
                 }
                 result
             }
+
+        fun getManyExt(path: String, names: Collection<String>, options: AttrOptions): Map<String, String> =
+            memoryScoped {
+                val out = allocArray<CPointerVar<ByteVar>>(names.size)
+                git_attr_get_many_ext(
+                    out.getPointer(this@memoryScoped),
+                    raw.handler,
+                    options.raw.handler,
+                    path,
+                    names.size.convert(),
+                    names.map { it.cstr.getPointer(this@memoryScoped) }.toCValues()
+                ).errorCheck()
+                val result = mutableMapOf<String, String>()
+                for ((i, name) in names.withIndex()) {
+                    result[name] = out[i]!!.toKString()
+                }
+                result
+            }
+
+        fun attrForeach(path: String, flags: AttrCheckFlags, callback: AttrForeachCallback) {
+            val callbackPayload = object : AttrForeachCallbackPayload {
+                override var attrForeachCallback: AttrForeachCallback? = callback
+            }.asStableRef()
+            git_attr_foreach(
+                raw.handler,
+                flags.flags,
+                path,
+                staticAttrForeachCallback,
+                callbackPayload.asCPointer()
+            ).errorCheck()
+            callbackPayload.dispose()
+        }
+
+        fun attrForeachExt(path: String, options: AttrOptions, callback: AttrForeachCallback) {
+            val callbackPayload = object : AttrForeachCallbackPayload {
+                override var attrForeachCallback: AttrForeachCallback? = callback
+            }.asStableRef()
+            git_attr_foreach_ext(
+                raw.handler,
+                options.raw.handler,
+                path,
+                staticAttrForeachCallback,
+                callbackPayload.asCPointer()
+            ).errorCheck()
+            callbackPayload.dispose()
+        }
+
+        fun addMacro(name: String, values: String) {
+            git_attr_add_macro(raw.handler, name, values).errorCheck()
+        }
+
+        fun cacheFlush() {
+            git_attr_cache_flush(raw.handler).errorCheck()
+        }
     }
 }
