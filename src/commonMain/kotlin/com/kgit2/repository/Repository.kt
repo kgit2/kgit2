@@ -44,6 +44,7 @@ import com.kgit2.`object`.ObjectType
 import com.kgit2.odb.Odb
 import com.kgit2.oid.Oid
 import com.kgit2.oid.OidArray
+import com.kgit2.packbuilder.Packbuilder
 import com.kgit2.rebase.Rebase
 import com.kgit2.rebase.RebaseOptions
 import com.kgit2.reference.Reference
@@ -208,9 +209,7 @@ class Repository(raw: RepositoryRaw) : RawWrapper<git_repository, RepositoryRaw>
 
     fun transaction(): Transaction = Transaction(this)
 
-    // fun packBuilder(): PackBuilder {
-    //     TODO()
-    // }
+    fun packBuilder(): Packbuilder = Packbuilder(this)
 
     // fun mailMap(): MailMap {
     //     TODO()

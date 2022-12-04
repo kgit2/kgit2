@@ -1,4 +1,4 @@
-package com.kgit2.common.option.mutually
+package com.kgit2.packbuilder
 
 import libgit2.GIT_PACKBUILDER_ADDING_OBJECTS
 import libgit2.GIT_PACKBUILDER_DELTAFICATION

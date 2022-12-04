@@ -24,6 +24,14 @@ class Buf(
     })
 
     constructor(
+        buffer: ByteArray,
+        memory: Memory = Memory(),
+    ) : this(BufRaw(memory, cValue<git_buf>().getPointer(memory)) {
+        this.pointed.ptr = buffer.refTo(0).getPointer(memory)
+        this.pointed.size = buffer.size.convert()
+    })
+
+    constructor(
         memory: Memory = Memory(),
         handler: CPointer<git_buf> = cValue<git_buf>().getPointer(memory),
         initial: BufInitial? = null
