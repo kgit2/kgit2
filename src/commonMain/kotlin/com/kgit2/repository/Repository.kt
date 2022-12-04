@@ -6,6 +6,8 @@ import cnames.structs.git_repository
 import com.kgit2.annotations.Raw
 import com.kgit2.apply.ApplyLocation
 import com.kgit2.apply.ApplyOptions
+import com.kgit2.attr.AttrCheckFlags
+import com.kgit2.attr.AttrOptions
 import com.kgit2.blame.Blame
 import com.kgit2.blame.BlameOptions
 import com.kgit2.blob.Blob
@@ -203,6 +205,20 @@ class Repository(raw: RepositoryRaw) : RawWrapper<git_repository, RepositoryRaw>
     fun cleanUpState() {
         git_repository_state_cleanup(raw.handler).errorCheck()
     }
+
+    fun describe(options: DescribeOptions): Describe = Describe(this, options)
+
+    fun blame(path: String, options: BlameOptions): Blame = Blame(this, path, options)
+
+    fun transaction(): Transaction = Transaction(this)
+
+    // fun packBuilder(): PackBuilder {
+    //     TODO()
+    // }
+
+    // fun mailMap(): MailMap {
+    //     TODO()
+    // }
 
     val Commit = CommitModule()
 
@@ -1076,9 +1092,10 @@ class Repository(raw: RepositoryRaw) : RawWrapper<git_repository, RepositoryRaw>
             fileCallback: DiffFileCallback? = null,
             binaryCallback: DiffBinaryCallback? = null,
             hunkCallback: DiffHunkCallback? = null,
-            lineCallback: DiffLineCallback? = null
+            lineCallback: DiffLineCallback? = null,
         ) {
-            val callbackPayload = object : DiffFileCallbackPayload, DiffBinaryCallbackPayload, DiffHunkCallbackPayload, DiffLineCallbackPayload {
+            val callbackPayload = object : DiffFileCallbackPayload, DiffBinaryCallbackPayload, DiffHunkCallbackPayload,
+                DiffLineCallbackPayload {
                 override var diffFileCallback: DiffFileCallback? = fileCallback
                 override var diffBinaryCallback: DiffBinaryCallback? = binaryCallback
                 override var diffHunkCallback: DiffHunkCallback? = hunkCallback
@@ -1160,14 +1177,6 @@ class Repository(raw: RepositoryRaw) : RawWrapper<git_repository, RepositoryRaw>
         }
     }
 
-    val Transaction = TransactionModule()
-
-    inner class TransactionModule {
-        fun transaction(): Transaction = Transaction {
-            git_transaction_new(this.ptr, raw.handler).errorCheck()
-        }
-    }
-
     val Odb = OdbModule()
 
     inner class OdbModule {
@@ -1212,7 +1221,13 @@ class Repository(raw: RepositoryRaw) : RawWrapper<git_repository, RepositoryRaw>
         fun graphAheadBehind(local: Oid, upstream: Oid): Pair<ULong, ULong> = memoryScoped {
             val ahead = alloc<ULongVar>()
             val behind = alloc<ULongVar>()
-            git_graph_ahead_behind(ahead.ptr, behind.ptr, raw.handler, local.raw.handler, upstream.raw.handler).errorCheck()
+            git_graph_ahead_behind(
+                ahead.ptr,
+                behind.ptr,
+                raw.handler,
+                local.raw.handler,
+                upstream.raw.handler
+            ).errorCheck()
             ahead.value to behind.value
         }
 
@@ -1239,45 +1254,37 @@ class Repository(raw: RepositoryRaw) : RawWrapper<git_repository, RepositoryRaw>
         }
     }
 
-    val Blame = BlameModule()
+    val Attribute = AttributeModule()
 
-    inner class BlameModule {
-        fun blame(path: String, options: BlameOptions): Blame = Blame(this@Repository, path, options)
-    }
+    inner class AttributeModule {
+        fun getAttr(path: String, name: String, flags: AttrCheckFlags): String? = memoryScoped {
+            val out = allocPointerTo<ByteVar>()
+            git_attr_get(out.ptr, raw.handler, flags.flags, path, name).errorCheck()
+            out.value?.toKString()
+        }
 
-    val Describe = DescribeModule()
+        fun getExt(path: String, name: String, options: AttrOptions): String? = memoryScoped {
+            val out = allocPointerTo<ByteVar>()
+            git_attr_get_ext(out.ptr, raw.handler, options.raw.handler, path, name).errorCheck()
+            out.value?.toKString()
+        }
 
-    inner class DescribeModule {
-        fun describe(options: DescribeOptions): Describe = Describe(this@Repository, options)
-    }
-
-    val Attr = AttrModule()
-
-    inner class AttrModule {
-        // TODO()
-        // fun getAttr(path: String, name: String, flags: AttrCheckFlags): String? = withGitBuf { buf ->
-        //     runCatching {
-        //         git_attr_get(buf, raw.handler, 0, path, name).errorCheck()
-        //     }.onFailure {
-        //         if (it is GitError && it.code == GitErrorCode.NotFound) return@withGitBuf null
-        //     }.getOrThrow()
-        //     buf.toKString()
-        // }
-    }
-
-    val PackBuilder = PackBuilderModule()
-
-    inner class PackBuilderModule {
-        // fun packBuilder(): PackBuilder {
-        //     TODO()
-        // }
-    }
-
-    val MailMap = MailMapModule()
-
-    inner class MailMapModule {
-        // fun mailMap(): MailMap {
-        //     TODO()
-        // }
+        fun getMany(path: String, names: Collection<String>, flags: AttrCheckFlags): Map<String, String> =
+            memoryScoped {
+                val out = allocArray<CPointerVar<ByteVar>>(names.size)
+                git_attr_get_many(
+                    out.getPointer(this@memoryScoped),
+                    raw.handler,
+                    flags.flags,
+                    path,
+                    names.size.convert(),
+                    names.map { it.cstr.getPointer(this@memoryScoped) }.toCValues()
+                ).errorCheck()
+                val result = mutableMapOf<String, String>()
+                for ((i, name) in names.withIndex()) {
+                    result[name] = out[i]!!.toKString()
+                }
+                result
+            }
     }
 }

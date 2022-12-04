@@ -31,6 +31,11 @@ val pkgConfigVersion = cinterop.resolve("pkg-config-version.txt")
 val linkerOpts = cinterop.resolve("linker-opts.txt")
 val defFile = cinterop.resolve("libgit2.def")
 
+val libnativeSourceDir = projectDir.resolve("../native").normalize()
+val libnativeCMake = buildDir.resolve("cmake/libnative")
+val libnativeDist = buildDir.resolve("dist/libnative")
+val libnativeDef = cinterop.resolve("libnative.def")
+
 tasks {
     val wrapper by getting(Wrapper::class) {
         distributionType = Wrapper.DistributionType.ALL
@@ -216,15 +221,12 @@ tasks {
         }
     }
 
-    val generateDef by creating {
+    val generateLibgit2Def by creating {
         group = "interop"
         inputs.file(linkerOpts)
         outputs.file(defFile)
         dependsOn(pkgConfig)
         doLast {
-            inputs.files.forEach {
-                println(it)
-            }
             val headers = mutableListOf("git2.h")
             libgit2DistDir.resolve("include/git2").listFiles()?.forEach {
                 if (it.extension == "h") {
@@ -246,5 +248,72 @@ tasks {
             """.trimMargin()
             defFile.writeText(template)
         }
+    }
+
+    val configureLibnative by creating(Exec::class) {
+        group = "libnative"
+        inputs.files(
+            libnativeSourceDir.resolve("native.h"),
+            libnativeSourceDir.resolve("native.c"),
+            libnativeSourceDir.resolve("CMakeLists.txt"),
+        )
+        outputs.dir(libnativeCMake)
+        workingDir(libnativeCMake)
+        val command = commandLine(
+            "sh", "-c",
+            "cmake $libnativeSourceDir -DCMAKE_INSTALL_PREFIX=$libnativeDist"
+        )
+        doLast {
+            logger.warn("Configure native: ${command.executable} ${command.args?.joinToString(" ")}")
+        }
+    }
+
+    val buildLibnative by creating(Exec::class) {
+        group = "libnative"
+        dependsOn(configureLibnative)
+        inputs.dir(libnativeCMake)
+        outputs.dir(libnativeDist)
+        workingDir(libnativeCMake)
+
+        val command = commandLine(
+            "sh", "-c",
+            "cmake --build . --target install"
+        )
+        doFirst {
+            logger.warn("Build native: ${command.executable} ${command.args?.joinToString(" ")}")
+        }
+    }
+
+    val generateLibnativeDef by creating {
+        group = "interop"
+        inputs.dir(libnativeDist)
+        outputs.file(libnativeDef)
+        dependsOn(buildLibnative)
+        doLast {
+            val headers = mutableListOf("git2.h")
+            libgit2DistDir.resolve("include/git2").listFiles()?.forEach {
+                if (it.extension == "h") {
+                    headers.add("git2/${it.name}")
+                }
+            }
+            libgit2DistDir.resolve("include/git2/sys").listFiles()?.forEach {
+                if (it.extension == "h") {
+                    headers.add("git2/sys/${it.name}")
+                }
+            }
+
+            val template = """
+                |headers = native.h
+                |staticLibraries = libnative.a
+                |compilerOpts = -I${libnativeDist.resolve("include").normalize().absolutePath}
+                |libraryPaths = ${libnativeDist.resolve("lib").normalize().absolutePath}
+            """.trimMargin()
+            libnativeDef.writeText(template)
+        }
+    }
+
+    val generateDef by creating {
+        group = "interop"
+        dependsOn(generateLibgit2Def, generateLibnativeDef)
     }
 }

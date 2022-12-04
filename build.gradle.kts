@@ -56,9 +56,9 @@ kotlin {
                     packageName("libgit2")
                 }
 
-                val libdemo by creating {
-                    defFile(rootProject.file("lib/libdemo.def"))
-                    packageName("libdemo")
+                val libnative by creating {
+                    defFile(rootProject.file("lib/build/cinterop/libnative.def"))
+                    packageName("libnative")
                 }
             }
         }
