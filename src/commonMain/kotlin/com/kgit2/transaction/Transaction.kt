@@ -5,7 +5,9 @@ import com.kgit2.common.extend.errorCheck
 import com.kgit2.memory.RawWrapper
 import com.kgit2.oid.Oid
 import com.kgit2.reflog.Reflog
+import com.kgit2.repository.Repository
 import com.kgit2.signature.Signature
+import kotlinx.cinterop.ptr
 import libgit2.*
 
 @Raw(
@@ -14,6 +16,10 @@ import libgit2.*
 )
 class Transaction(raw: TransactionRaw) : RawWrapper<git_transaction, TransactionRaw>(raw) {
     constructor(secondaryInitial: TransactionSecondaryInitial) : this(TransactionRaw(secondaryInitial = secondaryInitial))
+
+    constructor(repository: Repository) : this(secondaryInitial = {
+        git_transaction_new(this.ptr, repository.raw.handler).errorCheck()
+    })
 
     fun lockRef(refname: String) {
         git_transaction_lock_ref(raw.handler, refname).errorCheck()
