@@ -273,6 +273,7 @@ tasks {
         dependsOn(configureLibnative)
         inputs.dir(libnativeCMake)
         outputs.dir(libnativeDist)
+        outputs.cacheIf { false }
         workingDir(libnativeCMake)
 
         val command = commandLine(
