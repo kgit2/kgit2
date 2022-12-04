@@ -1,29 +1,32 @@
-package com.kgit2.signature
+package com.kgit2.mailmap
 
 import cnames.structs.git_mailmap
 import com.kgit2.annotations.Raw
 import com.kgit2.common.extend.errorCheck
 import com.kgit2.common.memory.Memory
 import com.kgit2.memory.RawWrapper
+import com.kgit2.repository.Repository
+import com.kgit2.signature.Signature
 import kotlinx.cinterop.convert
 import kotlinx.cinterop.ptr
-import libgit2.git_mailmap_add_entry
-import libgit2.git_mailmap_from_buffer
-import libgit2.git_mailmap_new
-import libgit2.git_mailmap_resolve_signature
+import kotlinx.cinterop.refTo
+import kotlinx.cinterop.toKString
+import libgit2.*
 
 @Raw(
     base = git_mailmap::class,
     free = "git_mailmap_free",
 )
-class MailMap(raw: MailmapRaw) : RawWrapper<git_mailmap, MailmapRaw>(raw) {
-    constructor(memory: Memory, handler: MailmapPointer) : this(MailmapRaw(memory, handler))
-
-    constructor(buf: String? = null) : this(MailmapRaw {
+class Mailmap(raw: MailmapRaw) : RawWrapper<git_mailmap, MailmapRaw>(raw) {
+    constructor(buf: ByteArray? = null) : this(MailmapRaw {
         when (buf) {
             null -> git_mailmap_new(ptr).errorCheck()
-            else -> git_mailmap_from_buffer(ptr, buf, buf.length.convert())
+            else -> git_mailmap_from_buffer(ptr, buf.refTo(0).getPointer(it).toKString(), buf.size.convert())
         }
+    })
+
+    constructor(repository: Repository) : this(MailmapRaw {
+        git_mailmap_from_repository(this.ptr, repository.raw.handler)
     })
 
     fun addEntry(realName: String, realEmail: String, replaceName: String, replaceEmail: String) {
