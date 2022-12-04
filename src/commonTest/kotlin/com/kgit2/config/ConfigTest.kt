@@ -1,6 +1,6 @@
 package com.kgit2.config
 
-import com.kgit2.kgitRunTest
+import com.kgit2.common.kgitRunTest
 import com.kgit2.utils.withTempDir
 import io.github.aakira.napier.Napier
 import kotlinx.cinterop.toKString
@@ -45,7 +45,7 @@ class ConfigTest {
             assertEquals("bar", config.getStringBuf("foo.k4").buffer?.toKString())
 
             val entries = config.getEntries()
-            assertEquals(4, entries.list.size)
+            assertEquals(4, entries.count())
 
             snapshot = config.snapshot()
             assertEquals("bar", snapshot.getString("foo.k4"))
@@ -61,20 +61,20 @@ class ConfigTest {
             config.setMultiVar("foo.bar", "^$", "quux")
             config.setMultiVar("foo.baz", "^$", "oki")
 
-            val entries = config.getEntries("foo.bar").list.map(ConfigEntry::value)
+            val entries = config.getEntries("foo.bar").asSequence().map(ConfigEntry::value).toList()
             val expectList = listOf("baz", "qux", "quux")
             assertEquals(expectList, entries)
 
-            val multiVar = config.getMultiVar("foo.bar").list.map(ConfigEntry::value)
+            val multiVar = config.getMultiVar("foo.bar").asSequence().map(ConfigEntry::value).toList()
             assertEquals(expectList, multiVar)
 
-            val multiVar2 = config.getMultiVar("foo.bar", "qu.*x").list.map(ConfigEntry::value)
+            val multiVar2 = config.getMultiVar("foo.bar", "qu.*x").asSequence().map(ConfigEntry::value).toList()
             val expectList2 = listOf("qux", "quux")
             assertEquals(expectList2, multiVar2)
 
             config.removeMultiVar("foo.bar", ".*")
-            assertEquals(0, config.getEntries("foo.bar").list.size)
-            assertEquals(0, config.getMultiVar("foo.bar").list.size)
+            assertEquals(0, config.getEntries("foo.bar").count())
+            assertEquals(0, config.getMultiVar("foo.bar").count())
         }
     }
 

@@ -5,6 +5,7 @@ import com.kgit2.common.memory.Memory
 import com.kgit2.memory.RawWrapper
 import com.kgit2.oid.Oid
 import kotlinx.cinterop.cValue
+import kotlinx.cinterop.convert
 import kotlinx.cinterop.pointed
 import libgit2.*
 
@@ -14,7 +15,7 @@ import libgit2.*
 class AttrOptions(
     raw: AttrOptionsRaw = AttrOptionsRaw(Memory(), cValue()),
 ) : RawWrapper<git_attr_options, AttrOptionsRaw>(raw) {
-    val flags: AttrCheckFlags = AttrCheckFlags(raw.handler.pointed.flags)
+    val flags: AttrCheckFlags = AttrCheckFlags(raw.handler.pointed.flags.convert())
 
     var commitId: Oid? = raw.handler.pointed.commit_id?.let { Oid(handler = it) }
         set(value) {

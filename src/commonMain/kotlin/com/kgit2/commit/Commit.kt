@@ -4,10 +4,10 @@ import cnames.structs.git_commit
 import com.kgit2.annotations.Raw
 import com.kgit2.common.extend.errorCheck
 import com.kgit2.common.memory.Memory
+import com.kgit2.mailmap.Mailmap
 import com.kgit2.memory.RawWrapper
 import com.kgit2.oid.Oid
 import com.kgit2.`object`.Object
-import com.kgit2.signature.MailMap
 import com.kgit2.signature.Signature
 import com.kgit2.time.Time
 import com.kgit2.tree.Tree
@@ -61,13 +61,13 @@ class Commit(raw: CommitRaw) : RawWrapper<git_commit, CommitRaw>(raw) {
 
     val author: Signature = Signature(Memory(), git_commit_author(raw.handler)!!)
 
-    fun authorWithMailMap(mailMap: MailMap): Signature = Signature {
+    fun authorWithMailMap(mailMap: Mailmap): Signature = Signature {
         git_commit_author_with_mailmap(this.ptr, raw.handler, mailMap.raw.handler).errorCheck()
     }
 
     val committer: Signature = Signature(Memory(), git_commit_committer(raw.handler)!!)
 
-    fun committerWithMailMap(mailMap: MailMap) = Signature {
+    fun committerWithMailMap(mailMap: Mailmap) = Signature {
         git_commit_committer_with_mailmap(ptr, raw.handler, mailMap.raw.handler).errorCheck()
     }
 

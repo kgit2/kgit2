@@ -1,5 +1,6 @@
 package com.kgit2
 
+import com.kgit2.common.kgitRunTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -26,10 +27,4 @@ class KGit2Test {
         assertTrue(feature.enableSSH())
         assertTrue(feature.enableNSEC())
     }
-}
-
-fun kgitRunTest(testBody: () -> Unit) {
-    KGit2.initial()
-    testBody.invoke()
-    KGit2.shutdown()
 }

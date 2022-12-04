@@ -1,6 +1,6 @@
 package com.kgit2.repository
 
-import com.kgit2.kgitRunTest
+import com.kgit2.common.kgitRunTest
 import com.kgit2.utils.withTempDir
 import kotlin.test.Test
 import kotlin.test.assertEquals

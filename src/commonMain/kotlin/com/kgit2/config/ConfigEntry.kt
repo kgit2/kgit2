@@ -27,7 +27,7 @@ class ConfigEntry(raw: ConfigEntryRaw) : RawWrapper<git_config_entry, ConfigEntr
      * The name of the entry.
      * May be null if the name is not valid utf-8.
      */
-    val name: String? = raw.handler.pointed.name?.toKString()
+    val name: String = raw.handler.pointed.name!!.toKString()
 
     val value: String? = raw.handler.pointed.value?.toKString()
 

@@ -3,7 +3,7 @@ package com.kgit2.attr
 import com.kgit2.annotations.FlagMask
 
 @FlagMask(
-    flagsType = UInt::class,
+    flagsType = Int::class,
     /**
      * Check attribute flags: Reading values from index and working directory.
      *
@@ -42,7 +42,12 @@ import com.kgit2.annotations.FlagMask
     "GIT_ATTR_CHECK_INCLUDE_COMMIT",
 )
 data class AttrCheckFlags(
-    override var flags: UInt = 0U,
+    var value: UInt = 0U,
 ) : AttrCheckFlagsMask<AttrCheckFlags> {
-    override val onFlagsChanged: ((UInt) -> Unit)? = null
+    override val onFlagsChanged: ((Int) -> Unit)? = null
+    override var flags: Int
+        get() = value.toInt()
+        set(value) {
+            this.value = value.toUInt()
+        }
 }

@@ -1253,7 +1253,7 @@ class Repository(raw: RepositoryRaw) : RawWrapper<git_repository, RepositoryRaw>
     inner class AttributeModule {
         fun getAttr(path: String, name: String, flags: AttrCheckFlags): String? = memoryScoped {
             val out = allocPointerTo<ByteVar>()
-            git_attr_get(out.ptr, raw.handler, flags.flags, path, name).errorCheck()
+            git_attr_get(out.ptr, raw.handler, flags.value, path, name).errorCheck()
             out.value?.toKString()
         }
 
@@ -1269,7 +1269,7 @@ class Repository(raw: RepositoryRaw) : RawWrapper<git_repository, RepositoryRaw>
                 git_attr_get_many(
                     out.getPointer(this@memoryScoped),
                     raw.handler,
-                    flags.flags,
+                    flags.value,
                     path,
                     names.size.convert(),
                     names.map { it.cstr.getPointer(this@memoryScoped) }.toCValues()
@@ -1305,7 +1305,7 @@ class Repository(raw: RepositoryRaw) : RawWrapper<git_repository, RepositoryRaw>
             }.asStableRef()
             git_attr_foreach(
                 raw.handler,
-                flags.flags,
+                flags.value,
                 path,
                 staticAttrForeachCallback,
                 callbackPayload.asCPointer()

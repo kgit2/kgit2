@@ -1,6 +1,6 @@
 package com.kgit2.model
 
-import com.kgit2.kgitRunTest
+import com.kgit2.common.kgitRunTest
 import com.kgit2.`object`.ObjectType
 import com.kgit2.oid.Oid
 import io.ktor.utils.io.core.toByteArray

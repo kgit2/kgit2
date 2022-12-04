@@ -1,9 +1,9 @@
 package com.kgit2.cred
 
+import com.kgit2.common.kgitRunTest
 import com.kgit2.config.tempConfig
 import com.kgit2.credential.Credential
 import com.kgit2.credential.CredentialHelper
-import com.kgit2.kgitRunTest
 import com.kgit2.utils.Posix
 import com.kgit2.utils.openReadWrite
 import com.kgit2.utils.withTempDir
