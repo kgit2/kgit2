@@ -33,21 +33,11 @@ class RebaseOptions(
     raw: RebaseOptionsRaw = RebaseOptionsRaw(initial = {
         git_rebase_options_init(this, GIT_REBASE_OPTIONS_VERSION)
     }),
+    initial: RebaseOptions.() -> Unit = {},
 ) : RawWrapper<git_rebase_options, RebaseOptionsRaw>(raw), CallbackAble<git_rebase_options, RebaseOptionsRaw, RebaseOptions.CallbacksPayload> {
-    inner class CallbacksPayload: ICallbacksPayload, CommitCreateCallbackPayload {
-        override var commitCreateCallback: CommitCreateCallback? = null
-            set(value) {
-                field = value
-                raw.handler.pointed.commit_create_cb = value?.let { staticCommitCreateCallback }
-            }
-    }
-
     override val callbacksPayload: CallbacksPayload = CallbacksPayload()
-    override val stableRef: StableRef<CallbacksPayload> = callbacksPayload.asStableRef()
 
-    init {
-        raw.handler.pointed.payload = stableRef.asCPointer()
-    }
+    override val stableRef: StableRef<CallbacksPayload> = callbacksPayload.asStableRef()
 
     override val cleaner: Cleaner = createCleaner()
 
@@ -75,4 +65,17 @@ class RebaseOptions(
         CheckoutOptions(raw = CheckoutOptionsRaw(Memory(), raw.handler.pointed.checkout_options))
 
     var commitCreateCallback: CommitCreateCallback? by callbacksPayload::commitCreateCallback
+
+    init {
+        raw.handler.pointed.payload = stableRef.asCPointer()
+        this.initial()
+    }
+
+    inner class CallbacksPayload: ICallbacksPayload, CommitCreateCallbackPayload {
+        override var commitCreateCallback: CommitCreateCallback? = null
+            set(value) {
+                field = value
+                raw.handler.pointed.commit_create_cb = value?.let { staticCommitCreateCallback }
+            }
+    }
 }

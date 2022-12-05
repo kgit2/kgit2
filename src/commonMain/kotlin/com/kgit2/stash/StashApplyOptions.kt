@@ -23,16 +23,13 @@ class StashApplyOptions(
     raw: StashApplyOptionsRaw = StashApplyOptionsRaw(initial = {
         git_stash_apply_options_init(this, GIT_STASH_APPLY_OPTIONS_VERSION)
     }),
+    initial: StashApplyOptions.() -> Unit = {},
 ) : RawWrapper<git_stash_apply_options, StashApplyOptionsRaw>(raw),
     CallbackAble<git_stash_apply_options, StashApplyOptionsRaw, StashApplyOptions.CallbacksPayload> {
 
     override val callbacksPayload: CallbacksPayload = CallbacksPayload()
 
     override val stableRef: StableRef<CallbacksPayload> = callbacksPayload.asStableRef()
-
-    init {
-        raw.handler.pointed.progress_payload = stableRef.asCPointer()
-    }
 
     override val cleaner: Cleaner = createCleaner()
 
@@ -45,7 +42,18 @@ class StashApplyOptions(
     val checkoutOptions: CheckoutOptions =
         CheckoutOptions(CheckoutOptionsRaw(Memory(), raw.handler.pointed.checkout_options))
 
+    var stashApplyProgressCallback: StashApplyProgressCallback? by callbacksPayload::stashApplyProgressCallback
+
+    init {
+        raw.handler.pointed.progress_payload = stableRef.asCPointer()
+        this.initial()
+    }
+
     inner class CallbacksPayload : ICallbacksPayload, StashApplyProgressCallbackPayload {
         override var stashApplyProgressCallback: StashApplyProgressCallback? = null
+            set(value) {
+                field = value
+                raw.handler.pointed.progress_cb = value?.let { staticStashApplyProgressCallback }
+            }
     }
 }

@@ -22,7 +22,8 @@ import libgit2.git_diff_options_init
 class DiffOptions(
     raw: DiffOptionsRaw = DiffOptionsRaw(initial = {
         git_diff_options_init(this, GIT_DIFF_OPTIONS_VERSION)
-    })
+    }),
+    initial: DiffOptions.() -> Unit = {},
 ) : RawWrapper<git_diff_options, DiffOptionsRaw>(raw), CallbackAble<git_diff_options, DiffOptionsRaw, DiffOptions.CallbacksPayload> {
     constructor(handler: DiffOptionsPointer) : this(DiffOptionsRaw(Memory(), handler))
 
@@ -78,8 +79,13 @@ class DiffOptions(
 
     override val stableRef: StableRef<CallbacksPayload> = callbacksPayload.asStableRef()
 
+    var progressCallback: DiffProgressCallback? by callbacksPayload::diffProgressCallback
+
+    var notifyCallback: DiffNotifyCallback? by callbacksPayload::diffNotifyCallback
+
     init {
         raw.handler.pointed.payload = stableRef.asCPointer()
+        this.initial()
     }
 
     inner class CallbacksPayload :
@@ -98,8 +104,4 @@ class DiffOptions(
                 raw.handler.pointed.notify_cb = value?.let { staticDiffNotifyCallback }
             }
     }
-
-    var progressCallback: DiffProgressCallback? by callbacksPayload::diffProgressCallback
-
-    var notifyCallback: DiffNotifyCallback? by callbacksPayload::diffNotifyCallback
 }

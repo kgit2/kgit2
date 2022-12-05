@@ -30,3 +30,9 @@ kotlin {
     //     }
     // }
 }
+
+tasks.whenTaskAdded {
+    if (group == "verification") {
+        enabled = false
+    }
+}

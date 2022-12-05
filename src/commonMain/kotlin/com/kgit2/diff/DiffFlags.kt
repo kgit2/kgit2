@@ -12,6 +12,6 @@ import libgit2.git_diff_flag_t
     "GIT_DIFF_FLAG_VALID_SIZE",
     flagsMutable = false,
 )
-data class DiffFlag(
+data class DiffFlags(
     override var flags: UInt,
-) : DiffFlagMask<DiffFlag>
+) : DiffFlagsMask<DiffFlags>

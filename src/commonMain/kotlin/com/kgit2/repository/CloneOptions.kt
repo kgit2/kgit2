@@ -20,16 +20,11 @@ import kotlin.native.internal.Cleaner
     base = git_clone_options::class,
 )
 class CloneOptions(
-    raw: CloneOptionsRaw = CloneOptionsRaw()
+    raw: CloneOptionsRaw = CloneOptionsRaw(),
+    initial: CloneOptions.() -> Unit = {},
 ) :
     RawWrapper<git_clone_options, CloneOptionsRaw>(raw),
     CallbackAble<git_clone_options, CloneOptionsRaw, CloneOptions.CallbacksPayload> {
-    constructor(
-        memory: Memory = Memory(),
-        handler: CloneOptionsPointer = memory.alloc<git_clone_options>().ptr,
-        initial: CloneOptionsInitial?,
-    ) : this(CloneOptionsRaw(memory, handler, initial))
-
     override val callbacksPayload = CallbacksPayload()
 
     override val stableRef = callbacksPayload.asStableRef()
@@ -61,6 +56,12 @@ class CloneOptions(
     var repositoryCreateCallback: RepositoryCreateCallback? by callbacksPayload::repositoryCreateCallback
 
     var remoteCreateCallback: RemoteCreateCallback? by callbacksPayload::remoteCreateCallback
+
+    init {
+        this.initial()
+        raw.handler.pointed.repository_cb_payload = stableRef.asCPointer()
+        raw.handler.pointed.remote_cb_payload = stableRef.asCPointer()
+    }
 
     inner class CallbacksPayload : ICallbacksPayload, RepositoryCreateCallbackPayload, RemoteCreateCallbackPayload {
         override var repositoryCreateCallback: RepositoryCreateCallback? = null

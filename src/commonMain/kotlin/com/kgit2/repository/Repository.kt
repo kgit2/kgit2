@@ -94,10 +94,6 @@ class Repository(raw: RepositoryRaw) : RawWrapper<git_repository, RepositoryRaw>
             git_repository_init(this.ptr, path, bare.toInt().convert()).errorCheck()
         }
 
-        fun initialExt(path: String, options: RepositoryInitOptions): Repository = Repository {
-            git_repository_init_ext(this.ptr, path, options.raw.handler).errorCheck()
-        }
-
         fun open(path: String, bare: Boolean = false): Repository = Repository {
             when (bare) {
                 true -> git_repository_open_bare(this.ptr, path)
@@ -105,12 +101,16 @@ class Repository(raw: RepositoryRaw) : RawWrapper<git_repository, RepositoryRaw>
             }.errorCheck()
         }
 
+        fun initialExt(path: String, options: RepositoryInitOptions): Repository = Repository {
+            git_repository_init_ext(this.ptr, path, options.raw.handler).errorCheck()
+        }
+
         fun openExt(
             path: String,
-            flags: RepositoryOpenFlags = RepositoryOpenFlags.OpenFromENV,
+            flags: RepositoryOpenFlags,
             ceilingDirs: String? = null,
         ): Repository = Repository {
-            git_repository_open_ext(this.ptr, path, flags.value, ceilingDirs).errorCheck()
+            git_repository_open_ext(this.ptr, path, flags.flags, ceilingDirs).errorCheck()
         }
 
         fun openFromWorktree(worktree: Worktree): Repository = Repository {
@@ -118,7 +118,7 @@ class Repository(raw: RepositoryRaw) : RawWrapper<git_repository, RepositoryRaw>
         }
 
         fun openFromEnv(): Repository = Repository {
-            git_repository_open_ext(this.ptr, null, RepositoryOpenFlags.OpenFromENV.value, null).errorCheck()
+            git_repository_open_ext(this.ptr, null, RepositoryOpenFlags().flags, null).errorCheck()
         }
 
         fun discover(path: String): Repository {
@@ -145,8 +145,8 @@ class Repository(raw: RepositoryRaw) : RawWrapper<git_repository, RepositoryRaw>
         }
     }
 
-    val path: String?
-        get() = git_repository_path(raw.handler)?.toKString()
+    val path: String
+        get() = git_repository_path(raw.handler)!!.toKString()
 
     val isBare: Boolean
         get() = git_repository_is_bare(raw.handler).toBoolean()
@@ -223,7 +223,7 @@ class Repository(raw: RepositoryRaw) : RawWrapper<git_repository, RepositoryRaw>
             committer: Signature,
             message: String,
             tree: Tree,
-            parents: List<Commit>,
+            parents: List<Commit> = emptyList(),
         ): Oid = Oid {
             git_commit_create(
                 this,
@@ -903,13 +903,13 @@ class Repository(raw: RepositoryRaw) : RawWrapper<git_repository, RepositoryRaw>
     val Signature = SignatureModule()
 
     inner class SignatureModule {
+        fun signature(): Signature = Signature {
+            git_signature_default(this.ptr, raw.handler).errorCheck()
+        }
         fun signatureNow(name: String, email: String): Signature = Signature {
             git_signature_now(this.ptr, name, email).errorCheck()
         }
 
-        fun signatureDefault(): Signature = Signature {
-            git_signature_default(this.ptr, raw.handler).errorCheck()
-        }
 
         fun extractSignature(commitId: Oid, signatureField: String?): Pair<Buf, Buf> {
             lateinit var signature: Buf
@@ -1060,19 +1060,19 @@ class Repository(raw: RepositoryRaw) : RawWrapper<git_repository, RepositoryRaw>
             ).errorCheck()
         }
 
-        fun diffIndexToWorkdir(index: Index, options: DiffOptions? = null): Diff = Diff() {
-            git_diff_index_to_workdir(this.ptr, raw.handler, index.raw.handler, options?.raw?.handler).errorCheck()
+        fun diffIndexToWorkdir(index: Index? = null, options: DiffOptions? = null): Diff = Diff() {
+            git_diff_index_to_workdir(this.ptr, raw.handler, index?.raw?.handler, options?.raw?.handler).errorCheck()
         }
 
-        fun diffTreeToWorkdir(oldTree: Tree, options: DiffOptions? = null): Diff = Diff() {
-            git_diff_tree_to_workdir(this.ptr, raw.handler, oldTree.raw.handler, options?.raw?.handler).errorCheck()
+        fun diffTreeToWorkdir(oldTree: Tree? = null, options: DiffOptions? = null): Diff = Diff() {
+            git_diff_tree_to_workdir(this.ptr, raw.handler, oldTree?.raw?.handler, options?.raw?.handler).errorCheck()
         }
 
-        fun diffTreeToWorkdirWithIndex(oldTree: Tree, options: DiffOptions? = null): Diff = Diff() {
+        fun diffTreeToWorkdirWithIndex(oldTree: Tree? = null, options: DiffOptions? = null): Diff = Diff() {
             git_diff_tree_to_workdir_with_index(
                 this.ptr,
                 raw.handler,
-                oldTree.raw.handler,
+                oldTree?.raw?.handler,
                 options?.raw?.handler
             ).errorCheck()
         }

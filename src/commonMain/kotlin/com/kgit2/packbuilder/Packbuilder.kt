@@ -24,7 +24,10 @@ import libgit2.*
     base = git_packbuilder::class,
     free = "git_packbuilder_free",
 )
-class Packbuilder(raw: PackbuilderRaw = PackbuilderRaw()) : RawWrapper<git_packbuilder, PackbuilderRaw>(raw),
+class Packbuilder(
+    raw: PackbuilderRaw = PackbuilderRaw(),
+    initial: Packbuilder.() -> Unit = {},
+) : RawWrapper<git_packbuilder, PackbuilderRaw>(raw),
     CallbackAble<git_packbuilder, PackbuilderRaw, Packbuilder.CallbacksPayload> {
     constructor(secondaryInitial: PackbuilderSecondaryInitial) : this(PackbuilderRaw(secondaryInitial = secondaryInitial))
 
@@ -42,6 +45,10 @@ class Packbuilder(raw: PackbuilderRaw = PackbuilderRaw()) : RawWrapper<git_packb
 
     val objectCount: ULong
         get() = git_packbuilder_object_count(raw.handler)
+
+    init {
+        this.initial()
+    }
 
     fun write(path: String, fileMode: FileMode, progressCallback: IndexerProgressCallback) {
         val callbacksPayload = object : IndexerProgressCallbackPayload {

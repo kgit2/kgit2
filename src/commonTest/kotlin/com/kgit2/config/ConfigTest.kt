@@ -1,6 +1,7 @@
 package com.kgit2.config
 
 import com.kgit2.common.kgitRunTest
+import com.kgit2.utils.TempConfig
 import com.kgit2.utils.withTempDir
 import io.github.aakira.napier.Napier
 import kotlinx.cinterop.toKString
@@ -21,7 +22,7 @@ class ConfigTest {
     @Test
     fun persisted() = kgitRunTest {
         withTempDir {
-            var config = openConfig(it, "foo")
+            var config = TempConfig(it / "foo").config
 
             runCatching {
                 config.getBool("foo.bar")
@@ -55,11 +56,12 @@ class ConfigTest {
     @Test
     fun multiVar() = kgitRunTest {
         withTempDir {
-            val config = openConfig(it, "foo")
-            config.setMultiVar("foo.bar", "^$", "baz")
-            config.setMultiVar("foo.bar", "^$", "qux")
-            config.setMultiVar("foo.bar", "^$", "quux")
-            config.setMultiVar("foo.baz", "^$", "oki")
+            val config = TempConfig(it / "foo") {
+                multiVar("foo.bar", "^$", "baz")
+                multiVar("foo.bar", "^$", "qux")
+                multiVar("foo.bar", "^$", "quux")
+                multiVar("foo.baz", "^$", "oki")
+            }.config
 
             val entries = config.getEntries("foo.bar").asSequence().map(ConfigEntry::value).toList()
             val expectList = listOf("baz", "qux", "quux")

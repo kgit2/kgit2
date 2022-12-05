@@ -1,10 +1,10 @@
 package com.kgit2.cred
 
 import com.kgit2.common.kgitRunTest
-import com.kgit2.config.tempConfig
 import com.kgit2.credential.Credential
 import com.kgit2.credential.CredentialHelper
 import com.kgit2.utils.Posix
+import com.kgit2.utils.TempConfig
 import com.kgit2.utils.openReadWrite
 import com.kgit2.utils.withTempDir
 import io.ktor.utils.io.core.toByteArray
@@ -17,9 +17,9 @@ class CredentialHelperTest {
     @Test
     fun credentialHelper1() = kgitRunTest {
         withTempDir {
-            val config = tempConfig(it) {
-                configs("credential.helper" to "!f() { echo username=a; echo password=b; }; f")
-            }
+            val config = TempConfig(it / ".gitconfig") {
+                string("credential.helper", "!f() { echo username=a; echo password=b; }; f")
+            }.config
             val helper = CredentialHelper("https://example.com/foo/bar").config(config)
             val (username, password) = helper.execute()!!
             assertEquals("a", username)
@@ -30,7 +30,7 @@ class CredentialHelperTest {
     @Test
     fun credentialHelper2() = kgitRunTest {
         withTempDir {
-            val config = tempConfig(it)
+            val config = TempConfig(it / ".gitconfig").config
             val helper = CredentialHelper("https://example.com/foo/bar").config(config)
             assertNull(helper.execute())
         }
@@ -39,12 +39,10 @@ class CredentialHelperTest {
     @Test
     fun credentialHelper3() = kgitRunTest {
         withTempDir {
-            val config = tempConfig(it) {
-                configs(
-                    "credential.https://example.com.helper" to "!f() { echo username=c; }; f",
-                    "credential.helper" to "!f() { echo username=a; echo password=b; }; f"
-                )
-            }
+            val config = TempConfig(it / ".gitconfig") {
+                string("credential.https://example.com.helper", "!f() { echo username=c; }; f")
+                string("credential.helper", "!f() { echo username=a; echo password=b; }; f")
+            }.config
             val helper = CredentialHelper("https://example.com/foo/bar").config(config)
             val (username, password) = helper.execute()!!
             assertEquals("c", username)
@@ -62,12 +60,10 @@ class CredentialHelperTest {
             scriptFile.close()
             Posix.chmod(scriptPath.toString())
 
-            val config = tempConfig(it) {
-                configs(
-                    "credential.https://example.com.helper" to scriptPath.toString(),
-                    "credential.helper" to "!f() { echo username=a; echo password=b; }; f"
-                )
-            }
+            val config = TempConfig(it / ".gitconfig") {
+                string("credential.https://example.com.helper", scriptPath.toString())
+                string("credential.helper", "!f() { echo username=a; echo password=b; }; f")
+            }.config
             val helper = CredentialHelper("https://example.com/foo/bar").config(config)
             val (username, password) = helper.execute()!!
             assertEquals("c", username)
@@ -88,12 +84,10 @@ class CredentialHelperTest {
             val pathEnv = "${scriptPath.parent.toString()}:${Posix.getEnv("PATH")}"
             Posix.setEnv("PATH", pathEnv)
 
-            val config = tempConfig(it) {
-                configs(
-                    "credential.https://example.com.helper" to "script",
-                    "credential.helper" to "!f() { echo username=a; echo password=b; }; f"
-                )
-            }
+            val config = TempConfig(it / ".gitconfig") {
+                string("credential.https://example.com.helper", "script")
+                string("credential.helper", "!f() { echo username=a; echo password=b; }; f")
+            }.config
 
             val helper = CredentialHelper("https://example.com/foo/bar").config(config)
             val (username, password) = helper.execute()!!
@@ -105,9 +99,9 @@ class CredentialHelperTest {
     @Test
     fun credentialHelper6() = kgitRunTest {
         withTempDir {
-            val config = tempConfig(it) {
-                configs("credential.helper" to "")
-            }
+            val config = TempConfig(it / ".gitconfig") {
+                string("credential.helper", "")
+            }.config
 
             val helper = CredentialHelper("https://example.com/foo/bar").config(config)
             assertNull(helper.execute())
@@ -124,9 +118,9 @@ class CredentialHelperTest {
             scriptFile.close()
             Posix.chmod(scriptPath.toString())
 
-            val config = tempConfig(it) {
-                configs("credential.helper" to "$scriptPath a b")
-            }
+            val config = TempConfig(it / ".gitconfig") {
+                string("credential.helper", "$scriptPath a b")
+            }.config
 
             val helper = CredentialHelper("https://example.com/foo/bar").config(config)
             val (username, password) = helper.execute()!!
@@ -138,9 +132,9 @@ class CredentialHelperTest {
     @Test
     fun credentialHelper8() = kgitRunTest {
         withTempDir {
-            val config = tempConfig(it) {
-                configs("credential.useHttpPath" to "true")
-            }
+            val config = TempConfig(it / ".gitconfig") {
+                string("credential.useHttpPath", "true")
+            }.config
             config.setBool("credential.useHttpPath", true)
             val helper = CredentialHelper("https://example.com/foo/bar").config(config)
             assertEquals("foo/bar", helper.path)
@@ -150,9 +144,9 @@ class CredentialHelperTest {
     @Test
     fun credentialHelper9() = kgitRunTest {
         withTempDir {
-            val config = tempConfig(it) {
-                configs("credential.helper" to "!f() { while read line; do eval ${"$"}line; done; if [ \"${"$"}host\" = example.com:3000 ]; then echo username=a; echo password=b; fi; }; f")
-            }
+            val config = TempConfig(it / ".gitconfig") {
+                string("credential.helper", "!f() { while read line; do eval ${"$"}line; done; if [ \"${"$"}host\" = example.com:3000 ]; then echo username=a; echo password=b; fi; }; f")
+            }.config
 
             val helper = CredentialHelper("https://example.com:3000/foo/bar").config(config)
             val (username, password) = helper.execute()!!

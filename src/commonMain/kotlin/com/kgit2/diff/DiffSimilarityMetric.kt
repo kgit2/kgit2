@@ -21,6 +21,7 @@ import kotlin.native.internal.Cleaner
 )
 class DiffSimilarityMetric(
     raw: DiffSimilarityMetricRaw = DiffSimilarityMetricRaw(),
+    initial: DiffSimilarityMetric.() -> Unit = {},
 ) : RawWrapper<git_diff_similarity_metric, DiffSimilarityMetricRaw>(raw),
     CallbackAble<git_diff_similarity_metric, DiffSimilarityMetricRaw, DiffSimilarityMetric.CallbacksPayload> {
     override val callbacksPayload: CallbacksPayload = CallbacksPayload()
@@ -40,6 +41,10 @@ class DiffSimilarityMetric(
     var freeSignature: FreeSignature? by callbacksPayload::freeSignature
 
     var similarity: Similarity? by callbacksPayload::similarity
+
+    init {
+        this.initial()
+    }
 
     inner class CallbacksPayload
         : ICallbacksPayload,

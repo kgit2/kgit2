@@ -1,7 +1,6 @@
 package com.kgit2.diff
 
 import com.kgit2.annotations.Raw
-import com.kgit2.common.error.GitErrorCode
 import com.kgit2.common.memory.Memory
 import com.kgit2.common.option.mutually.FileMode
 import com.kgit2.memory.RawWrapper
@@ -21,9 +20,13 @@ class DiffFile(raw: DiffFileRaw) : RawWrapper<git_diff_file, DiffFileRaw>(raw) {
 
     val size: ULong = raw.handler.pointed.size
 
-    val flag: DiffFlag = DiffFlag(raw.handler.pointed.flags)
+    val flag: DiffFlags = DiffFlags(raw.handler.pointed.flags)
 
     val mod: FileMode = FileMode.fromRaw(raw.handler.pointed.mode.convert())
 
-    val flags: DiffFlag = DiffFlag(raw.handler.pointed.flags)
+    val flags: DiffFlags = DiffFlags(raw.handler.pointed.flags)
+
+    override fun toString(): String {
+        return "DiffFile(id=$id, path=$path, size=$size, flag=$flag, mod=$mod, flags=$flags)"
+    }
 }

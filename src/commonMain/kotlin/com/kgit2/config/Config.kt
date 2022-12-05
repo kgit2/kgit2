@@ -10,6 +10,7 @@ import com.kgit2.common.memory.memoryScoped
 import com.kgit2.memory.RawWrapper
 import com.kgit2.model.Buf
 import com.kgit2.repository.Repository
+import io.github.aakira.napier.Napier
 import kotlinx.cinterop.*
 import libgit2.*
 
@@ -130,14 +131,14 @@ class Config(raw: ConfigRaw) : RawWrapper<git_config, ConfigRaw>(raw) {
 
     fun setBool(name: String, value: Boolean) {
         if (name.isEmpty()) throw IllegalArgumentException("name is empty")
-        git_config_set_bool(raw.handler, name, value.toInt()).errorCheck()
+        git_config_set_bool(raw.handler, name, value.toInt()).also { Napier.e("setBool $it") }.errorCheck()
     }
 
     fun getBool(name: String): Boolean {
         if (name.isEmpty()) throw IllegalArgumentException("name is empty")
         return memoryScoped {
             val out = alloc<IntVar>()
-            git_config_get_bool(out.ptr, raw.handler, name).errorCheck()
+            git_config_get_bool(out.ptr, raw.handler, name).also { Napier.e("getBool $it") }.errorCheck()
             out.value.toBoolean()
         }
     }

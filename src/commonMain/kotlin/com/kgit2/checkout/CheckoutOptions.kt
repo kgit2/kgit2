@@ -26,6 +26,7 @@ class CheckoutOptions(
     raw: CheckoutOptionsRaw = CheckoutOptionsRaw(initial = {
         git_checkout_options_init(this.getPointer(it), GIT_CHECKOUT_OPTIONS_VERSION).errorCheck()
     }),
+    initial: CheckoutOptions.() -> Unit = {},
 ) : RawWrapper<git_checkout_options, CheckoutOptionsRaw>(raw),
     CallbackAble<git_checkout_options, CheckoutOptionsRaw, CheckoutOptions.CallbacksPayload> {
     constructor(
@@ -39,22 +40,6 @@ class CheckoutOptions(
     override val stableRef: StableRef<CallbacksPayload> = callbacksPayload.asStableRef()
 
     override val cleaner: Cleaner = createCleaner()
-
-    inner class CallbacksPayload : ICallbacksPayload, CheckoutNotifyCallbackPayload, CheckoutProgressCallbackPayload {
-        override var checkoutProgressCallback: CheckoutProgressCallback? = null
-            set(value) {
-                field = value
-                raw.handler.pointed.progress_payload = value?.let { stableRef.asCPointer() }
-                raw.handler.pointed.progress_cb = value?.let { staticCheckoutProgressCallback }
-            }
-
-        override var checkoutNotifyCallback: CheckoutNotifyCallback? = null
-            set(value) {
-                field = value
-                raw.handler.pointed.notify_payload = value?.let { stableRef.asCPointer() }
-                raw.handler.pointed.notify_cb = value?.let { staticCheckoutNotifyCallback }
-            }
-    }
 
     val strategy: CheckoutStrategyOpts = CheckoutStrategyOpts(raw.handler.pointed.checkout_strategy) {
         raw.handler.pointed.checkout_strategy = it
@@ -110,4 +95,24 @@ class CheckoutOptions(
     var progressCallback: CheckoutProgressCallback? by callbacksPayload::checkoutProgressCallback
 
     val paths: StrArray = StrArray(Memory(), raw.handler.pointed.paths)
+
+    init {
+        this.initial()
+    }
+
+    inner class CallbacksPayload : ICallbacksPayload, CheckoutNotifyCallbackPayload, CheckoutProgressCallbackPayload {
+        override var checkoutProgressCallback: CheckoutProgressCallback? = null
+            set(value) {
+                field = value
+                raw.handler.pointed.progress_payload = value?.let { stableRef.asCPointer() }
+                raw.handler.pointed.progress_cb = value?.let { staticCheckoutProgressCallback }
+            }
+
+        override var checkoutNotifyCallback: CheckoutNotifyCallback? = null
+            set(value) {
+                field = value
+                raw.handler.pointed.notify_payload = value?.let { stableRef.asCPointer() }
+                raw.handler.pointed.notify_cb = value?.let { staticCheckoutNotifyCallback }
+            }
+    }
 }

@@ -7,16 +7,27 @@ import okio.Path
 
 val tempPath = FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "kgit2"
 
-fun <R> withTempDir(block: (Path) -> R): R {
-    val uuid = randomUUID()
-    val path = tempPath / uuid
-    Napier.d("repo path: $path")
+fun <R> withTempDir(block: (Path) -> R): R = with(TempDir()) {
+    Napier.d("temp path: $path")
     return try {
-        createDirectories(path, false)
-        block(path)
+        block(this.path)
     } catch (e: Exception) {
         throw e
     } finally {
+        clean()
+    }
+}
+
+class TempDir {
+    val path: Path
+
+    init {
+        val uuid = randomUUID()
+        path = tempPath / uuid
+        createDirectories(path, true)
+    }
+
+    fun clean() {
         deleteRecursively(path, false)
     }
 }

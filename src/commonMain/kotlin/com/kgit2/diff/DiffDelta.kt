@@ -23,7 +23,7 @@ class DiffDelta(raw: DiffDeltaRaw) : RawWrapper<git_diff_delta, DiffDeltaRaw>(ra
 
     val path: String = raw.handler.pointed.new_file.path!!.toKString()
 
-    val flag: DiffFlag = DiffFlag(raw.handler.pointed.flags)
+    val flags: DiffFlags = DiffFlags(raw.handler.pointed.flags)
 
     val nFiles: UShort = raw.handler.pointed.nfiles
 
@@ -34,4 +34,8 @@ class DiffDelta(raw: DiffDeltaRaw) : RawWrapper<git_diff_delta, DiffDeltaRaw>(ra
     val oldFile: DiffFile = DiffFile(Memory(), raw.handler.pointed.old_file.ptr)
 
     val newFile: DiffFile = DiffFile(Memory(), raw.handler.pointed.new_file.ptr)
+
+    override fun toString(): String {
+        return "DiffDelta(path='$path', flag=$flags, nFiles=$nFiles, status=$status, similarity=$similarity, oldFile=$oldFile, newFile=$newFile)"
+    }
 }

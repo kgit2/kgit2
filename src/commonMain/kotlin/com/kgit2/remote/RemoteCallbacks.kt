@@ -29,20 +29,13 @@ class RemoteCallbacks(
     raw: RemoteCallbacksRaw = RemoteCallbacksRaw(initial = {
         git_remote_init_callbacks(this, GIT_REMOTE_CALLBACKS_VERSION)
     }),
+    initial: RemoteCallbacks.() -> Unit = {},
 ) : RawWrapper<git_remote_callbacks, RemoteCallbacksRaw>(raw) {
     constructor(memory: Memory, handler: CPointer<git_remote_callbacks>) : this(RemoteCallbacksRaw(memory, handler))
 
     private val callbackPayload = CallbackPayload()
+
     private val stableRef = StableRef.create(callbackPayload)
-
-    init {
-        raw.handler.pointed.payload = stableRef.asCPointer()
-    }
-
-    override val cleaner: Cleaner = createCleaner(raw to stableRef) {
-        it.second.dispose()
-        it.first.free()
-    }
 
     /**
      * Textual progress from the remote. Text send over the
@@ -113,6 +106,16 @@ class RemoteCallbacks(
      * Callback when the remote is ready to connect.
      */
     var remoteReady: RemoteReadyCallback? by callbackPayload::remoteReadyCallback
+
+    init {
+        raw.handler.pointed.payload = stableRef.asCPointer()
+        this.initial()
+    }
+
+    override val cleaner: Cleaner = createCleaner(raw to stableRef) {
+        it.second.dispose()
+        it.first.free()
+    }
 
     inner class CallbackPayload
         : ICallbacksPayload,
