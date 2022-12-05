@@ -177,7 +177,7 @@ tasks {
         workingDir(libgit2BuildDir)
         val command = commandLine(
             "sh", "-c",
-            "cmake --build . --target install"
+            "cmake --build . --target install -j6"
         )
         doLast {
             logger.warn("Build & Install LibSSH2: ${command.executable} ${command.args?.joinToString(" ")}")
@@ -241,10 +241,10 @@ tasks {
 
             val template = """
                 |headers = ${headers.joinToString(" ")}
-                |staticLibraries = libgit2.a
-                |libraryPaths = ${libgit2DistDir.resolve("lib").normalize().absolutePath} ${libssh2DistDir.resolve("lib").normalize().absolutePath}
+                |staticLibraries = libgit2.a libssh2.a libssl.a libcrypto.a
+                |libraryPaths = ${libgit2DistDir.resolve("lib").normalize().absolutePath} ${libssh2DistDir.resolve("lib").normalize().absolutePath} /opt/homebrew/opt/openssl@3/lib
                 |compilerOpts = -I${libgit2DistDir.resolve("include").normalize().absolutePath}
-                |linkerOpts = ${inputs.files.singleFile.readText()}
+                |linkerOpts = -L/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/lib -framework CoreFoundation -framework Security -lz -liconv
             """.trimMargin()
             defFile.writeText(template)
         }

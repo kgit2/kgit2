@@ -5,14 +5,14 @@ package com.kgit2.common
 import libgit2.git_libgit2_opt_t
 
 enum class GitOptions(val setter: git_libgit2_opt_t, val getter: git_libgit2_opt_t? = null) {
-    WindowSize(git_libgit2_opt_t.GIT_OPT_GET_MWINDOW_SIZE, git_libgit2_opt_t.GIT_OPT_SET_MWINDOW_SIZE),
-    WindowMappedLimit(git_libgit2_opt_t.GIT_OPT_GET_MWINDOW_MAPPED_LIMIT, git_libgit2_opt_t.GIT_OPT_SET_MWINDOW_MAPPED_LIMIT),
-    SearchPath(git_libgit2_opt_t.GIT_OPT_GET_SEARCH_PATH, git_libgit2_opt_t.GIT_OPT_SET_SEARCH_PATH),
-    TemplatePath(git_libgit2_opt_t.GIT_OPT_GET_TEMPLATE_PATH, git_libgit2_opt_t.GIT_OPT_SET_TEMPLATE_PATH),
+    WindowSize(git_libgit2_opt_t.GIT_OPT_SET_MWINDOW_SIZE, git_libgit2_opt_t.GIT_OPT_GET_MWINDOW_SIZE),
+    WindowMappedLimit(git_libgit2_opt_t.GIT_OPT_SET_MWINDOW_MAPPED_LIMIT, git_libgit2_opt_t.GIT_OPT_GET_MWINDOW_MAPPED_LIMIT),
+    SearchPath(git_libgit2_opt_t.GIT_OPT_SET_SEARCH_PATH, git_libgit2_opt_t.GIT_OPT_GET_SEARCH_PATH),
+    TemplatePath(git_libgit2_opt_t.GIT_OPT_SET_TEMPLATE_PATH, git_libgit2_opt_t.GIT_OPT_GET_TEMPLATE_PATH),
     UserAgent(git_libgit2_opt_t.GIT_OPT_SET_USER_AGENT, git_libgit2_opt_t.GIT_OPT_GET_USER_AGENT),
     WindowsShareMode(git_libgit2_opt_t.GIT_OPT_SET_WINDOWS_SHAREMODE, git_libgit2_opt_t.GIT_OPT_GET_WINDOWS_SHAREMODE),
     PackMaxObjects(git_libgit2_opt_t.GIT_OPT_SET_PACK_MAX_OBJECTS, git_libgit2_opt_t.GIT_OPT_GET_PACK_MAX_OBJECTS),
-    WindowFileLimit(git_libgit2_opt_t.GIT_OPT_GET_MWINDOW_FILE_LIMIT, git_libgit2_opt_t.GIT_OPT_SET_MWINDOW_FILE_LIMIT),
+    WindowFileLimit(git_libgit2_opt_t.GIT_OPT_SET_MWINDOW_FILE_LIMIT, git_libgit2_opt_t.GIT_OPT_GET_MWINDOW_FILE_LIMIT),
     Extensions(git_libgit2_opt_t.GIT_OPT_SET_EXTENSIONS, git_libgit2_opt_t.GIT_OPT_GET_EXTENSIONS),
     OwnerValidation(git_libgit2_opt_t.GIT_OPT_SET_OWNER_VALIDATION, git_libgit2_opt_t.GIT_OPT_GET_OWNER_VALIDATION),
 

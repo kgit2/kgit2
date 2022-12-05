@@ -37,7 +37,7 @@ val staticApplyDeltaCallback: git_apply_delta_cb = staticCFunction {
  * if the hunk is not applied - [CallbackResult.Skip]
  * if the apply process should be aborted - [CallbackResult.Abort]
  */
-typealias ApplyHunkCallback = (hunk: DiffHunk) -> GitErrorCode
+typealias ApplyHunkCallback = (hunk: DiffHunk) -> CallbackResult
 
 interface ApplyHunkCallbackPayload {
     var applyHunkCallback: ApplyHunkCallback?

@@ -5,10 +5,7 @@ import com.kgit2.common.extend.errorCheck
 import com.kgit2.common.memory.Memory
 import com.kgit2.memory.MutableListBase
 import com.kgit2.memory.RawWrapper
-import kotlinx.cinterop.convert
-import kotlinx.cinterop.cstr
-import kotlinx.cinterop.pointed
-import kotlinx.cinterop.toCValues
+import kotlinx.cinterop.*
 import libgit2.git_strarray
 import libgit2.git_strarray_copy
 import libgit2.git_strarray_dispose
@@ -28,6 +25,12 @@ class StrArray(
 
     constructor(contents: Collection<String>? = null) : this(StrarrayRaw(initial = {})) {
         contents?.let { addAll(it) }
+    }
+
+    init {
+        for (i in 0 until raw.handler.pointed.count.convert()) {
+            innerList.add(raw.handler.pointed.strings!![i]!!.toKString())
+        }
     }
 
     fun copy(): StrArray = StrArray(StrarrayRaw(initial = {

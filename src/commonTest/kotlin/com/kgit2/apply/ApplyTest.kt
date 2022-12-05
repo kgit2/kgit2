@@ -1,5 +1,6 @@
 package com.kgit2.apply
 
+import com.kgit2.common.callback.CallbackResult
 import com.kgit2.common.error.GitErrorCode
 import com.kgit2.common.kgitRunTest
 import com.kgit2.utils.initRepository
@@ -22,11 +23,11 @@ class ApplyTest {
             val options = ApplyOptions() {
                 hunkCallback = {
                     countHunks++
-                    GitErrorCode.Ok
+                    CallbackResult.Ok
                 }
                 deltaCallback = {
                     countDelta++
-                    GitErrorCode.Ok
+                    CallbackResult.Ok
                 }
             }
             repository.Apply.apply(diff, ApplyLocation.Both, options)
@@ -55,11 +56,11 @@ class ApplyTest {
             val options = ApplyOptions() {
                 hunkCallback = {
                     countHunks++
-                    GitErrorCode.Ok
+                    CallbackResult.Ok
                 }
                 deltaCallback = {
                     countDelta++
-                    GitErrorCode.Ok
+                    CallbackResult.Ok
                 }
             }
             repository.Apply.apply(diff, ApplyLocation.Index, options)

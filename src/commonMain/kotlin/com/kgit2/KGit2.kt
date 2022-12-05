@@ -86,7 +86,7 @@ object KGit2 {
 
     object Options {
         data class CachedMemoryMode(val current: Long, val allowed: Long)
-        val CachedMemory: CachedMemoryMode
+        val cachedMemory: CachedMemoryMode
             get() = memoryScoped {
                 val current = alloc<LongVar>()
                 val allowed = alloc<LongVar>()
@@ -94,7 +94,7 @@ object KGit2 {
                 CachedMemoryMode(current.value, allowed.value)
             }
 
-        var WindowSize: Int
+        var windowSize: Int
             get() = memoryScoped {
                 val result = alloc<IntVar>()
                 git_libgit2_opts(GitOptions.WindowSize.getter!!.value.convert(), result.ptr)
@@ -104,7 +104,7 @@ object KGit2 {
                 git_libgit2_opts(GitOptions.WindowSize.setter.value.convert(), value)
             }
 
-        var WindowMappedLimit: Int
+        var windowMappedLimit: Int
             get() = memoryScoped {
                 val result = alloc<IntVar>()
                 git_libgit2_opts(GitOptions.WindowMappedLimit.getter!!.value.convert(), result.ptr)
@@ -114,7 +114,7 @@ object KGit2 {
                 git_libgit2_opts(GitOptions.WindowMappedLimit.setter.value.convert(), value)
             }
 
-        var TemplatePath: String
+        var templatePath: String
             get() = with(Buf {
                 git_libgit2_opts(GitOptions.TemplatePath.getter!!.value.convert(), this)
             }) {
@@ -124,7 +124,7 @@ object KGit2 {
                 git_libgit2_opts(GitOptions.TemplatePath.setter.value.convert(), value.cstr.ptr)
             }
 
-        var UserAgent: String
+        var userAgent: String
             get() = with(Buf {
                 git_libgit2_opts(GitOptions.UserAgent.getter!!.value.convert(), this)
             }) {
@@ -134,7 +134,7 @@ object KGit2 {
                 git_libgit2_opts(GitOptions.UserAgent.setter.value.convert(), value.cstr.ptr)
             }
 
-        var WindowsShareMode: ULong
+        var windowsShareMode: ULong
             get() = memoryScoped {
                 val result = alloc<ULongVar>()
                 git_libgit2_opts(GitOptions.WindowsShareMode.getter!!.value.convert(), result.ptr)
@@ -144,7 +144,7 @@ object KGit2 {
                 git_libgit2_opts(GitOptions.WindowsShareMode.setter.value.convert(), value)
             }
 
-        var PackMaxObjects: ULong
+        var packMaxObjects: ULong
             get() = memoryScoped {
                 val result = alloc<ULongVar>()
                 git_libgit2_opts(GitOptions.PackMaxObjects.getter!!.value.convert(), result.ptr)
@@ -154,7 +154,7 @@ object KGit2 {
                 git_libgit2_opts(GitOptions.PackMaxObjects.setter.value.convert(), value)
             }
 
-        var WindowFileLimit: ULong
+        var windowFileLimit: ULong
             get() = memoryScoped {
                 val result = alloc<ULongVar>()
                 git_libgit2_opts(GitOptions.WindowFileLimit.getter!!.value.convert(), result.ptr)
@@ -164,17 +164,18 @@ object KGit2 {
                 git_libgit2_opts(GitOptions.WindowFileLimit.setter.value.convert(), value)
             }
 
-        var Extensions: List<String>
-            get() = with(StrArray {
-                git_libgit2_opts(GitOptions.Extensions.getter!!.value.convert(), this)
-            }) {
-                this.innerList.toList()
-            }
-            set(value) = memoryScoped {
-                git_libgit2_opts(GitOptions.Extensions.setter.value.convert(), value.map { it.cstr.ptr }.toCValues().ptr)
+        val extensions: List<String>
+            get() = memoryScoped {
+                val strArray = alloc<git_strarray>()
+                git_libgit2_opts(GitOptions.Extensions.getter!!.value.convert(), strArray.ptr)
+                val result = List(strArray.count.toInt()) {
+                    strArray.strings!![it]!!.toKString()
+                }
+                git_strarray_dispose(strArray.ptr)
+                result
             }
 
-        var OwnerValidation: Int
+        var ownerValidation: Int
             get() = memoryScoped {
                 val result = alloc<IntVar>()
                 git_libgit2_opts(GitOptions.OwnerValidation.getter!!.value.convert(), result.ptr)
@@ -184,19 +185,27 @@ object KGit2 {
                 git_libgit2_opts(GitOptions.OwnerValidation.setter.value.convert(), value)
             }
 
-        fun GetSearchPath(level: ConfigLevel): Buf = Buf {
+        fun addExtensions(extension: Collection<String>) = memoryScoped {
+            git_libgit2_opts(GitOptions.Extensions.setter.value.convert(), extension.map { it.cstr.ptr }.toCValues().ptr, extension.size)
+        }
+
+        fun getSearchPath(level: ConfigLevel): Buf = Buf {
             git_libgit2_opts(GitOptions.SearchPath.getter!!.value.convert(), level.value, this)
         }
 
-        fun SetSearchPath(level: ConfigLevel, path: String) = memoryScoped {
-            git_libgit2_opts(GitOptions.SearchPath.setter.value.convert(), level.value, path.cstr.ptr)
+        fun setSearchPath(level: ConfigLevel, path: String) = memoryScoped {
+            git_libgit2_opts(GitOptions.SearchPath.setter.value.convert(), level.value, path)
         }
 
-        fun SetCacheObjectLimit(type: ObjectType, size: ULong) {
+        fun resetSearchPath(level: ConfigLevel) = memoryScoped {
+            git_libgit2_opts(GitOptions.SearchPath.setter.value.convert(), level.value, null)
+        }
+
+        fun setCacheObjectLimit(type: ObjectType, size: ULong) {
             git_libgit2_opts(GitOptions.CacheObjectLimit.setter.value.convert(), type.value, size)
         }
 
-        fun SetCacheMaxSize(size: Long) {
+        fun setCacheMaxSize(size: Long) {
             git_libgit2_opts(GitOptions.CacheMaxSize.setter.value.convert(), size)
         }
 
@@ -207,55 +216,55 @@ object KGit2 {
          * certificates, one per file.
          * Either parameter may be `NULL`, but not both.
          */
-        fun SetSSLCertLocations(file: String?, path: String?) = memoryScoped {
+        fun setSSLCertLocations(file: String?, path: String?) = memoryScoped {
             git_libgit2_opts(GitOptions.SSLCertLocations.setter.value.convert(), file?.cstr?.ptr, path?.cstr?.ptr)
         }
 
-        fun SetSSLCiphers(ciphers: String) = memoryScoped {
+        fun setSSLCiphers(ciphers: String) = memoryScoped {
             git_libgit2_opts(GitOptions.SSLCiphers.setter.value.convert(), ciphers.cstr.ptr)
         }
 
-        fun SetOdbPackedPriority(priority: Int) {
+        fun setOdbPackedPriority(priority: Int) {
             git_libgit2_opts(GitOptions.OdbPackedPriority.setter.value.convert(), priority)
         }
 
-        fun SetOdbLoosePriority(priority: Int) {
+        fun setOdbLoosePriority(priority: Int) {
             git_libgit2_opts(GitOptions.OdbLoosePriority.setter.value.convert(), priority)
         }
 
-        fun EnableCaching(enable: Boolean) {
+        fun caching(enable: Boolean) {
             git_libgit2_opts(GitOptions.EnableCaching.setter.value.convert(), enable.toInt())
         }
 
-        fun EnableStrictObjectCreation(enable: Boolean) {
+        fun strictObjectCreation(enable: Boolean) {
             git_libgit2_opts(GitOptions.EnableStrictObjectCreation.setter.value.convert(), enable.toInt())
         }
 
-        fun EnableStrictREFCreation(enable: Boolean) {
+        fun strictREFCreation(enable: Boolean) {
             git_libgit2_opts(GitOptions.EnableStrictREFCreation.setter.value.convert(), enable.toInt())
         }
 
-        fun EnableOFSDelta(enable: Boolean) {
+        fun ofsDelta(enable: Boolean) {
             git_libgit2_opts(GitOptions.EnableOFSDelta.setter.value.convert(), enable.toInt())
         }
 
-        fun EnableFSyncGitDir(enable: Boolean) {
+        fun fsyncGitDir(enable: Boolean) {
             git_libgit2_opts(GitOptions.EnableFSyncGitDir.setter.value.convert(), enable.toInt())
         }
 
-        fun EnableStrictHashVerification(enable: Boolean) {
+        fun strictHashVerification(enable: Boolean) {
             git_libgit2_opts(GitOptions.EnableStrictHashVerification.setter.value.convert(), enable.toInt())
         }
 
-        fun EnableUnsavedIndexSafety(enable: Boolean) {
+        fun unsavedIndexSafety(enable: Boolean) {
             git_libgit2_opts(GitOptions.EnableUnsavedIndexSafety.setter.value.convert(), enable.toInt())
         }
 
-        fun DisablePackKeepFileChecks(enable: Boolean) {
+        fun packKeepFileChecks(enable: Boolean) {
             git_libgit2_opts(GitOptions.DisablePackKeepFileChecks.setter.value.convert(), enable.toInt())
         }
 
-        fun EnableHttpExpectContinue(enable: Boolean) {
+        fun httpExpectContinue(enable: Boolean) {
             git_libgit2_opts(GitOptions.EnableHttpExpectContinue.setter.value.convert(), enable.toInt())
         }
     }
