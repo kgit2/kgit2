@@ -90,11 +90,11 @@ tasks {
         val command = commandLine(
             "sh", "-c",
             "./configure -q --prefix=${libssh2DistDir} " +
-                "--disable-silent-rules " +
-                "--disable-examples-build " +
-                "--with-libz " +
-                "--with-crypto=openssl " +
-                "--with-libssl-prefix=${opensslDir}",
+                    "--disable-silent-rules " +
+                    "--disable-examples-build " +
+                    "--with-libz " +
+                    "--with-crypto=openssl " +
+                    "--with-libssl-prefix=${opensslDir}",
         )
         doLast {
             logger.warn("Configure LibSSH2: ${command.executable} ${command.args?.joinToString(" ")}")
@@ -157,13 +157,13 @@ tasks {
         val command = commandLine(
             "sh", "-c",
             "cmake $libgit2SourceDir " +
-                "-DCMAKE_BUILD_TYPE=Release " +
-                "-DCMAKE_INSTALL_PREFIX=$libgit2DistDir " +
-                "-DCMAKE_OSX_ARCHITECTURES='arm64' " +
-                "-DBUILD_SHARED_LIBS=OFF " +
-                "-DUSE_SSH=ON " +
-                "-DBUILD_TESTS=OFF " +
-                "-DCMAKE_PREFIX_PATH='$libssh2DistDir;$opensslDir'",
+                    "-DCMAKE_BUILD_TYPE=Release " +
+                    "-DCMAKE_INSTALL_PREFIX=$libgit2DistDir " +
+                    "-DCMAKE_OSX_ARCHITECTURES='arm64' " +
+                    "-DBUILD_SHARED_LIBS=OFF " +
+                    "-DUSE_SSH=ON " +
+                    "-DBUILD_TESTS=OFF " +
+                    "-DCMAKE_PREFIX_PATH='$libssh2DistDir;$opensslDir'",
         )
         doLast {
             logger.warn("Configure LibSSH2: ${command.executable} ${command.args?.joinToString(" ")}")
@@ -242,7 +242,9 @@ tasks {
             val template = """
                 |headers = ${headers.joinToString(" ")}
                 |staticLibraries = libgit2.a libssh2.a libssl.a libcrypto.a
-                |libraryPaths = ${libgit2DistDir.resolve("lib").normalize().absolutePath} ${libssh2DistDir.resolve("lib").normalize().absolutePath} /opt/homebrew/opt/openssl@3/lib
+                |libraryPaths = ${
+                libgit2DistDir.resolve("lib").normalize().absolutePath
+            } ${libssh2DistDir.resolve("lib").normalize().absolutePath} /opt/homebrew/opt/openssl@3/lib
                 |compilerOpts = -I${libgit2DistDir.resolve("include").normalize().absolutePath}
                 |linkerOpts = -L/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/lib -framework CoreFoundation -framework Security -lz -liconv
             """.trimMargin()
@@ -303,11 +305,27 @@ tasks {
                 }
             }
 
+            val noStringConversion = listOf(
+                "git_attr_value"
+            )
+
+            val constVar = listOf(
+                """const char *git_attr__true  = "[internal]__TRUE__";""",
+                """const char *git_attr__false = "[internal]__FALSE__";""",
+                """const char *git_attr__unset = "[internal]__UNSET__";""",
+            )
+
             val template = """
                 |headers = native.h
                 |staticLibraries = libnative.a
                 |compilerOpts = -I${libnativeDist.resolve("include").normalize().absolutePath}
                 |libraryPaths = ${libnativeDist.resolve("lib").normalize().absolutePath}
+                |
+                |noStringConversion = ${noStringConversion.joinToString(" ")}
+                |
+                |---
+                |
+                |${constVar.joinToString("\n")}
             """.trimMargin()
             libnativeDef.writeText(template)
         }
