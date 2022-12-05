@@ -185,11 +185,11 @@ object KGit2 {
             }
 
         fun GetSearchPath(level: ConfigLevel): Buf = Buf {
-            git_libgit2_opts(GitOptions.SearchPath.getter!!.value.convert(), level.value.convert(), this)
+            git_libgit2_opts(GitOptions.SearchPath.getter!!.value.convert(), level.value, this)
         }
 
         fun SetSearchPath(level: ConfigLevel, path: String) = memoryScoped {
-            git_libgit2_opts(GitOptions.SearchPath.setter.value.convert(), level.value.convert(), path.cstr.ptr)
+            git_libgit2_opts(GitOptions.SearchPath.setter.value.convert(), level.value, path.cstr.ptr)
         }
 
         fun SetCacheObjectLimit(type: ObjectType, size: ULong) {
