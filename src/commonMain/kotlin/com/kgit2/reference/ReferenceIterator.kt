@@ -9,26 +9,26 @@ import kotlinx.cinterop.allocPointerTo
 import kotlinx.cinterop.ptr
 import libgit2.git_reference_iterator
 import libgit2.git_reference_next
+import kotlin.native.ref.WeakReference
 
 @Raw(
     base = git_reference_iterator::class,
     free = "git_reference_iterator_free"
 )
-class ReferenceIterator(raw: ReferenceIteratorRaw) : RawWrapper<git_reference_iterator, ReferenceIteratorRaw>(raw),
-    Iterable<Reference> {
+class ReferenceIterator(raw: ReferenceIteratorRaw)
+    : RawWrapper<git_reference_iterator, ReferenceIteratorRaw>(raw),
+    IteratorBase<Reference> {
     constructor(
         memory: Memory = Memory(),
         secondary: ReferenceIteratorSecondaryPointer = memory.allocPointerTo(),
         secondaryInitial: ReferenceIteratorSecondaryInitial? = null,
     ) : this(ReferenceIteratorRaw(memory, secondary, secondaryInitial))
 
-    override fun iterator(): Iterator<Reference> = InnerIterator()
+    override var next: WeakReference<Reference>? = null
 
-    inner class InnerIterator : IteratorBase<Reference>() {
-        override fun nextRaw(): Result<Reference> = runCatching {
-            Reference {
-                git_reference_next(this.ptr, raw.handler).errorCheck()
-            }
+    override fun nextRaw(): Result<Reference> = runCatching {
+        Reference {
+            git_reference_next(this.ptr, raw.handler).errorCheck()
         }
     }
 }

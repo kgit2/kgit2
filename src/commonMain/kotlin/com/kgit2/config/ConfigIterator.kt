@@ -9,12 +9,14 @@ import kotlinx.cinterop.allocPointerTo
 import kotlinx.cinterop.ptr
 import libgit2.git_config_iterator
 import libgit2.git_config_next
+import kotlin.native.ref.WeakReference
 
 @Raw(
     base = git_config_iterator::class,
     free = "git_config_iterator_free",
 )
-class ConfigIterator(raw: ConfigIteratorRaw) : RawWrapper<git_config_iterator, ConfigIteratorRaw>(raw), Iterable<ConfigEntry> {
+class ConfigIterator(raw: ConfigIteratorRaw) : RawWrapper<git_config_iterator, ConfigIteratorRaw>(raw),
+    IteratorBase<ConfigEntry> {
     constructor(memory: Memory, handler: ConfigIteratorPointer) : this(ConfigIteratorRaw(memory, handler))
 
     constructor(
@@ -23,15 +25,13 @@ class ConfigIterator(raw: ConfigIteratorRaw) : RawWrapper<git_config_iterator, C
         secondaryInitial: ConfigIteratorSecondaryInitial? = null,
     ) : this(ConfigIteratorRaw(memory, secondary = secondary, secondaryInitial = secondaryInitial))
 
-    inner class InnerIterator : IteratorBase<ConfigEntry>() {
-        override fun nextRaw(): Result<ConfigEntry> = runCatching {
-            ConfigEntry(shouldFreeOnFailure = false) {
-                git_config_next(this.ptr, raw.handler).errorCheck()
-            }
-        }.onSuccess {
-            it.raw.move()
-        }
-    }
+    override var next: WeakReference<ConfigEntry>? = null
 
-    override fun iterator(): Iterator<ConfigEntry> = InnerIterator()
+    override fun nextRaw(): Result<ConfigEntry> = runCatching {
+        ConfigEntry(memory = raw.memory, shouldFreeOnFailure = false) {
+            git_config_next(this.ptr, raw.handler).errorCheck()
+        }
+    }.onSuccess {
+        it.raw.move()
+    }
 }

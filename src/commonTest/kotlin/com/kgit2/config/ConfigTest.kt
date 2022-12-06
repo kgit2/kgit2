@@ -1,10 +1,21 @@
 package com.kgit2.config
 
+import com.kgit2.common.extend.errorCheck
 import com.kgit2.common.kgitRunTest
+import com.kgit2.common.memory.Memory
+import com.kgit2.common.memory.memoryScoped
 import com.kgit2.utils.TempConfig
 import com.kgit2.utils.withTempDir
 import io.github.aakira.napier.Napier
+import kotlinx.cinterop.allocPointerTo
+import kotlinx.cinterop.ptr
 import kotlinx.cinterop.toKString
+import kotlinx.cinterop.value
+import libgit2.git_config_entry
+import libgit2.git_config_iterator
+import libgit2.git_config_iterator_free
+import libgit2.git_config_iterator_new
+import libgit2.git_config_next
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -45,8 +56,29 @@ class ConfigTest {
             assertEquals(2L, config.getInt64("foo.k3"))
             assertEquals("bar", config.getStringBuf("foo.k4").buffer?.toKString())
 
+            // memoryScoped {
+            //     val iter = allocPointerTo<git_config_iterator>()
+            //     git_config_iterator_new(iter.ptr, config.raw.handler).errorCheck()
+            //     val mem = Memory()
+            //     while (true) {
+            //         // val entryPtr = allocPointerTo<git_config_entry>()
+            //         // val result = git_config_next(entryPtr.ptr, iter.value)
+            //         // if (result != 0) break
+            //         // val ce = ConfigEntry(secondary = entryPtr)
+            //         // ce.raw.move()
+            //         // println("123123123131241234 $ce")
+            //         val entry = runCatching {
+            //             ConfigEntry(memory = mem) {
+            //                 git_config_next(this.ptr, iter.value).errorCheck()
+            //             }
+            //         }.onSuccess { ce -> ce.raw.move() }.getOrNull() ?: break
+            //         println(entry)
+            //     }
+            //     mem.free()
+            //     git_config_iterator_free(iter.value)
+            // }
             val entries = config.getEntries()
-            assertEquals(4, entries.count())
+            assertEquals(4, entries.asSequence().count())
 
             snapshot = config.snapshot()
             assertEquals("bar", snapshot.getString("foo.k4"))
@@ -75,8 +107,8 @@ class ConfigTest {
             assertEquals(expectList2, multiVar2)
 
             config.removeMultiVar("foo.bar", ".*")
-            assertEquals(0, config.getEntries("foo.bar").count())
-            assertEquals(0, config.getMultiVar("foo.bar").count())
+            assertEquals(0, config.getEntries("foo.bar").asSequence().count())
+            assertEquals(0, config.getMultiVar("foo.bar").asSequence().count())
         }
     }
 

@@ -12,6 +12,7 @@ import com.kgit2.oid.Oid
 import com.kgit2.repository.*
 import kotlinx.cinterop.StableRef
 import libgit2.*
+import kotlin.native.ref.WeakReference
 
 @Raw(
     base = git_revwalk::class,
@@ -19,7 +20,7 @@ import libgit2.*
 )
 class Revwalk(
     raw: RevwalkRaw,
-) : RawWrapper<git_revwalk, RevwalkRaw>(raw), Iterable<Oid>, CallbackAble<git_revwalk, RevwalkRaw, Revwalk.CallbacksPayload> {
+) : RawWrapper<git_revwalk, RevwalkRaw>(raw), IteratorBase<Oid>, CallbackAble<git_revwalk, RevwalkRaw, Revwalk.CallbacksPayload> {
     constructor(secondaryInitial: RevwalkSecondaryInitial) : this(RevwalkRaw(secondaryInitial = secondaryInitial))
 
     override val callbacksPayload: CallbacksPayload = CallbacksPayload()
@@ -94,13 +95,11 @@ class Revwalk(
         git_revwalk_simplify_first_parent(raw.handler).errorCheck()
     }
 
-    override fun iterator(): Iterator<Oid> = InnerIterator()
+    override var next: WeakReference<Oid>? = null
 
-    inner class InnerIterator : IteratorBase<Oid>() {
-        override fun nextRaw(): Result<Oid> = runCatching {
-            Oid {
-                git_revwalk_next(this, raw.handler).errorCheck()
-            }
+    override fun nextRaw(): Result<Oid> = runCatching {
+        Oid {
+            git_revwalk_next(this, raw.handler).errorCheck()
         }
     }
 

@@ -13,12 +13,13 @@ import kotlinx.cinterop.allocPointerTo
 import kotlinx.cinterop.ptr
 import libgit2.git_branch_next
 import libgit2.git_branch_tVar
+import kotlin.native.ref.WeakReference
 
 @Raw(
     base = git_branch_iterator::class,
     free = "git_branch_iterator_free",
 )
-class BranchIterator(raw: BranchIteratorRaw) : RawWrapper<git_branch_iterator, BranchIteratorRaw>(raw), Iterable<Branch> {
+class BranchIterator(raw: BranchIteratorRaw) : RawWrapper<git_branch_iterator, BranchIteratorRaw>(raw), IteratorBase<Branch> {
     constructor(memory: Memory, handler: CPointer<git_branch_iterator>) : this(BranchIteratorRaw(memory, handler))
 
     constructor(
@@ -27,14 +28,12 @@ class BranchIterator(raw: BranchIteratorRaw) : RawWrapper<git_branch_iterator, B
         secondaryInitial: BranchIteratorSecondaryInitial? = null,
     ) : this(BranchIteratorRaw(memory, secondary, secondaryInitial))
 
-    inner class InnerIterator : IteratorBase<Branch>() {
-        override fun nextRaw(): Result<Branch> = runCatching {
-            Branch {
-                val type = it.alloc<git_branch_tVar>()
-                git_branch_next(this.ptr, type.ptr, raw.handler).errorCheck()
-            }
+    override var next: WeakReference<Branch>? = null
+
+    override fun nextRaw(): Result<Branch> = runCatching {
+        Branch {
+            val type = it.alloc<git_branch_tVar>()
+            git_branch_next(this.ptr, type.ptr, raw.handler).errorCheck()
         }
     }
-
-    override fun iterator(): Iterator<Branch> = InnerIterator()
 }

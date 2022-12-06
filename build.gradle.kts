@@ -1,3 +1,6 @@
+import java.io.ByteArrayOutputStream
+import java.nio.file.Path
+
 val kotlinVersion: String by rootProject
 val kotlinXCoroutinesVersion: String by rootProject
 val kspVersion: String by rootProject
@@ -81,6 +84,57 @@ tasks {
     val wrapper by getting(Wrapper::class) {
         distributionType = Wrapper.DistributionType.ALL
         gradleVersion = "7.6"
+    }
+
+    val generateLeaksCheck by creating(Exec::class) {
+        dependsOn("linkDebugTestNative")
+        outputs.file(buildDir.resolve("bin/leaks/check_leaks"))
+        commandLine("sh", "-c", "${buildDir.resolve("bin/native/debugTest/test.kexe")} --ktest_list_tests")
+        val output = ByteArrayOutputStream()
+        standardOutput = output
+        doLast {
+            val testList = String(output.toByteArray()).lines()
+            val tests = mutableListOf<String>()
+            testList.forEach {
+                if (it.startsWith("com.kgit2.")) {
+                    tests.add("$it*")
+                }
+            }
+            var prefix = ""
+            testList.forEach {
+                if (it.startsWith("com.kgit2.")) {
+                    prefix = it
+                } else if (it.trim().isNotEmpty()) {
+                    tests.add("$prefix${it.trim()}")
+                }
+            }
+
+            val template = """
+                |#!/usr/bin/env sh
+                |
+                |tests=(
+                |${tests.joinToString("\n")}
+                |)
+                |
+                |index=$1
+                |
+                |if [ ${"$"}index = "--list" ]; then
+                |    for i in "${"$"}{!tests[@]}"; do
+                |        echo "${"$"}i: ${"$"}{tests[${"$"}i]}"
+                |    done
+                |    exit 0
+                |fi
+                |
+                |repeat=${"$"}{2:-1}
+                |echo ${"$"}{tests[${"$"}{index}]}
+                |leaks --atExit -- ${buildDir.resolve("bin/native/debugTest/test.kexe")} --ktest_filter=${"$"}{tests[${"$"}{index}]} --ktest_repeat=${"$"}repeat
+            """.trimMargin()
+
+            buildDir.resolve("bin/leaks/check_leaks").writeText(template)
+            exec {
+                commandLine("chmod", "+x", buildDir.resolve("bin/leaks/check_leaks").toString())
+            }
+        }
     }
 }
 
