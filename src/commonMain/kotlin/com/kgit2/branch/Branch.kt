@@ -11,8 +11,20 @@ import com.kgit2.reference.ReferencePointer
 import com.kgit2.reference.ReferenceRaw
 import com.kgit2.reference.ReferenceSecondaryInitial
 import com.kgit2.reference.ReferenceSecondaryPointer
-import kotlinx.cinterop.*
-import libgit2.*
+import kotlinx.cinterop.ByteVar
+import kotlinx.cinterop.IntVar
+import kotlinx.cinterop.alloc
+import kotlinx.cinterop.allocPointerTo
+import kotlinx.cinterop.ptr
+import kotlinx.cinterop.toKString
+import kotlinx.cinterop.value
+import libgit2.git_branch_delete
+import libgit2.git_branch_is_head
+import libgit2.git_branch_move
+import libgit2.git_branch_name
+import libgit2.git_branch_name_is_valid
+import libgit2.git_branch_set_upstream
+import libgit2.git_branch_upstream
 
 /**
  * In-memory representation of a reference.
@@ -38,15 +50,19 @@ class Branch(raw: ReferenceRaw) : RawWrapper<git_reference, ReferenceRaw>(raw) {
         name.value!!.toKString()
     }
 
-    val upstream: Branch? = runCatching {
-        Branch { git_branch_upstream(this.ptr, raw.handler).errorCheck() }
-    }.getOrNull()
+    val upstream: Branch?
+        get() = runCatching {
+            Branch { git_branch_upstream(this.ptr, raw.handler).errorCheck() }
+        }.getOrNull()
 
     fun wrap(referenceRaw: ReferenceRaw): Branch = Branch(referenceRaw)
 
     fun unwrap(): ReferenceRaw = raw
 
-    fun delete() = git_branch_delete(raw.handler).errorCheck()
+    fun delete() {
+        git_branch_delete(raw.handler).errorCheck()
+        raw.free()
+    }
 
     fun isHead() = git_branch_is_head(raw.handler).toBoolean()
 
@@ -54,7 +70,13 @@ class Branch(raw: ReferenceRaw) : RawWrapper<git_reference, ReferenceRaw>(raw) {
         git_branch_move(this.ptr, raw.handler, name, force.toInt()).errorCheck()
     }
 
-    fun setUpstream(upstreamName: String) = git_branch_set_upstream(raw.handler, upstreamName).errorCheck()
+    fun setUpstream(upstreamName: String?) {
+        git_branch_set_upstream(raw.handler, upstreamName).errorCheck()
+    }
+
+    override fun toString(): String {
+        return "Branch(name='$name', upstream=$upstream, isHead=${isHead()})"
+    }
 
     companion object {
         fun validName(name: String): Boolean = memoryScoped {
