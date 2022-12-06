@@ -56,27 +56,6 @@ class ConfigTest {
             assertEquals(2L, config.getInt64("foo.k3"))
             assertEquals("bar", config.getStringBuf("foo.k4").buffer?.toKString())
 
-            // memoryScoped {
-            //     val iter = allocPointerTo<git_config_iterator>()
-            //     git_config_iterator_new(iter.ptr, config.raw.handler).errorCheck()
-            //     val mem = Memory()
-            //     while (true) {
-            //         // val entryPtr = allocPointerTo<git_config_entry>()
-            //         // val result = git_config_next(entryPtr.ptr, iter.value)
-            //         // if (result != 0) break
-            //         // val ce = ConfigEntry(secondary = entryPtr)
-            //         // ce.raw.move()
-            //         // println("123123123131241234 $ce")
-            //         val entry = runCatching {
-            //             ConfigEntry(memory = mem) {
-            //                 git_config_next(this.ptr, iter.value).errorCheck()
-            //             }
-            //         }.onSuccess { ce -> ce.raw.move() }.getOrNull() ?: break
-            //         println(entry)
-            //     }
-            //     mem.free()
-            //     git_config_iterator_free(iter.value)
-            // }
             val entries = config.getEntries()
             assertEquals(4, entries.asSequence().count())
 
