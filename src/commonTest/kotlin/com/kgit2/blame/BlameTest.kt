@@ -27,7 +27,6 @@ class BlameTest {
             val tree = repository.Tree.findTree(treeId)
             val signature = repository.Signature.signature()
             val headId = repository.Oid.refNameToOid("HEAD")
-            println("HEAD: $headId")
             val parent = repository.Commit.findCommit(headId)
             val commit = repository.Commit.commit("HEAD", signature, signature, "commit", tree, listOf(parent))
 

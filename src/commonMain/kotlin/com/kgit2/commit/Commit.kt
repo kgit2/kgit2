@@ -6,13 +6,34 @@ import com.kgit2.common.extend.errorCheck
 import com.kgit2.common.memory.Memory
 import com.kgit2.mailmap.Mailmap
 import com.kgit2.memory.RawWrapper
-import com.kgit2.oid.Oid
 import com.kgit2.`object`.Object
+import com.kgit2.oid.Oid
 import com.kgit2.signature.Signature
 import com.kgit2.time.Time
 import com.kgit2.tree.Tree
-import kotlinx.cinterop.*
-import libgit2.*
+import kotlinx.cinterop.allocPointerTo
+import kotlinx.cinterop.convert
+import kotlinx.cinterop.ptr
+import kotlinx.cinterop.reinterpret
+import kotlinx.cinterop.toKString
+import libgit2.git_commit_amend
+import libgit2.git_commit_author
+import libgit2.git_commit_author_with_mailmap
+import libgit2.git_commit_body
+import libgit2.git_commit_committer
+import libgit2.git_commit_committer_with_mailmap
+import libgit2.git_commit_id
+import libgit2.git_commit_message
+import libgit2.git_commit_message_encoding
+import libgit2.git_commit_message_raw
+import libgit2.git_commit_parent
+import libgit2.git_commit_parentcount
+import libgit2.git_commit_raw_header
+import libgit2.git_commit_summary
+import libgit2.git_commit_time
+import libgit2.git_commit_time_offset
+import libgit2.git_commit_tree
+import libgit2.git_commit_tree_id
 
 @Raw(
     base = git_commit::class,
@@ -59,17 +80,15 @@ class Commit(raw: CommitRaw) : RawWrapper<git_commit, CommitRaw>(raw) {
         }
     }
 
-    val author: Signature = Signature(Memory(), git_commit_author(raw.handler)!!).also { it.raw.move() }
+    val author: Signature = Signature(Memory(), git_commit_author(raw.handler)!!)
 
-    val committer: Signature = Signature(Memory(), git_commit_committer(raw.handler)!!).also { it.raw.move() }
+    val committer: Signature = Signature(Memory(), git_commit_committer(raw.handler)!!)
 
-    fun authorWithMailMap(mailMap: Mailmap): Signature = Signature {
-        git_commit_author_with_mailmap(this.ptr, raw.handler, mailMap.raw.handler).errorCheck()
-    }
+    fun authorWithMailMap(mailMap: Mailmap): Signature =
+        Signature { git_commit_author_with_mailmap(this.ptr, raw.handler, mailMap.raw.handler).errorCheck() }
 
-    fun committerWithMailMap(mailMap: Mailmap) = Signature {
-        git_commit_committer_with_mailmap(ptr, raw.handler, mailMap.raw.handler).errorCheck()
-    }
+    fun committerWithMailMap(mailMap: Mailmap) =
+        Signature { git_commit_committer_with_mailmap(ptr, raw.handler, mailMap.raw.handler).errorCheck() }
 
     fun amend(
         updateRef: String?,

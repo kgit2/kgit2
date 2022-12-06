@@ -34,7 +34,7 @@ class Tag(raw: TagRaw) : RawWrapper<git_tag, TagRaw>(raw) {
 
     val message: String = git_tag_message(raw.handler)!!.toKString()
 
-    val tagger: Signature = Signature(Memory(), git_tag_tagger(raw.handler)!!)
+    val tagger: Signature = Signature(raw.memory, git_tag_tagger(raw.handler)!!)
 
     val target: Object = Object { git_tag_target(this.ptr, raw.handler).errorCheck() }
 

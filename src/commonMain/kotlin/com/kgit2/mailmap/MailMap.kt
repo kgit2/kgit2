@@ -3,7 +3,6 @@ package com.kgit2.mailmap
 import cnames.structs.git_mailmap
 import com.kgit2.annotations.Raw
 import com.kgit2.common.extend.errorCheck
-import com.kgit2.common.memory.Memory
 import com.kgit2.memory.RawWrapper
 import com.kgit2.repository.Repository
 import com.kgit2.signature.Signature
@@ -11,7 +10,11 @@ import kotlinx.cinterop.convert
 import kotlinx.cinterop.ptr
 import kotlinx.cinterop.refTo
 import kotlinx.cinterop.toKString
-import libgit2.*
+import libgit2.git_mailmap_add_entry
+import libgit2.git_mailmap_from_buffer
+import libgit2.git_mailmap_from_repository
+import libgit2.git_mailmap_new
+import libgit2.git_mailmap_resolve_signature
 
 @Raw(
     base = git_mailmap::class,
@@ -33,7 +36,6 @@ class Mailmap(raw: MailmapRaw) : RawWrapper<git_mailmap, MailmapRaw>(raw) {
         git_mailmap_add_entry(raw.handler, realName, realEmail, replaceName, replaceEmail).errorCheck()
     }
 
-    fun resolveSignature(signature: Signature): Signature = Signature {
-        git_mailmap_resolve_signature(ptr, raw.handler, signature.raw.handler).errorCheck()
-    }
+    fun resolveSignature(signature: Signature): Signature =
+        Signature { git_mailmap_resolve_signature(ptr, raw.handler, signature.raw.handler).errorCheck() }
 }

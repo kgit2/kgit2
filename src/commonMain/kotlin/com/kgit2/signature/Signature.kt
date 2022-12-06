@@ -16,7 +16,9 @@ import kotlin.native.internal.createCleaner
     free = "git_signature_free",
 )
 class Signature(raw: SignatureRaw) : RawWrapper<git_signature, SignatureRaw>(raw) {
-    constructor(memory: Memory = Memory(), handler: CPointer<git_signature>) : this(SignatureRaw(memory, handler))
+    constructor(memory: Memory = Memory(), handler: CPointer<git_signature>) : this(SignatureRaw(memory, handler)) {
+        raw.beforeFree = null;
+    }
 
     constructor(
         memory: Memory = Memory(),
@@ -28,12 +30,12 @@ class Signature(raw: SignatureRaw) : RawWrapper<git_signature, SignatureRaw>(raw
         name: String,
         email: String,
         time: Time? = null,
-    ) : this(secondaryInitial = {
+    ) : this(SignatureRaw(secondaryInitial = {
         when (time) {
             null -> git_signature_now(ptr, name, email)
             else -> git_signature_new(ptr, name, email, time.seconds, time.offset)
         }
-    })
+    }))
 
     val name: String = raw.handler.pointed.name!!.toKString()
 
@@ -63,5 +65,4 @@ class Signature(raw: SignatureRaw) : RawWrapper<git_signature, SignatureRaw>(raw
         return "Signature(name='$name', email='$email', time=$time)"
     }
 
-    // override val cleaner: Cleaner = createCleaner(raw) { it.free() }
 }

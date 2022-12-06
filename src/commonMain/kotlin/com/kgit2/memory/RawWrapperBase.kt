@@ -7,10 +7,11 @@ interface RawWrapperBase<T : CPointed, R : Raw<T>> {
 
     val raw: R
         get() {
-            if (_raw.isFreed()) {
-                throw IllegalStateException("This object has been freed")
-            } else {
-                return _raw
-            }
+            // if (_raw.isFreed()) {
+            //     throw IllegalStateException("This object has been freed")
+            // } else {
+            //     return _raw
+            // }
+            return _raw
         }
 }

@@ -14,7 +14,7 @@ import libgit2.*
 class ReflogEntry(raw: ReflogEntryRaw) : RawWrapper<git_reflog_entry, ReflogEntryRaw>(raw) {
     constructor(secondaryInitial: ReflogEntrySecondaryInitial) : this(ReflogEntryRaw(secondaryInitial = secondaryInitial))
 
-    val committer: Signature? = git_reflog_entry_committer(raw.handler)?.let { Signature(handler = it) }
+    val committer: Signature? = git_reflog_entry_committer(raw.handler)?.let { Signature(raw.memory, it) }
 
     val newId: Oid? = git_reflog_entry_id_new(raw.handler)?.let { Oid(handler = it) }
 

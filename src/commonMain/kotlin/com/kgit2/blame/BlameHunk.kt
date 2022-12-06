@@ -23,7 +23,7 @@ class BlameHunk(raw: BlameHunkRaw) : RawWrapper<git_blame_hunk, BlameHunkRaw>(ra
 
     val finalCommitId: Oid = Oid(raw.memory, raw.handler.pointed.final_commit_id)
 
-    val finalSignature: Signature = Signature(raw.memory, raw.handler.pointed.final_signature!!).also { it.raw.move() }
+    val finalSignature: Signature = Signature(raw.memory, raw.handler.pointed.final_signature!!)
 
     val finalStartLineNumber: ULong = raw.handler.pointed.final_start_line_number
 
@@ -33,7 +33,7 @@ class BlameHunk(raw: BlameHunkRaw) : RawWrapper<git_blame_hunk, BlameHunkRaw>(ra
 
     val originStartLineNumber: ULong = raw.handler.pointed.orig_start_line_number
 
-    val originSignature: Signature = Signature(raw.memory, raw.handler.pointed.orig_signature!!).also { it.raw.move() }
+    val originSignature: Signature = Signature(raw.memory, raw.handler.pointed.orig_signature!!)
 
     val isBoundary: Boolean = raw.handler.pointed.boundary == 1.toByte()
 }
