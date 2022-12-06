@@ -1,3 +1,51 @@
 #!/usr/bin/env sh
-cd ../generator
-cargo run --color=always --package generator --bin check_leaks -- "$@"
+
+tests_list=($(build/bin/native/debugTest/test.kexe --ktest_list_tests))
+
+tests=("*")
+
+prefix=""
+
+for i in "${!tests_list[@]}"; do
+    line=${tests_list[$i]}
+    if [[ $line = com.kgit2.* ]]; then
+        tests+=(${line}*)
+    fi
+done
+
+for i in "${!tests_list[@]}"; do
+    line=${tests_list[$i]}
+    if [[ $line = com.kgit2.* ]]; then
+        prefix=$line
+    else
+        tests+=(${prefix}${line})
+    fi
+done
+
+index=${1:-"null"}
+
+repeat=${2:-1}
+
+regex="Process \d*: \d* leaks for \d* total leaked bytes."
+
+if [ $index = "--list" ]; then
+    for i in "${!tests[@]}"; do
+        echo "$i: ${tests[$i]}"
+    done
+    exit 0
+elif [ $index = "null" ]; then
+    repeat=20
+    for i in "${!tests[@]}"; do
+        if [[ ${tests[$i]} = *"*" ]]; then
+            continue
+        fi
+        echo "$i: ${tests[$i]}"
+        leaks --atExit -- /Users/bppleman/kgit2/kgit2/build/bin/native/debugTest/test.kexe --ktest_filter=${tests[$i]} --ktest_repeat=$repeat | grep "$regex"
+#        output=$(leaks --atExit -- /Users/bppleman/kgit2/kgit2/build/bin/native/debugTest/test.kexe --ktest_filter=${tests[$i]} --ktest_repeat=$repeat)
+#        echo $output | grep "$regex"
+    done
+    exit 0
+fi
+
+echo "leaks --atExit -- /Users/bppleman/kgit2/kgit2/build/bin/native/debugTest/test.kexe --ktest_filter=${tests[${index}]} --ktest_repeat=$repeat"
+leaks --atExit -- /Users/bppleman/kgit2/kgit2/build/bin/native/debugTest/test.kexe --ktest_filter=${tests[${index}]} --ktest_repeat=$repeat

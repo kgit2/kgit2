@@ -35,7 +35,7 @@ class Commit(raw: CommitRaw) : RawWrapper<git_commit, CommitRaw>(raw) {
         git_commit_tree(this.ptr, raw.handler).errorCheck()
     }
 
-    val messageEncoding: String = git_commit_message_encoding(raw.handler)!!.toKString()
+    val messageEncoding: String? = git_commit_message_encoding(raw.handler)?.toKString()
 
     val message: String = git_commit_message(raw.handler)!!.toKString()
 
@@ -43,9 +43,9 @@ class Commit(raw: CommitRaw) : RawWrapper<git_commit, CommitRaw>(raw) {
 
     val rawHeader: String = git_commit_raw_header(raw.handler)!!.toKString()
 
-    val summary: String = git_commit_summary(raw.handler)!!.toKString()
+    val summary: String? = git_commit_summary(raw.handler)?.toKString()
 
-    val body: String = git_commit_body(raw.handler)!!.toKString()
+    val body: String? = git_commit_body(raw.handler)?.toKString()
 
     val time: Time = Time(git_commit_time(raw.handler), git_commit_time_offset(raw.handler))
 
@@ -59,13 +59,13 @@ class Commit(raw: CommitRaw) : RawWrapper<git_commit, CommitRaw>(raw) {
         }
     }
 
-    val author: Signature = Signature(Memory(), git_commit_author(raw.handler)!!)
+    val author: Signature = Signature(Memory(), git_commit_author(raw.handler)!!).also { it.raw.move() }
+
+    val committer: Signature = Signature(Memory(), git_commit_committer(raw.handler)!!).also { it.raw.move() }
 
     fun authorWithMailMap(mailMap: Mailmap): Signature = Signature {
         git_commit_author_with_mailmap(this.ptr, raw.handler, mailMap.raw.handler).errorCheck()
     }
-
-    val committer: Signature = Signature(Memory(), git_commit_committer(raw.handler)!!)
 
     fun committerWithMailMap(mailMap: Mailmap) = Signature {
         git_commit_committer_with_mailmap(ptr, raw.handler, mailMap.raw.handler).errorCheck()

@@ -206,7 +206,7 @@ class Repository(raw: RepositoryRaw) : RawWrapper<git_repository, RepositoryRaw>
 
     fun describe(options: DescribeOptions): Describe = Describe(this, options)
 
-    fun blame(path: String, options: BlameOptions): Blame = Blame(this, path, options)
+    fun blame(path: String, options: BlameOptions? = null): Blame = Blame(this, path, options)
 
     fun transaction(): Transaction = Transaction(this)
 

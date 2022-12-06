@@ -80,7 +80,7 @@ class Oid(raw: OidRaw) : RawWrapper<git_oid, OidRaw>(raw) {
     }
 
     override fun toString(): String {
-        val buffer = ByteArray(GIT_OID_HEXSZ + 1)
+        val buffer = ByteArray(128)
         git_oid_fmt(buffer.refTo(0), raw.handler).errorCheck()
         return buffer.toKString()
     }

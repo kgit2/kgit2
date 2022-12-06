@@ -21,8 +21,8 @@ import libgit2.git_blame_get_hunk_count
 class Blame(raw: BlameRaw) : RawWrapper<git_blame, BlameRaw>(raw), IterableBase<BlameHunk> {
     constructor(secondaryInitial: BlameSecondaryInitial) : this(BlameRaw(secondaryInitial = secondaryInitial))
 
-    constructor(repository: Repository, path: String, options: BlameOptions) : this(secondaryInitial = {
-        git_blame_file(this.ptr, repository.raw.handler, path, options.raw.handler).errorCheck()
+    constructor(repository: Repository, path: String, options: BlameOptions?) : this(secondaryInitial = {
+        git_blame_file(this.ptr, repository.raw.handler, path, options?.raw?.handler).errorCheck()
     })
 
     constructor(reference: Blame, buffer: ByteArray, memory: Memory = Memory()) : this(BlameRaw(memory = memory, secondaryInitial = {
@@ -32,7 +32,7 @@ class Blame(raw: BlameRaw) : RawWrapper<git_blame, BlameRaw>(raw), IterableBase<
     override val size: Long = git_blame_get_hunk_count(raw.handler).toLong()
 
     override operator fun get(index: Long): BlameHunk =
-        git_blame_get_hunk_byindex(raw.handler, index.toUInt())?.let { BlameHunk(it) }
+        git_blame_get_hunk_byindex(raw.handler, index.toUInt())?.let { BlameHunk(raw.memory, it) }
             ?: throw IndexOutOfBoundsException()
 
     fun getByLine(lineNo: UInt): BlameHunk? = git_blame_get_hunk_byindex(raw.handler, lineNo)?.let { BlameHunk(it) }

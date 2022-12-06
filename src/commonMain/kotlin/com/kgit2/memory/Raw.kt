@@ -22,7 +22,11 @@ abstract class Raw<T : CPointed>(
     override fun free() {
         if (freed.compareAndSet(expect = false, update = true)) {
             Napier.v("Freeing ${this::class.simpleName} with handler $handler")
-            beforeFree?.invoke()
+            runCatching {
+                beforeFree?.invoke()
+            }.onFailure {
+                Napier.e("Error while running beforeFree", it)
+            }
             memory.free()
         }
     }

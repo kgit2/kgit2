@@ -31,4 +31,26 @@ class Time(raw: TimeRaw) : RawWrapper<git_time, TimeRaw>(raw) {
         offset < 0 -> '-'
         else -> '+'
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is Time) return false
+
+        if (seconds != other.seconds) return false
+        if (offset != other.offset) return false
+        if (sign != other.sign) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = seconds.hashCode()
+        result = 31 * result + offset.hashCode()
+        result = 31 * result + sign.hashCode()
+        return result
+    }
+
+    override fun toString(): String {
+        return "Time(seconds=$seconds, offset=$offset, sign=$sign)"
+    }
 }

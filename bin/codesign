@@ -1,0 +1,7 @@
+#!/usr/bin/env sh
+
+codesign -dvvv --entitlements=- build/bin/native/debugTest/test.kexe
+
+codesign -s - -v -f --entitlements bin/debug.plist build/bin/native/debugTest/test.kexe
+
+codesign -dvvv --entitlements=- build/bin/native/debugTest/test.kexe

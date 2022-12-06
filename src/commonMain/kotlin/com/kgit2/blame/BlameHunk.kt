@@ -13,23 +13,27 @@ import libgit2.git_blame_hunk
     base = git_blame_hunk::class,
 )
 class BlameHunk(raw: BlameHunkRaw) : RawWrapper<git_blame_hunk, BlameHunkRaw>(raw) {
-    constructor(handler: BlameHunkPointer) : this(BlameHunkRaw(Memory(), handler))
+    constructor(memory: Memory, handler: BlameHunkPointer) : this(BlameHunkRaw(memory, handler))
+
+    constructor(handler: BlameHunkPointer) : this(Memory(), handler)
 
     constructor(secondaryInitial: BlameHunkSecondaryInitial) : this(BlameHunkRaw(secondaryInitial = secondaryInitial))
 
     val linesCount: ULong = raw.handler.pointed.lines_in_hunk
 
-    val finalCommitId: Oid = Oid(Memory(), raw.handler.pointed.final_commit_id)
+    val finalCommitId: Oid = Oid(raw.memory, raw.handler.pointed.final_commit_id)
 
-    val finalSignature: Signature = Signature(Memory(), raw.handler.pointed.final_signature!!)
+    val finalSignature: Signature = Signature(raw.memory, raw.handler.pointed.final_signature!!).also { it.raw.move() }
 
-    val originCommitID: Oid = Oid(Memory(), raw.handler.pointed.orig_commit_id)
+    val finalStartLineNumber: ULong = raw.handler.pointed.final_start_line_number
+
+    val originCommitID: Oid = Oid(raw.memory, raw.handler.pointed.orig_commit_id)
 
     val originPath: String = raw.handler.pointed.orig_path!!.toKString()
 
     val originStartLineNumber: ULong = raw.handler.pointed.orig_start_line_number
 
-    val originSignature: Signature = Signature(Memory(), raw.handler.pointed.orig_signature!!)
+    val originSignature: Signature = Signature(raw.memory, raw.handler.pointed.orig_signature!!).also { it.raw.move() }
 
     val isBoundary: Boolean = raw.handler.pointed.boundary == 1.toByte()
 }

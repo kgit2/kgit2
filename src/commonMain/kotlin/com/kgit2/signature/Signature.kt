@@ -41,5 +41,27 @@ class Signature(raw: SignatureRaw) : RawWrapper<git_signature, SignatureRaw>(raw
 
     val time: Time = raw.handler.pointed.`when`.let { Time(raw.memory, it) }
 
-    override val cleaner: Cleaner = createCleaner(raw) { it.free() }
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is Signature) return false
+
+        if (name != other.name) return false
+        if (email != other.email) return false
+        if (time != other.time) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = name.hashCode()
+        result = 31 * result + email.hashCode()
+        result = 31 * result + time.hashCode()
+        return result
+    }
+
+    override fun toString(): String {
+        return "Signature(name='$name', email='$email', time=$time)"
+    }
+
+    // override val cleaner: Cleaner = createCleaner(raw) { it.free() }
 }

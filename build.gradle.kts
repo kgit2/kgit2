@@ -70,6 +70,9 @@ kotlin {
                 entryPoint = "main"
             }
         }
+        binaries.all {
+            freeCompilerArgs += "-Xadd-light-debug=enable"
+        }
     }
 }
 
