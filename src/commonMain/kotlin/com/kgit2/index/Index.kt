@@ -14,10 +14,11 @@ import com.kgit2.model.toStrArray
 import com.kgit2.oid.Oid
 import com.kgit2.repository.Repository
 import com.kgit2.tree.Tree
+import kotlinx.cinterop.addressOf
 import kotlinx.cinterop.allocPointerTo
 import kotlinx.cinterop.convert
 import kotlinx.cinterop.ptr
-import kotlinx.cinterop.refTo
+import kotlinx.cinterop.usePinned
 import libgit2.*
 
 @Raw(
@@ -52,12 +53,14 @@ class Index(raw: IndexRaw) : RawWrapper<git_index, IndexRaw>(raw), IterableBase<
     }
 
     fun addFromBuffer(entry: IndexEntry, buffer: ByteArray) {
-        git_index_add_frombuffer(
-            raw.handler,
-            entry.memCopy().raw.handler,
-            buffer.refTo(0),
-            buffer.size.convert()
-        ).errorCheck()
+        buffer.usePinned {
+            git_index_add_frombuffer(
+                raw.handler,
+                entry.memCopy().raw.handler,
+                it.addressOf(0),
+                buffer.size.convert()
+            ).errorCheck()
+        }
     }
 
     fun addPath(path: String) {

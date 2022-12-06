@@ -239,6 +239,17 @@ tasks {
                 }
             }
 
+            val noStringConversion = listOf(
+                "git_attr_value",
+                "git_mailmap_from_buffer"
+            )
+
+            val constVar = listOf(
+                """const char *git_attr__true  = "[internal]__TRUE__";""",
+                """const char *git_attr__false = "[internal]__FALSE__";""",
+                """const char *git_attr__unset = "[internal]__UNSET__";""",
+            )
+
             val template = """
                 |headers = ${headers.joinToString(" ")}
                 |staticLibraries = libgit2.a libssh2.a libssl.a libcrypto.a
@@ -247,6 +258,12 @@ tasks {
             } ${libssh2DistDir.resolve("lib").normalize().absolutePath} /opt/homebrew/opt/openssl@3/lib
                 |compilerOpts = -I${libgit2DistDir.resolve("include").normalize().absolutePath}
                 |linkerOpts = -L/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/lib -framework CoreFoundation -framework Security -lz -liconv
+                |
+                |noStringConversion = ${noStringConversion.joinToString(" ")}
+                |
+                |---
+                |
+                |${constVar.joinToString("\n")}
             """.trimMargin()
             defFile.writeText(template)
         }
@@ -293,39 +310,11 @@ tasks {
         outputs.file(libnativeDef)
         dependsOn(buildLibnative)
         doLast {
-            val headers = mutableListOf("git2.h")
-            libgit2DistDir.resolve("include/git2").listFiles()?.forEach {
-                if (it.extension == "h") {
-                    headers.add("git2/${it.name}")
-                }
-            }
-            libgit2DistDir.resolve("include/git2/sys").listFiles()?.forEach {
-                if (it.extension == "h") {
-                    headers.add("git2/sys/${it.name}")
-                }
-            }
-
-            val noStringConversion = listOf(
-                "git_attr_value"
-            )
-
-            val constVar = listOf(
-                """const char *git_attr__true  = "[internal]__TRUE__";""",
-                """const char *git_attr__false = "[internal]__FALSE__";""",
-                """const char *git_attr__unset = "[internal]__UNSET__";""",
-            )
-
             val template = """
                 |headers = native.h
                 |staticLibraries = libnative.a
                 |compilerOpts = -I${libnativeDist.resolve("include").normalize().absolutePath}
                 |libraryPaths = ${libnativeDist.resolve("lib").normalize().absolutePath}
-                |
-                |noStringConversion = ${noStringConversion.joinToString(" ")}
-                |
-                |---
-                |
-                |${constVar.joinToString("\n")}
             """.trimMargin()
             libnativeDef.writeText(template)
         }

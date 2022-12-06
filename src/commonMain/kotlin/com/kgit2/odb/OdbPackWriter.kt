@@ -65,12 +65,18 @@ class OdbPackWriter(
     override fun timeout(): Timeout = Timeout.NONE
 
     override fun write(source: Buffer, byteCount: Long) {
-        raw.handler.pointed.append?.invoke(
-            raw.handler,
-            source.readByteArray(byteCount).refTo(0).getPointer(raw.memory),
-            byteCount.convert(),
-            raw.memory.alloc<git_indexer_progress>().ptr
-        )?.errorCheck()
+        write(source.readByteArray(byteCount.convert()))
+    }
+
+    fun write(buffer: ByteArray): Int {
+        return buffer.usePinned {
+            raw.handler.pointed.append!!.invoke(
+                raw.handler,
+                it.addressOf(0),
+                buffer.size.convert(),
+                raw.memory.alloc<git_indexer_progress>().ptr
+            )
+        }
     }
 
     class CallbacksPayload : ICallbacksPayload, IndexerProgressCallbackPayload {

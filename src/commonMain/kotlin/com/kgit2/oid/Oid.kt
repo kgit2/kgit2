@@ -6,8 +6,23 @@ import com.kgit2.common.extend.toBoolean
 import com.kgit2.common.memory.Memory
 import com.kgit2.memory.RawWrapper
 import com.kgit2.`object`.ObjectType
-import kotlinx.cinterop.*
-import libgit2.*
+import kotlinx.cinterop.addressOf
+import kotlinx.cinterop.alloc
+import kotlinx.cinterop.convert
+import kotlinx.cinterop.ptr
+import kotlinx.cinterop.toKString
+import kotlinx.cinterop.usePinned
+import libgit2.git_odb_hash
+import libgit2.git_odb_hashfile
+import libgit2.git_oid
+import libgit2.git_oid_cmp
+import libgit2.git_oid_cpy
+import libgit2.git_oid_equal
+import libgit2.git_oid_fmt
+import libgit2.git_oid_fromstrn
+import libgit2.git_oid_is_zero
+import libgit2.git_oid_strcmp
+import libgit2.git_oid_streq
 
 @Raw(
     base = git_oid::class,
@@ -32,12 +47,14 @@ class Oid(raw: OidRaw) : RawWrapper<git_oid, OidRaw>(raw) {
     })
 
     constructor(kind: ObjectType, hashData: ByteArray) : this(initial = {
-        git_odb_hash(
-            this,
-            hashData.refTo(0),
-            hashData.size.convert(),
-            kind.value
-        ).errorCheck()
+        hashData.usePinned {
+            git_odb_hash(
+                this,
+                it.addressOf(0),
+                hashData.size.convert(),
+                kind.value
+            ).errorCheck()
+        }
     })
 
     constructor(kind: ObjectType, hashFilePath: String) : this(initial = {
@@ -81,7 +98,9 @@ class Oid(raw: OidRaw) : RawWrapper<git_oid, OidRaw>(raw) {
 
     override fun toString(): String {
         val buffer = ByteArray(128)
-        git_oid_fmt(buffer.refTo(0), raw.handler).errorCheck()
+        buffer.usePinned {
+            git_oid_fmt(it.addressOf(0), raw.handler).errorCheck()
+        }
         return buffer.toKString()
     }
 

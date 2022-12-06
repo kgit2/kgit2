@@ -6,7 +6,11 @@ import cnames.structs.git_repository
 import com.kgit2.annotations.Raw
 import com.kgit2.apply.ApplyLocation
 import com.kgit2.apply.ApplyOptions
-import com.kgit2.attr.*
+import com.kgit2.attr.AttrCheckFlags
+import com.kgit2.attr.AttrForeachCallback
+import com.kgit2.attr.AttrForeachCallbackPayload
+import com.kgit2.attr.AttrOptions
+import com.kgit2.attr.staticAttrForeachCallback
 import com.kgit2.blame.Blame
 import com.kgit2.blame.BlameOptions
 import com.kgit2.blob.Blob
@@ -21,13 +25,29 @@ import com.kgit2.commit.AnnotatedCommit
 import com.kgit2.commit.Commit
 import com.kgit2.common.error.GitError
 import com.kgit2.common.error.GitErrorCode
-import com.kgit2.common.extend.*
+import com.kgit2.common.extend.asStableRef
+import com.kgit2.common.extend.errorCheck
+import com.kgit2.common.extend.toBoolean
+import com.kgit2.common.extend.toInt
 import com.kgit2.common.memory.Memory
 import com.kgit2.common.memory.memoryScoped
 import com.kgit2.config.Config
 import com.kgit2.describe.Describe
 import com.kgit2.describe.DescribeOptions
-import com.kgit2.diff.*
+import com.kgit2.diff.Diff
+import com.kgit2.diff.DiffBinaryCallback
+import com.kgit2.diff.DiffBinaryCallbackPayload
+import com.kgit2.diff.DiffFileCallback
+import com.kgit2.diff.DiffFileCallbackPayload
+import com.kgit2.diff.DiffHunkCallback
+import com.kgit2.diff.DiffHunkCallbackPayload
+import com.kgit2.diff.DiffLineCallback
+import com.kgit2.diff.DiffLineCallbackPayload
+import com.kgit2.diff.DiffOptions
+import com.kgit2.diff.staticDiffBinaryCallback
+import com.kgit2.diff.staticDiffFileCallback
+import com.kgit2.diff.staticDiffHunkCallback
+import com.kgit2.diff.staticDiffLineCallback
 import com.kgit2.index.Index
 import com.kgit2.mailmap.Mailmap
 import com.kgit2.memory.RawWrapper
@@ -56,7 +76,11 @@ import com.kgit2.rev.RevSpec
 import com.kgit2.rev.Revwalk
 import com.kgit2.revert.RevertOptions
 import com.kgit2.signature.Signature
-import com.kgit2.stash.*
+import com.kgit2.stash.StashApplyOptions
+import com.kgit2.stash.StashCallback
+import com.kgit2.stash.StashCallbackPayload
+import com.kgit2.stash.StashFlags
+import com.kgit2.stash.staticStashCallback
 import com.kgit2.status.StatusFlag
 import com.kgit2.status.StatusList
 import com.kgit2.status.StatusOptions
@@ -73,8 +97,192 @@ import com.kgit2.tree.Tree
 import com.kgit2.tree.TreeBuilder
 import com.kgit2.worktree.Worktree
 import com.kgit2.worktree.WorktreeAddOptions
-import kotlinx.cinterop.*
-import libgit2.*
+import kotlinx.cinterop.ByteVar
+import kotlinx.cinterop.CPointerVar
+import kotlinx.cinterop.IntVar
+import kotlinx.cinterop.StableRef
+import kotlinx.cinterop.ULongVar
+import kotlinx.cinterop.addressOf
+import kotlinx.cinterop.alloc
+import kotlinx.cinterop.allocArray
+import kotlinx.cinterop.allocArrayOf
+import kotlinx.cinterop.allocPointerTo
+import kotlinx.cinterop.asStableRef
+import kotlinx.cinterop.convert
+import kotlinx.cinterop.cstr
+import kotlinx.cinterop.get
+import kotlinx.cinterop.pointed
+import kotlinx.cinterop.ptr
+import kotlinx.cinterop.staticCFunction
+import kotlinx.cinterop.toCValues
+import kotlinx.cinterop.toKString
+import kotlinx.cinterop.usePinned
+import kotlinx.cinterop.value
+import libgit2.git_annotated_commit_from_fetchhead
+import libgit2.git_annotated_commit_from_ref
+import libgit2.git_annotated_commit_lookup
+import libgit2.git_apply
+import libgit2.git_apply_to_tree
+import libgit2.git_attr_add_macro
+import libgit2.git_attr_cache_flush
+import libgit2.git_attr_foreach
+import libgit2.git_attr_foreach_ext
+import libgit2.git_attr_get
+import libgit2.git_attr_get_ext
+import libgit2.git_attr_get_many
+import libgit2.git_attr_get_many_ext
+import libgit2.git_blob_create_from_buffer
+import libgit2.git_blob_create_from_stream
+import libgit2.git_blob_create_fromdisk
+import libgit2.git_blob_lookup
+import libgit2.git_branch_create
+import libgit2.git_branch_create_from_annotated
+import libgit2.git_branch_iterator_new
+import libgit2.git_branch_lookup
+import libgit2.git_branch_remote_name
+import libgit2.git_branch_upstream_name
+import libgit2.git_branch_upstream_remote
+import libgit2.git_checkout_head
+import libgit2.git_checkout_index
+import libgit2.git_checkout_tree
+import libgit2.git_cherrypick
+import libgit2.git_cherrypick_commit
+import libgit2.git_clone
+import libgit2.git_commit_create
+import libgit2.git_commit_create_buffer
+import libgit2.git_commit_create_with_signature
+import libgit2.git_commit_extract_signature
+import libgit2.git_commit_lookup
+import libgit2.git_diff_blobs
+import libgit2.git_diff_index_to_index
+import libgit2.git_diff_index_to_workdir
+import libgit2.git_diff_tree_to_index
+import libgit2.git_diff_tree_to_tree
+import libgit2.git_diff_tree_to_workdir
+import libgit2.git_diff_tree_to_workdir_with_index
+import libgit2.git_graph_ahead_behind
+import libgit2.git_graph_descendant_of
+import libgit2.git_ignore_add_rule
+import libgit2.git_ignore_clear_internal_rules
+import libgit2.git_ignore_path_is_ignored
+import libgit2.git_merge
+import libgit2.git_merge_analysis
+import libgit2.git_merge_analysis_for_ref
+import libgit2.git_merge_analysis_tVar
+import libgit2.git_merge_base
+import libgit2.git_merge_base_many
+import libgit2.git_merge_bases
+import libgit2.git_merge_bases_many
+import libgit2.git_merge_commits
+import libgit2.git_merge_preference_tVar
+import libgit2.git_merge_trees
+import libgit2.git_note_create
+import libgit2.git_note_default_ref
+import libgit2.git_note_iterator_new
+import libgit2.git_note_read
+import libgit2.git_note_remove
+import libgit2.git_object_lookup
+import libgit2.git_rebase_init
+import libgit2.git_rebase_open
+import libgit2.git_reference_create
+import libgit2.git_reference_create_matching
+import libgit2.git_reference_dwim
+import libgit2.git_reference_ensure_log
+import libgit2.git_reference_has_log
+import libgit2.git_reference_iterator_glob_new
+import libgit2.git_reference_iterator_new
+import libgit2.git_reference_lookup
+import libgit2.git_reference_name_to_id
+import libgit2.git_reference_symbolic_create
+import libgit2.git_reference_symbolic_create_matching
+import libgit2.git_reflog_delete
+import libgit2.git_reflog_rename
+import libgit2.git_remote_add_fetch
+import libgit2.git_remote_add_push
+import libgit2.git_remote_create
+import libgit2.git_remote_create_anonymous
+import libgit2.git_remote_create_with_fetchspec
+import libgit2.git_remote_delete
+import libgit2.git_remote_list
+import libgit2.git_remote_lookup
+import libgit2.git_remote_rename
+import libgit2.git_remote_set_pushurl
+import libgit2.git_remote_set_url
+import libgit2.git_repository_config
+import libgit2.git_repository_detach_head
+import libgit2.git_repository_discover
+import libgit2.git_repository_fetchhead_foreach
+import libgit2.git_repository_get_namespace
+import libgit2.git_repository_head
+import libgit2.git_repository_index
+import libgit2.git_repository_init
+import libgit2.git_repository_init_ext
+import libgit2.git_repository_is_bare
+import libgit2.git_repository_is_empty
+import libgit2.git_repository_is_shallow
+import libgit2.git_repository_is_worktree
+import libgit2.git_repository_mergehead_foreach
+import libgit2.git_repository_mergehead_foreach_cb
+import libgit2.git_repository_message
+import libgit2.git_repository_message_remove
+import libgit2.git_repository_odb
+import libgit2.git_repository_open
+import libgit2.git_repository_open_bare
+import libgit2.git_repository_open_ext
+import libgit2.git_repository_open_from_worktree
+import libgit2.git_repository_path
+import libgit2.git_repository_set_head
+import libgit2.git_repository_set_head_detached
+import libgit2.git_repository_set_head_detached_from_annotated
+import libgit2.git_repository_set_index
+import libgit2.git_repository_set_namespace
+import libgit2.git_repository_set_odb
+import libgit2.git_repository_set_workdir
+import libgit2.git_repository_state
+import libgit2.git_repository_state_cleanup
+import libgit2.git_repository_workdir
+import libgit2.git_repository_wrap_odb
+import libgit2.git_reset
+import libgit2.git_reset_default
+import libgit2.git_revert
+import libgit2.git_revert_commit
+import libgit2.git_revparse
+import libgit2.git_revparse_ext
+import libgit2.git_revparse_single
+import libgit2.git_revwalk_new
+import libgit2.git_signature_default
+import libgit2.git_signature_now
+import libgit2.git_stash_apply
+import libgit2.git_stash_drop
+import libgit2.git_stash_foreach
+import libgit2.git_stash_pop
+import libgit2.git_stash_save
+import libgit2.git_status_file
+import libgit2.git_status_list_new
+import libgit2.git_status_should_ignore
+import libgit2.git_status_tVar
+import libgit2.git_submodule_cb
+import libgit2.git_submodule_foreach
+import libgit2.git_submodule_lookup
+import libgit2.git_submodule_set_branch
+import libgit2.git_submodule_set_ignore
+import libgit2.git_submodule_set_update
+import libgit2.git_submodule_set_url
+import libgit2.git_submodule_status
+import libgit2.git_submodule_status_tVar
+import libgit2.git_tag_annotation_create
+import libgit2.git_tag_create
+import libgit2.git_tag_create_lightweight
+import libgit2.git_tag_delete
+import libgit2.git_tag_foreach
+import libgit2.git_tag_list_match
+import libgit2.git_tag_lookup
+import libgit2.git_tree_lookup
+import libgit2.git_treebuilder_new
+import libgit2.git_worktree_add
+import libgit2.git_worktree_list
+import libgit2.git_worktree_lookup
+import kotlin.collections.set
 
 @Raw(
     base = git_repository::class,
@@ -906,6 +1114,7 @@ class Repository(raw: RepositoryRaw) : RawWrapper<git_repository, RepositoryRaw>
         fun signature(): Signature = Signature {
             git_signature_default(this.ptr, raw.handler).errorCheck()
         }
+
         fun signatureNow(name: String, email: String): Signature = Signature {
             git_signature_now(this.ptr, name, email).errorCheck()
         }
@@ -1126,11 +1335,13 @@ class Repository(raw: RepositoryRaw) : RawWrapper<git_repository, RepositoryRaw>
     val Blob = BlobModule()
 
     inner class BlobModule {
-        fun blob(data: ByteArray): Oid = Oid {
-            git_blob_create_from_buffer(this, raw.handler, data.refTo(0), data.size.toULong()).errorCheck()
+        fun blob(buffer: ByteArray): Oid = Oid {
+            buffer.usePinned {
+                git_blob_create_from_buffer(this, raw.handler, it.addressOf(0), buffer.size.toULong()).errorCheck()
+            }
         }
 
-        fun find(oid: Oid): Blob = Blob {
+        fun findBlob(oid: Oid): Blob = Blob {
             git_blob_lookup(this.ptr, raw.handler, oid.raw.handler).errorCheck()
         }
 

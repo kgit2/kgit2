@@ -2,10 +2,14 @@ package com.kgit2.odb
 
 import com.kgit2.common.extend.errorCheck
 import com.kgit2.common.memory.Memory
+import com.kgit2.common.memory.memoryScoped
 import com.kgit2.memory.RawWrapper
+import kotlinx.cinterop.ByteVar
+import kotlinx.cinterop.allocArray
 import kotlinx.cinterop.allocPointerTo
 import kotlinx.cinterop.convert
-import kotlinx.cinterop.refTo
+import kotlinx.cinterop.readBytes
+import kotlinx.cinterop.usePinned
 import libgit2.git_odb_stream
 import libgit2.git_odb_stream_read
 import okio.Buffer
@@ -34,10 +38,15 @@ class OdbReader(raw: OdbStreamRaw) : RawWrapper<git_odb_stream, OdbStreamRaw>(ra
      * the number of bytes read, or -1 if this source is exhausted.
      */
     override fun read(sink: Buffer, byteCount: Long): Long {
-        val buf = ByteArray(byteCount.toInt()) { 0 }
-        git_odb_stream_read(raw.handler, buf.refTo(0), byteCount.convert()).errorCheck()
-        sink.write(buf)
-        return buf.count { it != 0.toByte() }.toLong()
+        val buffer = read(byteCount)
+        sink.write(buffer)
+        return buffer.count { it != 0.toByte() }.toLong()
+    }
+
+    fun read(byteCount: Long): ByteArray = memoryScoped {
+        val buffer = allocArray<ByteVar>(byteCount + 128)
+        git_odb_stream_read(raw.handler, buffer, byteCount.convert()).errorCheck()
+        return buffer.readBytes(byteCount.toInt())
     }
 
     /** Returns the timeout for this source.  */

@@ -27,7 +27,9 @@ class Buf(
         buffer: ByteArray,
         memory: Memory = Memory(),
     ) : this(BufRaw(memory, cValue<git_buf>().getPointer(memory)) {
-        this.pointed.ptr = buffer.refTo(0).getPointer(memory)
+        buffer.usePinned {
+            this.pointed.ptr = it.addressOf(0)
+        }
         this.pointed.size = buffer.size.convert()
     })
 

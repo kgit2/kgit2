@@ -8,10 +8,30 @@ import com.kgit2.common.extend.toBoolean
 import com.kgit2.common.memory.Memory
 import com.kgit2.common.memory.memoryScoped
 import com.kgit2.memory.RawWrapper
-import com.kgit2.oid.Oid
 import com.kgit2.`object`.ObjectType
-import kotlinx.cinterop.*
-import libgit2.*
+import com.kgit2.oid.Oid
+import kotlinx.cinterop.ULongVar
+import kotlinx.cinterop.addressOf
+import kotlinx.cinterop.alloc
+import kotlinx.cinterop.allocPointerTo
+import kotlinx.cinterop.ptr
+import kotlinx.cinterop.usePinned
+import kotlinx.cinterop.value
+import libgit2.git_mempack_new
+import libgit2.git_object_tVar
+import libgit2.git_odb_add_backend
+import libgit2.git_odb_add_disk_alternate
+import libgit2.git_odb_exists
+import libgit2.git_odb_exists_ext
+import libgit2.git_odb_exists_prefix
+import libgit2.git_odb_foreach
+import libgit2.git_odb_new
+import libgit2.git_odb_open_rstream
+import libgit2.git_odb_open_wstream
+import libgit2.git_odb_read
+import libgit2.git_odb_read_header
+import libgit2.git_odb_refresh
+import libgit2.git_odb_write
 
 @Raw(
     base = git_odb::class,
@@ -65,8 +85,10 @@ class Odb(
         }
     }
 
-    fun write(data: ByteArray, type: ObjectType): Oid = Oid {
-        git_odb_write(this, raw.handler, data.refTo(0), data.size.toULong(), type.value).errorCheck()
+    fun write(buffer: ByteArray, type: ObjectType): Oid = Oid {
+        buffer.usePinned {
+            git_odb_write(this, raw.handler, it.addressOf(0), buffer.size.toULong(), type.value).errorCheck()
+        }
     }
 
     fun packWriter(): OdbPackWriter = OdbPackWriter.odbWritePack(this)
