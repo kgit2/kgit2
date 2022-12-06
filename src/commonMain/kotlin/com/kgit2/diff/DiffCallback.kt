@@ -1,12 +1,26 @@
 package com.kgit2.diff
 
 import cnames.structs.git_diff
-import com.kgit2.common.error.GitErrorCode
+import com.kgit2.common.callback.CallbackResult
 import com.kgit2.common.memory.Memory
-import kotlinx.cinterop.*
-import libgit2.*
+import kotlinx.cinterop.ByteVar
+import kotlinx.cinterop.COpaquePointer
+import kotlinx.cinterop.CPointer
+import kotlinx.cinterop.asStableRef
+import kotlinx.cinterop.staticCFunction
+import kotlinx.cinterop.toKString
+import libgit2.git_diff_binary
+import libgit2.git_diff_binary_cb
+import libgit2.git_diff_delta
+import libgit2.git_diff_file_cb
+import libgit2.git_diff_hunk
+import libgit2.git_diff_hunk_cb
+import libgit2.git_diff_line
+import libgit2.git_diff_line_cb
+import libgit2.git_diff_notify_cb
+import libgit2.git_diff_progress_cb
 
-typealias DiffProgressCallback = (diffSoFar: Diff, oldPath: String?, newPath: String?) -> GitErrorCode
+typealias DiffProgressCallback = (diffSoFar: Diff, oldPath: String?, newPath: String?) -> CallbackResult
 
 interface DiffProgressCallbackPayload {
     var diffProgressCallback: DiffProgressCallback?
@@ -26,7 +40,7 @@ val staticDiffProgressCallback: git_diff_progress_cb = staticCFunction {
     ).value
 }
 
-typealias DiffNotifyCallback = (diffSoFar: Diff, deltaToAdd: DiffDelta, matchedPathSpec: String?) -> GitErrorCode
+typealias DiffNotifyCallback = (diffSoFar: Diff, deltaToAdd: DiffDelta, matchedPathSpec: String?) -> CallbackResult
 
 interface DiffNotifyCallbackPayload {
     var diffNotifyCallback: DiffNotifyCallback?
@@ -46,7 +60,7 @@ val staticDiffNotifyCallback: git_diff_notify_cb = staticCFunction {
     ).value
 }
 
-typealias DiffFileCallback = (delta: DiffDelta?, progress: Float?) -> GitErrorCode
+typealias DiffFileCallback = (delta: DiffDelta?, progress: Float?) -> CallbackResult
 
 interface DiffFileCallbackPayload {
     var diffFileCallback: DiffFileCallback?
@@ -64,7 +78,7 @@ val staticDiffFileCallback: git_diff_file_cb = staticCFunction {
     ).value
 }
 
-typealias DiffBinaryCallback = (delta: DiffDelta?, oldFile: DiffBinary?) -> GitErrorCode
+typealias DiffBinaryCallback = (delta: DiffDelta?, oldFile: DiffBinary?) -> CallbackResult
 
 interface DiffBinaryCallbackPayload {
     var diffBinaryCallback: DiffBinaryCallback?
@@ -82,7 +96,7 @@ val staticDiffBinaryCallback: git_diff_binary_cb = staticCFunction {
     ).value
 }
 
-typealias DiffHunkCallback = (delta: DiffDelta?, hunk: DiffHunk?) -> GitErrorCode
+typealias DiffHunkCallback = (delta: DiffDelta?, hunk: DiffHunk?) -> CallbackResult
 
 interface DiffHunkCallbackPayload {
     var diffHunkCallback: DiffHunkCallback?
@@ -100,7 +114,7 @@ val staticDiffHunkCallback: git_diff_hunk_cb = staticCFunction {
     ).value
 }
 
-typealias DiffLineCallback = (delta: DiffDelta?, hunk: DiffHunk?, line: DiffLine?) -> GitErrorCode
+typealias DiffLineCallback = (delta: DiffDelta?, hunk: DiffHunk?, line: DiffLine?) -> CallbackResult
 
 interface DiffLineCallbackPayload {
     var diffLineCallback: DiffLineCallback?

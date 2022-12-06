@@ -2,7 +2,12 @@ package com.kgit2.common.memory
 
 import com.kgit2.memory.FreeAble
 import kotlinx.atomicfu.atomic
-import kotlinx.cinterop.*
+import kotlinx.cinterop.Arena
+import kotlinx.cinterop.AutofreeScope
+import kotlinx.cinterop.CPointer
+import kotlinx.cinterop.CValues
+import kotlinx.cinterop.CVariable
+import kotlinx.cinterop.NativePointed
 
 open class Memory : AutofreeScope(), FreeAble {
     private val arenaInitialized = atomic(false)

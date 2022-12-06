@@ -11,7 +11,7 @@ enum class RemoteRedirect(val value: git_remote_redirect_t) {
     All(GIT_REMOTE_REDIRECT_ALL);
 
     companion object {
-        fun fromRaw(value: git_remote_redirect_t): RemoteRedirect {
+        fun from(value: git_remote_redirect_t): RemoteRedirect {
             return when (value) {
                 GIT_REMOTE_REDIRECT_INITIAL -> Initial
                 GIT_REMOTE_REDIRECT_NONE -> None

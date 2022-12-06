@@ -10,7 +10,11 @@ import com.kgit2.repository.Repository
 import kotlinx.cinterop.allocPointerTo
 import kotlinx.cinterop.ptr
 import kotlinx.cinterop.toKString
-import libgit2.*
+import libgit2.git_annotated_commit_from_fetchhead
+import libgit2.git_annotated_commit_from_ref
+import libgit2.git_annotated_commit_from_revspec
+import libgit2.git_annotated_commit_id
+import libgit2.git_annotated_commit_ref
 
 @Raw(
     base = git_annotated_commit::class,

@@ -1,8 +1,12 @@
 package com.kgit2.attr
 
 import com.kgit2.common.callback.CallbackResult
-import com.kgit2.common.error.GitErrorCode
-import kotlinx.cinterop.*
+import kotlinx.cinterop.ByteVar
+import kotlinx.cinterop.COpaquePointer
+import kotlinx.cinterop.CPointer
+import kotlinx.cinterop.asStableRef
+import kotlinx.cinterop.staticCFunction
+import kotlinx.cinterop.toKString
 import libgit2.git_attr_foreach_cb
 
 /**

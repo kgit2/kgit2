@@ -1,11 +1,15 @@
 package com.kgit2.reflog
 
+import cnames.structs.git_reflog_entry
 import com.kgit2.annotations.Raw
 import com.kgit2.memory.RawWrapper
 import com.kgit2.oid.Oid
 import com.kgit2.signature.Signature
 import kotlinx.cinterop.toKString
-import libgit2.*
+import libgit2.git_reflog_entry_committer
+import libgit2.git_reflog_entry_id_new
+import libgit2.git_reflog_entry_id_old
+import libgit2.git_reflog_entry_message
 
 @Raw(
     base = git_reflog_entry::class,

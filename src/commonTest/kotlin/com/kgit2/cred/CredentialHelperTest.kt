@@ -7,7 +7,7 @@ import com.kgit2.utils.Posix
 import com.kgit2.utils.TempConfig
 import com.kgit2.utils.openReadWrite
 import com.kgit2.utils.withTempDir
-import io.ktor.utils.io.core.toByteArray
+import io.ktor.utils.io.core.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull

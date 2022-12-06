@@ -1,16 +1,13 @@
 package com.kgit2.apply
 
 import com.kgit2.common.callback.CallbackResult
-import com.kgit2.common.error.GitErrorCode
 import com.kgit2.diff.DiffDelta
 import com.kgit2.diff.DiffHunk
 import kotlinx.cinterop.COpaquePointer
-import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.asStableRef
 import kotlinx.cinterop.staticCFunction
 import libgit2.git_apply_delta_cb
 import libgit2.git_apply_hunk_cb
-import libgit2.git_diff_hunk
 
 /**
  * @return [CallbackResult]

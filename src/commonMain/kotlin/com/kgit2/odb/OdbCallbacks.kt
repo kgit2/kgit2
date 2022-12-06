@@ -1,6 +1,5 @@
 package com.kgit2.odb
 
-import com.kgit2.checkout.IndexerProgressCallback
 import com.kgit2.common.error.GitErrorCode
 import com.kgit2.common.memory.Memory
 import com.kgit2.oid.Oid

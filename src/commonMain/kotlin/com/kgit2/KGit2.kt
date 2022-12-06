@@ -3,21 +3,35 @@ package com.kgit2
 
 import com.kgit2.common.GitFeature
 import com.kgit2.common.GitOptions
-import com.kgit2.common.extend.toBoolean
 import com.kgit2.common.extend.toInt
 import com.kgit2.common.memory.memoryScoped
 import com.kgit2.config.ConfigLevel
 import com.kgit2.model.Buf
-import com.kgit2.model.StrArray
 import com.kgit2.model.Version
 import com.kgit2.`object`.ObjectType
 import io.github.aakira.napier.DebugAntilog
 import io.github.aakira.napier.Napier
-import io.ktor.client.plugins.UserAgent
 import kotlinx.atomicfu.AtomicBoolean
 import kotlinx.atomicfu.atomic
-import kotlinx.cinterop.*
-import libgit2.*
+import kotlinx.cinterop.IntVar
+import kotlinx.cinterop.LongVar
+import kotlinx.cinterop.ULongVar
+import kotlinx.cinterop.alloc
+import kotlinx.cinterop.convert
+import kotlinx.cinterop.cstr
+import kotlinx.cinterop.get
+import kotlinx.cinterop.ptr
+import kotlinx.cinterop.toCValues
+import kotlinx.cinterop.toKString
+import kotlinx.cinterop.value
+import libgit2.git_libgit2_features
+import libgit2.git_libgit2_init
+import libgit2.git_libgit2_opts
+import libgit2.git_libgit2_prerelease
+import libgit2.git_libgit2_shutdown
+import libgit2.git_libgit2_version
+import libgit2.git_strarray
+import libgit2.git_strarray_dispose
 
 object KGit2 {
     private val initialized: AtomicBoolean = atomic(false)

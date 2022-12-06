@@ -7,7 +7,13 @@ import com.kgit2.config.Config
 import com.kgit2.memory.RawWrapper
 import kotlinx.cinterop.allocPointerTo
 import kotlinx.cinterop.ptr
-import libgit2.*
+import libgit2.git_cred_ssh_key_memory_new
+import libgit2.git_cred_ssh_key_new
+import libgit2.git_credential
+import libgit2.git_credential_default_new
+import libgit2.git_credential_ssh_key_from_agent
+import libgit2.git_credential_username_new
+import libgit2.git_credential_userpass_plaintext_new
 
 @Raw(
     base = git_credential::class,

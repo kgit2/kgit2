@@ -1,6 +1,13 @@
 package com.kgit2.checkout
 
-import libgit2.*
+import libgit2.GIT_CHECKOUT_NOTIFY_ALL
+import libgit2.GIT_CHECKOUT_NOTIFY_CONFLICT
+import libgit2.GIT_CHECKOUT_NOTIFY_DIRTY
+import libgit2.GIT_CHECKOUT_NOTIFY_IGNORED
+import libgit2.GIT_CHECKOUT_NOTIFY_NONE
+import libgit2.GIT_CHECKOUT_NOTIFY_UNTRACKED
+import libgit2.GIT_CHECKOUT_NOTIFY_UPDATED
+import libgit2.git_checkout_notify_t
 
 enum class CheckoutNotificationType(val value: git_checkout_notify_t) {
     None(GIT_CHECKOUT_NOTIFY_NONE),

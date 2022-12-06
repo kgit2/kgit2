@@ -9,13 +9,38 @@ import com.kgit2.common.extend.toBoolean
 import com.kgit2.common.extend.toInt
 import com.kgit2.common.memory.Memory
 import com.kgit2.memory.RawWrapper
-import com.kgit2.oid.Oid
 import com.kgit2.`object`.Object
 import com.kgit2.`object`.ObjectType
+import com.kgit2.oid.Oid
 import com.kgit2.tag.Tag
 import com.kgit2.tree.Tree
-import kotlinx.cinterop.*
-import libgit2.*
+import kotlinx.cinterop.ByteVar
+import kotlinx.cinterop.ULongVar
+import kotlinx.cinterop.alloc
+import kotlinx.cinterop.allocPointerTo
+import kotlinx.cinterop.memScoped
+import kotlinx.cinterop.ptr
+import kotlinx.cinterop.readBytes
+import kotlinx.cinterop.reinterpret
+import kotlinx.cinterop.toKString
+import kotlinx.cinterop.value
+import libgit2.git_reference_delete
+import libgit2.git_reference_is_branch
+import libgit2.git_reference_is_note
+import libgit2.git_reference_is_remote
+import libgit2.git_reference_is_tag
+import libgit2.git_reference_is_valid_name
+import libgit2.git_reference_name
+import libgit2.git_reference_normalize_name
+import libgit2.git_reference_peel
+import libgit2.git_reference_rename
+import libgit2.git_reference_resolve
+import libgit2.git_reference_set_target
+import libgit2.git_reference_shorthand
+import libgit2.git_reference_symbolic_target
+import libgit2.git_reference_target
+import libgit2.git_reference_target_peel
+import libgit2.git_reference_type
 
 @Raw(
     base = git_reference::class,

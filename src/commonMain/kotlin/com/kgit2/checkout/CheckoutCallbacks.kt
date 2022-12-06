@@ -1,6 +1,6 @@
 package com.kgit2.checkout
 
-import com.kgit2.common.error.GitErrorCode
+import com.kgit2.common.callback.CallbackResult
 import com.kgit2.common.memory.Memory
 import com.kgit2.diff.DiffFile
 import com.kgit2.index.CheckoutPerf
@@ -15,7 +15,7 @@ import platform.posix.size_t
  *
  * @param progress Structure containing information about the state of the transfer
  */
-typealias IndexerProgressCallback = (progress: IndexerProgress) -> GitErrorCode
+typealias IndexerProgressCallback = (progress: IndexerProgress) -> CallbackResult
 
 interface IndexerProgressCallbackPayload {
     var indexerProgressCallback: IndexerProgressCallback?
@@ -32,10 +32,10 @@ val staticIndexerProgressCallback: git_indexer_progress_cb = staticCFunction { s
         stats.pointed.indexed_deltas,
         stats.pointed.received_bytes
     )
-    callback.indexerProgressCallback?.invoke(progress)?.value ?: GitErrorCode.Ok.value
+    callback.indexerProgressCallback?.invoke(progress)?.value ?: CallbackResult.Ok.value
 }
 
-typealias CheckoutProgressCallback = (path: String, completedSteps: ULong, totalSteps: ULong) -> Unit
+typealias CheckoutProgressCallback = (path: String?, completedSteps: ULong, totalSteps: ULong) -> Unit
 
 interface CheckoutProgressCallbackPayload {
     var checkoutProgressCallback: CheckoutProgressCallback?
@@ -50,13 +50,13 @@ val staticCheckoutProgressCallback: git_checkout_progress_cb =
         ->
         val callback = payload!!.asStableRef<CheckoutProgressCallbackPayload>().get()
         callback.checkoutProgressCallback!!.invoke(
-            path!!.toKString(),
+            path?.toKString(),
             completedSteps,
             totalSteps
         )
     }
 
-typealias CheckoutNotifyCallback = (type: CheckoutNotificationType, path: String?, baseline: DiffFile?, target: DiffFile?, workdir: DiffFile?) -> GitErrorCode
+typealias CheckoutNotifyCallback = (type: CheckoutNotificationType, path: String?, baseline: DiffFile?, target: DiffFile?, workdir: DiffFile?) -> CallbackResult
 
 interface CheckoutNotifyCallbackPayload {
     var checkoutNotifyCallback: CheckoutNotifyCallback?

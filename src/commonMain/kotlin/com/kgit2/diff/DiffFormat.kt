@@ -1,6 +1,12 @@
 package com.kgit2.diff
 
-import libgit2.*
+import libgit2.GIT_DIFF_FORMAT_NAME_ONLY
+import libgit2.GIT_DIFF_FORMAT_NAME_STATUS
+import libgit2.GIT_DIFF_FORMAT_PATCH
+import libgit2.GIT_DIFF_FORMAT_PATCH_HEADER
+import libgit2.GIT_DIFF_FORMAT_PATCH_ID
+import libgit2.GIT_DIFF_FORMAT_RAW
+import libgit2.git_diff_format_t
 
 enum class DiffFormat(val value: git_diff_format_t) {
     /**

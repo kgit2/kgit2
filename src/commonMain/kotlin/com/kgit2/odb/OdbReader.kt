@@ -9,7 +9,6 @@ import kotlinx.cinterop.allocArray
 import kotlinx.cinterop.allocPointerTo
 import kotlinx.cinterop.convert
 import kotlinx.cinterop.readBytes
-import kotlinx.cinterop.usePinned
 import libgit2.git_odb_stream
 import libgit2.git_odb_stream_read
 import okio.Buffer

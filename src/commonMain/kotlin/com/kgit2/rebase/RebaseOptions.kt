@@ -1,10 +1,8 @@
 package com.kgit2.rebase
 
-import cnames.structs.git_tree
 import com.kgit2.annotations.Raw
 import com.kgit2.checkout.CheckoutOptions
 import com.kgit2.checkout.CheckoutOptionsRaw
-import com.kgit2.commit.Commit
 import com.kgit2.commit.CommitCreateCallback
 import com.kgit2.commit.CommitCreateCallbackPayload
 import com.kgit2.commit.staticCommitCreateCallback
@@ -18,13 +16,14 @@ import com.kgit2.memory.RawWrapper
 import com.kgit2.memory.createCleaner
 import com.kgit2.merge.MergeOptions
 import com.kgit2.merge.MergeOptionsRaw
-import com.kgit2.oid.Oid
-import com.kgit2.signature.Signature
-import com.kgit2.tree.Tree
-import kotlinx.cinterop.*
-import libgit2.*
+import kotlinx.cinterop.StableRef
+import kotlinx.cinterop.cstr
+import kotlinx.cinterop.pointed
+import kotlinx.cinterop.toKString
+import libgit2.GIT_REBASE_OPTIONS_VERSION
+import libgit2.git_rebase_options
+import libgit2.git_rebase_options_init
 import kotlin.native.internal.Cleaner
-import kotlin.native.internal.createCleaner
 
 @Raw(
     base = git_rebase_options::class,

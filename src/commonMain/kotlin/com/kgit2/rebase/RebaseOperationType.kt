@@ -1,8 +1,12 @@
 package com.kgit2.rebase
 
+import libgit2.GIT_REBASE_OPERATION_EDIT
+import libgit2.GIT_REBASE_OPERATION_EXEC
+import libgit2.GIT_REBASE_OPERATION_FIXUP
 import libgit2.GIT_REBASE_OPERATION_PICK
 import libgit2.GIT_REBASE_OPERATION_REWORD
-import libgit2.*
+import libgit2.GIT_REBASE_OPERATION_SQUASH
+import libgit2.git_rebase_operation_t
 
 enum class RebaseOperationType(val value: git_rebase_operation_t) {
     Pick(GIT_REBASE_OPERATION_PICK),

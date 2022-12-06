@@ -1,5 +1,6 @@
 package com.kgit2.packbuilder
 
+import com.kgit2.common.callback.CallbackResult
 import com.kgit2.common.error.GitErrorCode
 import kotlinx.cinterop.*
 import libgit2.git_packbuilder_foreach_cb
@@ -32,7 +33,7 @@ val staticPackbuilderProgressCallback: git_packbuilder_progress = staticCFunctio
         PackBuilderStage.from(stage.convert()),
         current.toULong(),
         total.toULong()
-    )?.value ?: 0
+    )?.value ?: CallbackResult.Ok.value
 }
 
 typealias PackbuilderForeachCallback = (buffer: ByteArray) -> GitErrorCode

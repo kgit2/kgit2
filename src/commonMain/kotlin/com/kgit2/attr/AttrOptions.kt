@@ -7,7 +7,7 @@ import com.kgit2.oid.Oid
 import kotlinx.cinterop.cValue
 import kotlinx.cinterop.convert
 import kotlinx.cinterop.pointed
-import libgit2.*
+import libgit2.git_attr_options
 
 @Raw(
     base = git_attr_options::class,

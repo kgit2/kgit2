@@ -1,7 +1,6 @@
 package com.kgit2.memory
 
 import kotlinx.atomicfu.atomic
-import kotlinx.cinterop.CPointed
 
 interface IterableBase<E> : Iterable<E> {
     val size: Long

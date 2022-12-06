@@ -5,7 +5,8 @@ import com.kgit2.annotations.Raw
 import com.kgit2.checkout.IndexerProgressCallback
 import com.kgit2.checkout.IndexerProgressCallbackPayload
 import com.kgit2.checkout.staticIndexerProgressCallback
-import com.kgit2.common.error.GitErrorCode
+import com.kgit2.common.callback.CallbackResult
+import com.kgit2.common.extend.errorCheck
 import com.kgit2.common.extend.toInt
 import com.kgit2.common.memory.Memory
 import com.kgit2.credential.*
@@ -27,7 +28,7 @@ import kotlin.native.internal.createCleaner
 )
 class RemoteCallbacks(
     raw: RemoteCallbacksRaw = RemoteCallbacksRaw(initial = {
-        git_remote_init_callbacks(this, GIT_REMOTE_CALLBACKS_VERSION)
+        git_remote_init_callbacks(this, GIT_REMOTE_CALLBACKS_VERSION).errorCheck()
     }),
     initial: RemoteCallbacks.() -> Unit = {},
 ) : RawWrapper<git_remote_callbacks, RemoteCallbacksRaw>(raw) {
@@ -57,7 +58,7 @@ class RemoteCallbacks(
      * Returning GIT_PASSTHROUGH will make libgit2 behave as
      * though this field isn't set.
      */
-    var credentials: CredentialAcquireCallback? by callbackPayload::credentialAcquireCallback
+    var credentialCallback: CredentialAcquireCallback? by callbackPayload::credentialAcquireCallback
 
     /**
      * If cert verification fails, this will be called to let the
@@ -215,7 +216,7 @@ val staticTransportMessageCallback: git_transport_message_cb =
  * Completion is called when different parts of the download
  * process are done (currently unused).
  */
-typealias RemoteCompletionCallback = (type: RemoteCompletionType) -> GitErrorCode
+typealias RemoteCompletionCallback = (type: RemoteCompletionType) -> CallbackResult
 
 interface RemoteCompletionCallbackPayload {
     var remoteCompletionCallback: RemoteCompletionCallback?
@@ -238,7 +239,7 @@ val staticRemoteCompletionCallback: CPointer<CFunction<(git_remote_completion_t,
  * @param b The new OID for the reference
  * @return 0 to proceed with the update, < 0 to fail the update
  */
-typealias UpdateTipsCallback = (refName: String, a: Oid, b: Oid) -> GitErrorCode
+typealias UpdateTipsCallback = (refName: String, a: Oid, b: Oid) -> CallbackResult
 
 interface UpdateTipsCallbackPayload {
     val updateTipsCallback: UpdateTipsCallback?
@@ -262,7 +263,7 @@ val staticUpdateTipsCallback: CPointer<CFunction<(CPointer<ByteVar>?, CPointer<g
  * @param direction GIT_DIRECTION_FETCH or GIT_DIRECTION_PUSH
  * @return 0 to proceed with the push, < 0 to fail the push
  */
-typealias RemoteReadyCallback = (remote: Remote, direction: Direction) -> GitErrorCode
+typealias RemoteReadyCallback = (remote: Remote, direction: Direction) -> CallbackResult
 
 interface RemoteReadyCallbackPayload {
     val remoteReadyCallback: RemoteReadyCallback?

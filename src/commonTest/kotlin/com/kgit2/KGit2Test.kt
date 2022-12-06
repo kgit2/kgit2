@@ -1,13 +1,8 @@
 package com.kgit2
 
-import com.kgit2.common.GitOptions
 import com.kgit2.common.kgitRunTest
-import com.kgit2.common.memory.memoryScoped
 import com.kgit2.config.ConfigLevel
-import com.kgit2.model.StrArray
-import kotlinx.cinterop.*
-import libgit2.git_libgit2_opts
-import libgit2.git_strarray
+import kotlinx.cinterop.toKString
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals

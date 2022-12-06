@@ -1,6 +1,17 @@
 package com.kgit2.diff
 
-import libgit2.*
+import libgit2.GIT_DELTA_ADDED
+import libgit2.GIT_DELTA_CONFLICTED
+import libgit2.GIT_DELTA_COPIED
+import libgit2.GIT_DELTA_DELETED
+import libgit2.GIT_DELTA_IGNORED
+import libgit2.GIT_DELTA_MODIFIED
+import libgit2.GIT_DELTA_RENAMED
+import libgit2.GIT_DELTA_TYPECHANGE
+import libgit2.GIT_DELTA_UNMODIFIED
+import libgit2.GIT_DELTA_UNREADABLE
+import libgit2.GIT_DELTA_UNTRACKED
+import libgit2.git_delta_t
 
 enum class DiffDeltaType(val value: git_delta_t) {
     Unmodified(GIT_DELTA_UNMODIFIED),

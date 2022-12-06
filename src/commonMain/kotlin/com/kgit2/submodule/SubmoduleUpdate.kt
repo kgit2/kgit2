@@ -1,6 +1,11 @@
 package com.kgit2.submodule
 
-import libgit2.*
+import libgit2.GIT_SUBMODULE_UPDATE_CHECKOUT
+import libgit2.GIT_SUBMODULE_UPDATE_DEFAULT
+import libgit2.GIT_SUBMODULE_UPDATE_MERGE
+import libgit2.GIT_SUBMODULE_UPDATE_NONE
+import libgit2.GIT_SUBMODULE_UPDATE_REBASE
+import libgit2.git_submodule_update_t
 
 enum class SubmoduleUpdate(val value: git_submodule_update_t) {
     Checkout(GIT_SUBMODULE_UPDATE_CHECKOUT),

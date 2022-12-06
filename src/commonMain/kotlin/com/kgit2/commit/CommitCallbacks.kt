@@ -2,11 +2,20 @@ package com.kgit2.commit
 
 import cnames.structs.git_commit
 import cnames.structs.git_tree
-import com.kgit2.common.error.GitErrorCode
+import com.kgit2.common.callback.CallbackResult
 import com.kgit2.oid.Oid
 import com.kgit2.signature.Signature
 import com.kgit2.tree.Tree
-import kotlinx.cinterop.*
+import kotlinx.cinterop.ByteVar
+import kotlinx.cinterop.CArrayPointer
+import kotlinx.cinterop.COpaquePointer
+import kotlinx.cinterop.CPointer
+import kotlinx.cinterop.CPointerVar
+import kotlinx.cinterop.asStableRef
+import kotlinx.cinterop.convert
+import kotlinx.cinterop.get
+import kotlinx.cinterop.staticCFunction
+import kotlinx.cinterop.toKString
 import libgit2.git_commit_create_cb
 import libgit2.git_oid
 import libgit2.git_signature
@@ -19,7 +28,7 @@ typealias CommitCreateCallback = (
     message: String?,
     tree: Tree,
     parents: List<Commit>,
-) -> GitErrorCode
+) -> CallbackResult
 
 interface CommitCreateCallbackPayload {
     var commitCreateCallback: CommitCreateCallback?

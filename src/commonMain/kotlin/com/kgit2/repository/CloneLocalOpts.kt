@@ -1,7 +1,10 @@
 package com.kgit2.repository
 
 import libgit2.git_clone_local_t
-import libgit2.git_clone_local_t.*
+import libgit2.git_clone_local_t.GIT_CLONE_LOCAL
+import libgit2.git_clone_local_t.GIT_CLONE_LOCAL_AUTO
+import libgit2.git_clone_local_t.GIT_CLONE_LOCAL_NO_LINKS
+import libgit2.git_clone_local_t.GIT_CLONE_NO_LOCAL
 
 enum class CloneLocalOpts(val value: git_clone_local_t) {
     /// Auto-detect (default)

@@ -11,7 +11,23 @@ import com.kgit2.repository.Repository
 import kotlinx.cinterop.allocPointerTo
 import kotlinx.cinterop.ptr
 import kotlinx.cinterop.toKString
-import libgit2.*
+import libgit2.git_submodule_add_finalize
+import libgit2.git_submodule_add_to_index
+import libgit2.git_submodule_branch
+import libgit2.git_submodule_clone
+import libgit2.git_submodule_head_id
+import libgit2.git_submodule_ignore
+import libgit2.git_submodule_index_id
+import libgit2.git_submodule_init
+import libgit2.git_submodule_name
+import libgit2.git_submodule_open
+import libgit2.git_submodule_path
+import libgit2.git_submodule_reload
+import libgit2.git_submodule_sync
+import libgit2.git_submodule_update
+import libgit2.git_submodule_update_strategy
+import libgit2.git_submodule_url
+import libgit2.git_submodule_wd_id
 
 @Raw(
     base = git_submodule::class,

@@ -1,7 +1,7 @@
 package com.kgit2.transport
 
 import cnames.structs.git_remote
-import com.kgit2.common.error.GitErrorCode
+import com.kgit2.common.callback.CallbackResult
 import com.kgit2.common.memory.Memory
 import com.kgit2.remote.Remote
 import kotlinx.cinterop.*
@@ -15,7 +15,7 @@ import libgit2.git_transport_cb
  * @param remote The remote
  * @return 0 to proceed with the push, < 0 to fail the push
  */
-typealias TransportCallback = (transport: Transport, remote: Remote) -> GitErrorCode
+typealias TransportCallback = (transport: Transport, remote: Remote) -> CallbackResult
 
 interface TransportCallbackPayload {
     var transportCallback: TransportCallback?

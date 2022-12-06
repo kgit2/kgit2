@@ -4,8 +4,7 @@ import com.kgit2.config.Config
 import com.kgit2.process.Command
 import com.kgit2.process.Stdio
 import io.github.aakira.napier.Napier
-import io.ktor.http.URLBuilder
-import io.ktor.http.encodedPath
+import io.ktor.http.*
 
 class CredentialHelper(val url: String) {
     var username: String? = null

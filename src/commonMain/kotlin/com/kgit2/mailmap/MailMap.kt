@@ -9,7 +9,6 @@ import com.kgit2.signature.Signature
 import kotlinx.cinterop.addressOf
 import kotlinx.cinterop.convert
 import kotlinx.cinterop.ptr
-import kotlinx.cinterop.toKString
 import kotlinx.cinterop.usePinned
 import libgit2.git_mailmap_add_entry
 import libgit2.git_mailmap_from_buffer

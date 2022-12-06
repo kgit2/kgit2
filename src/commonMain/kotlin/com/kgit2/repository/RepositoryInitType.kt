@@ -1,6 +1,9 @@
 package com.kgit2.repository
 
-import libgit2.*
+import libgit2.GIT_REPOSITORY_INIT_SHARED_ALL
+import libgit2.GIT_REPOSITORY_INIT_SHARED_GROUP
+import libgit2.GIT_REPOSITORY_INIT_SHARED_UMASK
+import libgit2.git_repository_init_mode_t
 
 enum class RepositoryInitType(val value: git_repository_init_mode_t) {
     /**

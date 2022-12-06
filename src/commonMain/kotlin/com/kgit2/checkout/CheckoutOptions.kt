@@ -13,7 +13,8 @@ import com.kgit2.memory.ICallbacksPayload
 import com.kgit2.memory.RawWrapper
 import com.kgit2.memory.createCleaner
 import com.kgit2.model.StrArray
-import kotlinx.cinterop.*
+import kotlinx.cinterop.StableRef
+import kotlinx.cinterop.pointed
 import libgit2.GIT_CHECKOUT_OPTIONS_VERSION
 import libgit2.git_checkout_options
 import libgit2.git_checkout_options_init

@@ -1,7 +1,13 @@
 package com.kgit2.repository
 
 import com.kgit2.annotations.FlagMask
-import libgit2.*
+import libgit2.GIT_REPOSITORY_INIT_SHARED_ALL
+import libgit2.GIT_REPOSITORY_INIT_SHARED_GROUP
+import libgit2.GIT_REPOSITORY_INIT_SHARED_UMASK
+import libgit2.GIT_REPOSITORY_OPEN_FROM_ENV
+import libgit2.git_repository_init_flag_t
+import libgit2.git_repository_init_mode_t
+import libgit2.git_repository_open_flag_t
 
 @FlagMask(
     flagsType = git_repository_open_flag_t::class,

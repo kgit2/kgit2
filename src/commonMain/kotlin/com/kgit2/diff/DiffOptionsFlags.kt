@@ -1,7 +1,6 @@
 package com.kgit2.diff
 
 import com.kgit2.annotations.FlagMask
-import libgit2.*
 
 @FlagMask(
     flagsType = UInt::class,

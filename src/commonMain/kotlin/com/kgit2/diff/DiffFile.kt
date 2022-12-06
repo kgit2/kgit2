@@ -5,7 +5,10 @@ import com.kgit2.common.memory.Memory
 import com.kgit2.common.option.mutually.FileMode
 import com.kgit2.memory.RawWrapper
 import com.kgit2.oid.Oid
-import kotlinx.cinterop.*
+import kotlinx.cinterop.convert
+import kotlinx.cinterop.pointed
+import kotlinx.cinterop.ptr
+import kotlinx.cinterop.toKString
 import libgit2.git_diff_file
 
 @Raw(

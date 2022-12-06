@@ -13,7 +13,14 @@ import com.kgit2.repository.Repository
 import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.ptr
 import kotlinx.cinterop.toKString
-import libgit2.*
+import libgit2.git_tree_entry_cmp
+import libgit2.git_tree_entry_dup
+import libgit2.git_tree_entry_filemode
+import libgit2.git_tree_entry_filemode_raw
+import libgit2.git_tree_entry_id
+import libgit2.git_tree_entry_name
+import libgit2.git_tree_entry_to_object
+import libgit2.git_tree_entry_type
 
 @Raw(
     base = git_tree_entry::class,

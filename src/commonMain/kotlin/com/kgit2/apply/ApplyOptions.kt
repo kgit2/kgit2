@@ -1,17 +1,12 @@
 package com.kgit2.apply
 
 import com.kgit2.annotations.Raw
-import com.kgit2.common.error.GitErrorCode
-import com.kgit2.common.extend.asCPointer
-import com.kgit2.diff.DiffHunk
 import com.kgit2.memory.CallbackAble
 import com.kgit2.memory.ICallbacksPayload
 import com.kgit2.memory.RawWrapper
 import com.kgit2.memory.createCleaner
 import kotlinx.cinterop.StableRef
-import kotlinx.cinterop.asStableRef
 import kotlinx.cinterop.pointed
-import kotlinx.cinterop.staticCFunction
 import libgit2.GIT_APPLY_OPTIONS_VERSION
 import libgit2.git_apply_options
 import libgit2.git_apply_options_init

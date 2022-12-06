@@ -18,7 +18,21 @@ import com.kgit2.rev.Revwalk
 import kotlinx.cinterop.StableRef
 import kotlinx.cinterop.ptr
 import kotlinx.cinterop.toKString
-import libgit2.*
+import libgit2.git_packbuilder_foreach
+import libgit2.git_packbuilder_hash
+import libgit2.git_packbuilder_insert
+import libgit2.git_packbuilder_insert_commit
+import libgit2.git_packbuilder_insert_recur
+import libgit2.git_packbuilder_insert_tree
+import libgit2.git_packbuilder_insert_walk
+import libgit2.git_packbuilder_name
+import libgit2.git_packbuilder_new
+import libgit2.git_packbuilder_object_count
+import libgit2.git_packbuilder_set_callbacks
+import libgit2.git_packbuilder_set_threads
+import libgit2.git_packbuilder_write
+import libgit2.git_packbuilder_write_buf
+import libgit2.git_packbuilder_written
 
 @Raw(
     base = git_packbuilder::class,

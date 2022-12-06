@@ -1,7 +1,7 @@
 package com.kgit2.diff
 
 import com.kgit2.annotations.Raw
-import com.kgit2.common.error.GitErrorCode
+import com.kgit2.common.callback.CallbackResult
 import com.kgit2.common.extend.asStableRef
 import com.kgit2.common.memory.Memory
 import com.kgit2.memory.CallbackAble
@@ -9,8 +9,21 @@ import com.kgit2.memory.ICallbacksPayload
 import com.kgit2.memory.RawWrapper
 import com.kgit2.memory.createCleaner
 import com.kgit2.signature.Signature
-import kotlinx.cinterop.*
-import libgit2.git_diff_binary
+import kotlinx.cinterop.ByteVar
+import kotlinx.cinterop.CFunction
+import kotlinx.cinterop.COpaquePointer
+import kotlinx.cinterop.COpaquePointerVar
+import kotlinx.cinterop.CPointer
+import kotlinx.cinterop.IntVar
+import kotlinx.cinterop.StableRef
+import kotlinx.cinterop.asStableRef
+import kotlinx.cinterop.convert
+import kotlinx.cinterop.pointed
+import kotlinx.cinterop.readBytes
+import kotlinx.cinterop.reinterpret
+import kotlinx.cinterop.staticCFunction
+import kotlinx.cinterop.toKString
+import kotlinx.cinterop.value
 import libgit2.git_diff_file
 import libgit2.git_diff_similarity_metric
 import platform.posix.size_t
@@ -75,7 +88,7 @@ class DiffSimilarityMetric(
     }
 }
 
-typealias FileSignature = (CPointer<COpaquePointerVar>?, DiffFile?, String?) -> GitErrorCode
+typealias FileSignature = (CPointer<COpaquePointerVar>?, DiffFile?, String?) -> CallbackResult
 typealias git_diff_file_signature_cb = CPointer<CFunction<(CPointer<COpaquePointerVar>?, CPointer<git_diff_file>?, CPointer<ByteVar>?, COpaquePointer?) -> Int>>
 
 interface FileSignaturePayload {
@@ -92,7 +105,7 @@ val staticFileSignature: git_diff_file_signature_cb = staticCFunction {
     callback.fileSignature!!.invoke(out, file?.let { DiffFile(Memory(), it) }, fullPath?.toKString()).value
 }
 
-typealias BufferSignature = (CPointer<COpaquePointerVar>?, DiffFile?, String?) -> GitErrorCode
+typealias BufferSignature = (CPointer<COpaquePointerVar>?, DiffFile?, String?) -> CallbackResult
 typealias git_diff_buffer_signature_cb = CPointer<CFunction<(CPointer<COpaquePointerVar>?, CPointer<git_diff_file>?, CPointer<ByteVar>?, size_t, COpaquePointer?) -> Int>>
 
 interface BufferSignaturePayload {
@@ -129,7 +142,7 @@ val staticFreeSignature: git_diff_free_signature_cb = staticCFunction {
     callback.freeSignature!!.invoke(sig)
 }
 
-typealias Similarity = (Int?, Signature?, Signature?) -> GitErrorCode
+typealias Similarity = (Int?, Signature?, Signature?) -> CallbackResult
 typealias git_diff_similarity_cb = CPointer<CFunction<(CPointer<IntVar>?, COpaquePointer?, COpaquePointer?, COpaquePointer?) -> Int>>
 
 interface SimilarityPayload {

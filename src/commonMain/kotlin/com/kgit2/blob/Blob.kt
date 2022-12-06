@@ -5,8 +5,8 @@ import com.kgit2.annotations.Raw
 import com.kgit2.common.extend.toBoolean
 import com.kgit2.common.memory.Memory
 import com.kgit2.memory.RawWrapper
-import com.kgit2.oid.Oid
 import com.kgit2.`object`.Object
+import com.kgit2.oid.Oid
 import kotlinx.cinterop.convert
 import kotlinx.cinterop.readBytes
 import kotlinx.cinterop.reinterpret

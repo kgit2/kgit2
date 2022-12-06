@@ -1,6 +1,10 @@
 package com.kgit2.rev
 
-import libgit2.*
+import libgit2.GIT_SORT_NONE
+import libgit2.GIT_SORT_REVERSE
+import libgit2.GIT_SORT_TIME
+import libgit2.GIT_SORT_TOPOLOGICAL
+import libgit2.git_sort_t
 
 enum class SortType(val value: git_sort_t) {
     /**

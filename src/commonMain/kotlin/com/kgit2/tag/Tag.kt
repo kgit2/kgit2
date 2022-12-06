@@ -5,15 +5,22 @@ import com.kgit2.annotations.Raw
 import com.kgit2.common.extend.errorCheck
 import com.kgit2.common.memory.Memory
 import com.kgit2.memory.RawWrapper
-import com.kgit2.oid.Oid
 import com.kgit2.`object`.Object
 import com.kgit2.`object`.ObjectType
+import com.kgit2.oid.Oid
 import com.kgit2.signature.Signature
 import kotlinx.cinterop.allocPointerTo
 import kotlinx.cinterop.ptr
 import kotlinx.cinterop.reinterpret
 import kotlinx.cinterop.toKString
-import libgit2.*
+import libgit2.git_tag_id
+import libgit2.git_tag_message
+import libgit2.git_tag_name
+import libgit2.git_tag_peel
+import libgit2.git_tag_tagger
+import libgit2.git_tag_target
+import libgit2.git_tag_target_id
+import libgit2.git_tag_target_type
 
 @Raw(
     base = git_tag::class,

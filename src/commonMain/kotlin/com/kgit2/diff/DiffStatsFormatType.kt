@@ -1,6 +1,11 @@
 package com.kgit2.diff
 
-import libgit2.*
+import libgit2.GIT_DIFF_STATS_FULL
+import libgit2.GIT_DIFF_STATS_INCLUDE_SUMMARY
+import libgit2.GIT_DIFF_STATS_NONE
+import libgit2.GIT_DIFF_STATS_NUMBER
+import libgit2.GIT_DIFF_STATS_SHORT
+import libgit2.git_diff_stats_format_t
 
 enum class DiffStatsFormatType(val value: git_diff_stats_format_t) {
     None(GIT_DIFF_STATS_NONE),

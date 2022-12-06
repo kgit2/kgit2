@@ -1,6 +1,10 @@
 package com.kgit2.stash
 
-import libgit2.*
+import libgit2.GIT_STASH_DEFAULT
+import libgit2.GIT_STASH_INCLUDE_IGNORED
+import libgit2.GIT_STASH_INCLUDE_UNTRACKED
+import libgit2.GIT_STASH_KEEP_INDEX
+import libgit2.git_stash_flags
 
 enum class StashFlags(val value: git_stash_flags) {
     /**

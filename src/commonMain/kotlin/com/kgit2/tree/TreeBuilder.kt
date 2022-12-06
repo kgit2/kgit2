@@ -8,7 +8,13 @@ import com.kgit2.common.option.mutually.FileMode
 import com.kgit2.memory.RawWrapper
 import com.kgit2.oid.Oid
 import kotlinx.cinterop.ptr
-import libgit2.*
+import libgit2.git_treebuilder_clear
+import libgit2.git_treebuilder_entrycount
+import libgit2.git_treebuilder_filter
+import libgit2.git_treebuilder_get
+import libgit2.git_treebuilder_insert
+import libgit2.git_treebuilder_remove
+import libgit2.git_treebuilder_write
 
 @Raw(
     base = git_treebuilder::class,

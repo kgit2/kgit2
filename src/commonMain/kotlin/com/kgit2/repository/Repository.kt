@@ -23,6 +23,7 @@ import com.kgit2.checkout.ResetType
 import com.kgit2.cherrypick.CherrypickOptions
 import com.kgit2.commit.AnnotatedCommit
 import com.kgit2.commit.Commit
+import com.kgit2.common.callback.CallbackResult
 import com.kgit2.common.error.GitError
 import com.kgit2.common.error.GitErrorCode
 import com.kgit2.common.extend.asStableRef
@@ -85,9 +86,12 @@ import com.kgit2.status.StatusFlag
 import com.kgit2.status.StatusList
 import com.kgit2.status.StatusOptions
 import com.kgit2.submodule.Submodule
+import com.kgit2.submodule.SubmoduleCallback
+import com.kgit2.submodule.SubmoduleCallbackPayload
 import com.kgit2.submodule.SubmoduleIgnore
 import com.kgit2.submodule.SubmoduleStatus
 import com.kgit2.submodule.SubmoduleUpdate
+import com.kgit2.submodule.staticSubmoduleCallback
 import com.kgit2.tag.Tag
 import com.kgit2.tag.TagForeachCallback
 import com.kgit2.tag.TagForeachCallbackPayload
@@ -100,20 +104,17 @@ import com.kgit2.worktree.WorktreeAddOptions
 import kotlinx.cinterop.ByteVar
 import kotlinx.cinterop.CPointerVar
 import kotlinx.cinterop.IntVar
-import kotlinx.cinterop.StableRef
 import kotlinx.cinterop.ULongVar
 import kotlinx.cinterop.addressOf
 import kotlinx.cinterop.alloc
 import kotlinx.cinterop.allocArray
 import kotlinx.cinterop.allocArrayOf
 import kotlinx.cinterop.allocPointerTo
-import kotlinx.cinterop.asStableRef
 import kotlinx.cinterop.convert
 import kotlinx.cinterop.cstr
 import kotlinx.cinterop.get
 import kotlinx.cinterop.pointed
 import kotlinx.cinterop.ptr
-import kotlinx.cinterop.staticCFunction
 import kotlinx.cinterop.toCValues
 import kotlinx.cinterop.toKString
 import kotlinx.cinterop.usePinned
@@ -222,7 +223,6 @@ import libgit2.git_repository_is_empty
 import libgit2.git_repository_is_shallow
 import libgit2.git_repository_is_worktree
 import libgit2.git_repository_mergehead_foreach
-import libgit2.git_repository_mergehead_foreach_cb
 import libgit2.git_repository_message
 import libgit2.git_repository_message_remove
 import libgit2.git_repository_odb
@@ -261,7 +261,6 @@ import libgit2.git_status_file
 import libgit2.git_status_list_new
 import libgit2.git_status_should_ignore
 import libgit2.git_status_tVar
-import libgit2.git_submodule_cb
 import libgit2.git_submodule_foreach
 import libgit2.git_submodule_lookup
 import libgit2.git_submodule_set_branch
@@ -656,16 +655,16 @@ class Repository(raw: RepositoryRaw) : RawWrapper<git_repository, RepositoryRaw>
             ).errorCheck()
         }
 
-        fun mergeHeadForeach(callback: (Oid) -> Boolean) {
-            val stable = StableRef.create(callback)
-            val callback: git_repository_mergehead_foreach_cb = staticCFunction { oidPtr, payload ->
-                payload!!.asStableRef<((Oid) -> Boolean)>()
-                    .get()
-                    .invoke(Oid(Memory(), oidPtr!!))
-                    .toInt()
-            }
-            git_repository_mergehead_foreach(raw.handler, callback, stable.asCPointer()).errorCheck()
-            stable.dispose()
+        fun mergeHeadForeach(callback: RepositoryMergeHeadForeachCallback) {
+            val callbackPayload = object : RepositoryMergeHeadForeachCallbackPayload {
+                override var repositoryMergeHeadForeachCallback: RepositoryMergeHeadForeachCallback? = callback
+            }.asStableRef()
+            git_repository_mergehead_foreach(
+                raw.handler,
+                staticRepositoryMergeHeadForeachCallback,
+                callbackPayload.asCPointer()
+            ).errorCheck()
+            callbackPayload.dispose()
         }
     }
 
@@ -1175,21 +1174,19 @@ class Repository(raw: RepositoryRaw) : RawWrapper<git_repository, RepositoryRaw>
 
     inner class SubmoduleModule {
         fun submodules(): List<Submodule> {
-            val gitCallback: git_submodule_cb = staticCFunction { _, name, payload ->
-                val callbackPayload = payload!!.asStableRef<Pair<RepositoryPointer, MutableList<Submodule>>>()
-                val (repository, submodules) = callbackPayload.get()
-                submodules.add(Submodule {
-                    git_submodule_lookup(this.ptr, repository, name?.toKString()).errorCheck()
-                })
-                callbackPayload.dispose()
-                0
-            }
             val submodules = mutableListOf<Submodule>()
+            val callbackPayload = object : SubmoduleCallbackPayload {
+                override var submoduleCallback: SubmoduleCallback? = { submodule, _ ->
+                    submodules.add(submodule)
+                    CallbackResult.Ok
+                }
+            }.asStableRef()
             git_submodule_foreach(
                 raw.handler,
-                gitCallback,
-                StableRef.create(raw.handler to submodules).asCPointer()
+                staticSubmoduleCallback,
+                callbackPayload.asCPointer()
             ).errorCheck()
+            callbackPayload.dispose()
             return submodules
         }
 

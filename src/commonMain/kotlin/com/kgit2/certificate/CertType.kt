@@ -1,6 +1,19 @@
 package com.kgit2.certificate
 
-import libgit2.*
+import libgit2.GIT_CERT_SSH_MD5
+import libgit2.GIT_CERT_SSH_RAW
+import libgit2.GIT_CERT_SSH_RAW_TYPE_DSS
+import libgit2.GIT_CERT_SSH_RAW_TYPE_KEY_ECDSA_256
+import libgit2.GIT_CERT_SSH_RAW_TYPE_KEY_ECDSA_384
+import libgit2.GIT_CERT_SSH_RAW_TYPE_KEY_ECDSA_521
+import libgit2.GIT_CERT_SSH_RAW_TYPE_KEY_ED25519
+import libgit2.GIT_CERT_SSH_RAW_TYPE_RSA
+import libgit2.GIT_CERT_SSH_RAW_TYPE_UNKNOWN
+import libgit2.GIT_CERT_SSH_SHA1
+import libgit2.GIT_CERT_SSH_SHA256
+import libgit2.git_cert_ssh_raw_type_t
+import libgit2.git_cert_ssh_t
+import libgit2.git_cert_t
 
 /**
  * Type of host certificate structure that is passed to the check callback

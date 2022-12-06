@@ -3,7 +3,6 @@ package com.kgit2.blame
 import com.kgit2.common.kgitRunTest
 import com.kgit2.utils.initRepository
 import com.kgit2.utils.withTempDir
-import io.github.aakira.napier.Napier
 import okio.FileSystem
 import okio.Path.Companion.toPath
 import kotlin.test.Test

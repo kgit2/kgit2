@@ -12,7 +12,16 @@ import com.kgit2.signature.Signature
 import kotlinx.cinterop.allocPointerTo
 import kotlinx.cinterop.ptr
 import kotlinx.cinterop.toKString
-import libgit2.*
+import libgit2.git_rebase_abort
+import libgit2.git_rebase_commit
+import libgit2.git_rebase_finish
+import libgit2.git_rebase_inmemory_index
+import libgit2.git_rebase_next
+import libgit2.git_rebase_operation_byindex
+import libgit2.git_rebase_operation_current
+import libgit2.git_rebase_operation_entrycount
+import libgit2.git_rebase_orig_head_id
+import libgit2.git_rebase_orig_head_name
 import kotlin.native.ref.WeakReference
 
 @Raw(

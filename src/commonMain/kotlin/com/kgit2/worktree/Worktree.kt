@@ -9,7 +9,15 @@ import com.kgit2.model.Buf
 import com.kgit2.repository.Repository
 import kotlinx.cinterop.ptr
 import kotlinx.cinterop.toKString
-import libgit2.*
+import libgit2.git_worktree_is_locked
+import libgit2.git_worktree_is_prunable
+import libgit2.git_worktree_lock
+import libgit2.git_worktree_name
+import libgit2.git_worktree_open_from_repository
+import libgit2.git_worktree_path
+import libgit2.git_worktree_prune
+import libgit2.git_worktree_unlock
+import libgit2.git_worktree_validate
 
 @Raw(
     base = git_worktree::class,

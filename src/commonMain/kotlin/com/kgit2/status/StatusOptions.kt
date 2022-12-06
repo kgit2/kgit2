@@ -3,9 +3,15 @@ package com.kgit2.status
 import com.kgit2.common.extend.errorCheck
 import com.kgit2.common.memory.Memory
 import com.kgit2.memory.BeforeFree
-import com.kgit2.memory.RawWrapper
 import com.kgit2.memory.Raw
-import kotlinx.cinterop.*
+import com.kgit2.memory.RawWrapper
+import kotlinx.cinterop.CPointer
+import kotlinx.cinterop.alloc
+import kotlinx.cinterop.convert
+import kotlinx.cinterop.pin
+import kotlinx.cinterop.pointed
+import kotlinx.cinterop.ptr
+import kotlinx.cinterop.toCStringArray
 import libgit2.GIT_STATUS_OPTIONS_VERSION
 import libgit2.git_status_options
 import libgit2.git_status_options_init

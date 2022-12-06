@@ -1,10 +1,8 @@
 package com.kgit2.utils
 
-import com.kgit2.branch.Branch
 import com.kgit2.oid.Oid
 import com.kgit2.repository.Repository
 import okio.FileSystem
-import okio.Path
 import okio.Path.Companion.toPath
 
 fun commit(repository: Repository): Pair<Oid, Oid> {

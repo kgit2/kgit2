@@ -1,6 +1,12 @@
 package com.kgit2.common.option.mutually
 
-import libgit2.*
+import libgit2.GIT_FILEMODE_BLOB
+import libgit2.GIT_FILEMODE_BLOB_EXECUTABLE
+import libgit2.GIT_FILEMODE_COMMIT
+import libgit2.GIT_FILEMODE_LINK
+import libgit2.GIT_FILEMODE_TREE
+import libgit2.GIT_FILEMODE_UNREADABLE
+import libgit2.git_filemode_t
 
 enum class FileMode(val value: git_filemode_t) {
     UnReadAble(GIT_FILEMODE_UNREADABLE),

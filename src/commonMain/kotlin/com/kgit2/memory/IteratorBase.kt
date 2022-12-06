@@ -2,9 +2,6 @@ package com.kgit2.memory
 
 import com.kgit2.common.error.GitError
 import com.kgit2.common.error.GitErrorCode
-import com.kgit2.concurrency.NativeMutableList
-import kotlinx.atomicfu.atomic
-import kotlinx.cinterop.CPointed
 import kotlin.native.ref.WeakReference
 
 interface IteratorBase<E: Any> : Iterator<E> {

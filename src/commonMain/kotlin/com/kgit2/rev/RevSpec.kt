@@ -8,7 +8,11 @@ import kotlinx.cinterop.alloc
 import kotlinx.cinterop.convert
 import kotlinx.cinterop.pointed
 import kotlinx.cinterop.ptr
-import libgit2.*
+import libgit2.GIT_REVPARSE_MERGE_BASE
+import libgit2.GIT_REVPARSE_RANGE
+import libgit2.GIT_REVPARSE_SINGLE
+import libgit2.git_revparse_mode_t
+import libgit2.git_revspec
 
 @Raw(
     base = git_revspec::class,

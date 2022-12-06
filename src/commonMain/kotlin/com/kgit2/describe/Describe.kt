@@ -1,5 +1,6 @@
 package com.kgit2.describe
 
+import cnames.structs.git_describe_result
 import com.kgit2.annotations.Raw
 import com.kgit2.common.extend.errorCheck
 import com.kgit2.memory.RawWrapper
@@ -7,7 +8,9 @@ import com.kgit2.model.Buf
 import com.kgit2.`object`.Object
 import com.kgit2.repository.Repository
 import kotlinx.cinterop.ptr
-import libgit2.*
+import libgit2.git_describe_commit
+import libgit2.git_describe_format
+import libgit2.git_describe_workdir
 
 @Raw(
     base = git_describe_result::class,

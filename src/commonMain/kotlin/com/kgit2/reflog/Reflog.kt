@@ -11,7 +11,12 @@ import com.kgit2.oid.Oid
 import com.kgit2.repository.Repository
 import com.kgit2.signature.Signature
 import kotlinx.cinterop.ptr
-import libgit2.*
+import libgit2.git_reflog_append
+import libgit2.git_reflog_drop
+import libgit2.git_reflog_entry_byindex
+import libgit2.git_reflog_entrycount
+import libgit2.git_reflog_read
+import libgit2.git_reflog_write
 
 @Raw(
     base = git_reflog::class,

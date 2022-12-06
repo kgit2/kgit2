@@ -1,7 +1,7 @@
 package com.kgit2.submodule
 
 import cnames.structs.git_submodule
-import com.kgit2.common.error.GitErrorCode
+import com.kgit2.common.callback.CallbackResult
 import com.kgit2.common.memory.Memory
 import kotlinx.cinterop.*
 import libgit2.git_submodule_cb
@@ -13,7 +13,7 @@ import libgit2.git_submodule_cb
  * @param name name of the submodule
  * @return 0 on success or error code
  */
-typealias SubmoduleCallback = (submodule: Submodule, name: String) -> GitErrorCode
+typealias SubmoduleCallback = (submodule: Submodule, name: String) -> CallbackResult
 
 interface SubmoduleCallbackPayload {
     var submoduleCallback: SubmoduleCallback?
@@ -28,5 +28,5 @@ val staticSubmoduleCallback: git_submodule_cb = staticCFunction {
     callback?.submoduleCallback?.invoke(
         Submodule(Memory(), submodule!!),
         name!!.toKString()
-    )?.value ?: GitErrorCode.Ok.value
+    )?.value ?: CallbackResult.Ok.value
 }

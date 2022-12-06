@@ -8,7 +8,14 @@ import com.kgit2.fetch.Direction
 import com.kgit2.memory.RawWrapper
 import com.kgit2.model.Buf
 import kotlinx.cinterop.toKString
-import libgit2.*
+import libgit2.git_refspec_direction
+import libgit2.git_refspec_dst
+import libgit2.git_refspec_dst_matches
+import libgit2.git_refspec_rtransform
+import libgit2.git_refspec_src
+import libgit2.git_refspec_src_matches
+import libgit2.git_refspec_string
+import libgit2.git_refspec_transform
 
 @Raw(
     base = git_refspec::class,

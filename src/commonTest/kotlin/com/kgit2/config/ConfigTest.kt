@@ -1,21 +1,10 @@
 package com.kgit2.config
 
-import com.kgit2.common.extend.errorCheck
 import com.kgit2.common.kgitRunTest
-import com.kgit2.common.memory.Memory
-import com.kgit2.common.memory.memoryScoped
 import com.kgit2.utils.TempConfig
 import com.kgit2.utils.withTempDir
 import io.github.aakira.napier.Napier
-import kotlinx.cinterop.allocPointerTo
-import kotlinx.cinterop.ptr
 import kotlinx.cinterop.toKString
-import kotlinx.cinterop.value
-import libgit2.git_config_entry
-import libgit2.git_config_iterator
-import libgit2.git_config_iterator_free
-import libgit2.git_config_iterator_new
-import libgit2.git_config_next
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull

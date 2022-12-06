@@ -1,9 +1,9 @@
 package com.kgit2.repository
 
+import com.kgit2.common.callback.CallbackResult
 import com.kgit2.common.kgitRunTest
 import com.kgit2.utils.withTempDir
-import kotlinx.cinterop.convert
-import libgit2.GIT_REPOSITORY_INIT_BARE
+import io.github.aakira.napier.Napier
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -34,6 +34,57 @@ class RepositoryTest {
             val repository = Repository.initial(repoPath.toString())
             val noteDefaultRef = repository.noteDefaultRef
             assertEquals("refs/notes/commits", noteDefaultRef)
+        }
+    }
+
+    @Test
+    fun clone() = kgitRunTest {
+        withTempDir { repoPath ->
+            var progressCount = 0
+            val progressPaths = mutableSetOf<String>()
+            val cloneOptions = CloneOptions() {
+                /**
+                 * @sample
+                 * ```
+                 * repositoryCreateCallback = { path, bare ->
+                 *     println("repositoryCreateCallback")
+                 *     println("path: $path bare: $bare")
+                 *     null to CallbackResult.Ok
+                 * }
+                 * remoteCreateCallback = { repository, name, url ->
+                 *     println("remoteCreateCallback")
+                 *     println("repository: $repository name: $name url: $url")
+                 *     null to CallbackResult.Ok
+                 * }
+                 * fetchOptions.remoteCallbacks.credentialCallback = { url, usernameFromUrl, allowedTypes ->
+                 *     println("credentials")
+                 *     println("url: $url usernameFromUrl: $usernameFromUrl allowedTypes: $allowedTypes")
+                 *     Credential()
+                 * }
+                 * ```
+                 */
+                checkoutOptions.progressCallback = { path, _, _ ->
+                    if (progressCount == 0) {
+                        Napier.d("progressCallback")
+                    }
+                    progressCount++
+                    path?.let { progressPaths.add(it) }
+                    CallbackResult.Ok
+                }
+                fetchOptions.remoteCallbacks.transferProgress = { stats ->
+                    Napier.d("transferProgress")
+                    Napier.d("stats: $stats")
+                    CallbackResult.Ok
+                }
+                fetchOptions.proxyOptions.url = "http://127.0.0.1:6152"
+            }
+            val repository = Repository.clone(
+                "https://github.com/BppleMan/floater_test_repo.git",
+                repoPath.toString(),
+                cloneOptions
+            )
+            assertEquals(2001, progressCount)
+            assertEquals(List(2000) { "file_$it" }.toSet(), progressPaths)
         }
     }
 }

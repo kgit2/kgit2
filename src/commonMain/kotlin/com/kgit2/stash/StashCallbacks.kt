@@ -1,15 +1,20 @@
 package com.kgit2.stash
 
-import com.kgit2.common.error.GitErrorCode
+import com.kgit2.common.callback.CallbackResult
 import com.kgit2.oid.Oid
-import kotlinx.cinterop.*
+import kotlinx.cinterop.ByteVar
+import kotlinx.cinterop.COpaquePointer
+import kotlinx.cinterop.CPointer
+import kotlinx.cinterop.asStableRef
+import kotlinx.cinterop.staticCFunction
+import kotlinx.cinterop.toKString
 import libgit2.git_oid
 import libgit2.git_stash_apply_progress_cb
 import libgit2.git_stash_apply_progress_t
 import libgit2.git_stash_cb
 import platform.posix.size_t
 
-typealias StashApplyProgressCallback = (type: StashApplyProgressType) -> GitErrorCode
+typealias StashApplyProgressCallback = (type: StashApplyProgressType) -> CallbackResult
 
 interface StashApplyProgressCallbackPayload {
     var stashApplyProgressCallback: StashApplyProgressCallback?
@@ -20,11 +25,10 @@ val staticStashApplyProgressCallback: git_stash_apply_progress_cb = staticCFunct
     ->
     val callbackPayload = payload?.asStableRef<StashApplyProgressCallbackPayload>()?.get()
     callbackPayload?.stashApplyProgressCallback?.invoke(StashApplyProgressType.from(type))?.value
-        ?: GitErrorCode.Ok.value
-    0
+        ?: CallbackResult.Ok.value
 }
 
-typealias StashCallback = (index: ULong, message: String, stashId: Oid) -> GitErrorCode
+typealias StashCallback = (index: ULong, message: String, stashId: Oid) -> CallbackResult
 
 interface StashCallbackPayload {
     var stashCallback: StashCallback?
@@ -38,6 +42,5 @@ val staticStashCallback: git_stash_cb = staticCFunction {
         index,
         message?.toKString() ?: "",
         Oid(handler = id!!),
-    )?.value ?: GitErrorCode.Ok.value
-    0
+    )?.value ?: CallbackResult.Ok.value
 }

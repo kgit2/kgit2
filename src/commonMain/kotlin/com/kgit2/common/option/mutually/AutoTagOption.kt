@@ -1,6 +1,10 @@
 package com.kgit2.common.option.mutually
 
-import libgit2.*
+import libgit2.GIT_REMOTE_DOWNLOAD_TAGS_ALL
+import libgit2.GIT_REMOTE_DOWNLOAD_TAGS_AUTO
+import libgit2.GIT_REMOTE_DOWNLOAD_TAGS_NONE
+import libgit2.GIT_REMOTE_DOWNLOAD_TAGS_UNSPECIFIED
+import libgit2.git_remote_autotag_option_t
 
 enum class AutoTagOption(val value: git_remote_autotag_option_t) {
     UnSpecified(GIT_REMOTE_DOWNLOAD_TAGS_UNSPECIFIED),

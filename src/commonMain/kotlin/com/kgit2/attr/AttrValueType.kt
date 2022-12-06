@@ -3,7 +3,15 @@ package com.kgit2.attr
 import com.kgit2.common.memory.memoryScoped
 import kotlinx.cinterop.cstr
 import kotlinx.cinterop.toKString
-import libgit2.*
+import libgit2.GIT_ATTR_VALUE_FALSE
+import libgit2.GIT_ATTR_VALUE_STRING
+import libgit2.GIT_ATTR_VALUE_TRUE
+import libgit2.GIT_ATTR_VALUE_UNSPECIFIED
+import libgit2.git_attr__false
+import libgit2.git_attr__true
+import libgit2.git_attr__unset
+import libgit2.git_attr_value
+import libgit2.git_attr_value_t
 
 enum class AttrValueType(val value: git_attr_value_t) {
     /**

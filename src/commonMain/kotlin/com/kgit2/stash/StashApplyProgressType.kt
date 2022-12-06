@@ -1,6 +1,14 @@
 package com.kgit2.stash
 
-import libgit2.*
+import libgit2.GIT_STASH_APPLY_PROGRESS_ANALYZE_INDEX
+import libgit2.GIT_STASH_APPLY_PROGRESS_ANALYZE_MODIFIED
+import libgit2.GIT_STASH_APPLY_PROGRESS_ANALYZE_UNTRACKED
+import libgit2.GIT_STASH_APPLY_PROGRESS_CHECKOUT_MODIFIED
+import libgit2.GIT_STASH_APPLY_PROGRESS_CHECKOUT_UNTRACKED
+import libgit2.GIT_STASH_APPLY_PROGRESS_DONE
+import libgit2.GIT_STASH_APPLY_PROGRESS_LOADING_STASH
+import libgit2.GIT_STASH_APPLY_PROGRESS_NONE
+import libgit2.git_stash_apply_progress_t
 
 enum class StashApplyProgressType(val value: git_stash_apply_progress_t) {
     /**

@@ -1,6 +1,9 @@
 package com.kgit2.apply
 
-import libgit2.*
+import libgit2.GIT_APPLY_LOCATION_BOTH
+import libgit2.GIT_APPLY_LOCATION_INDEX
+import libgit2.GIT_APPLY_LOCATION_WORKDIR
+import libgit2.git_apply_location_t
 
 enum class ApplyLocation(val value: git_apply_location_t) {
     /**

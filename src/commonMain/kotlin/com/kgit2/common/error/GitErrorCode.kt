@@ -1,6 +1,37 @@
 package com.kgit2.common.error
 
-import libgit2.*
+import libgit2.GIT_EAMBIGUOUS
+import libgit2.GIT_EAPPLIED
+import libgit2.GIT_EAPPLYFAIL
+import libgit2.GIT_EAUTH
+import libgit2.GIT_EBAREREPO
+import libgit2.GIT_EBUFS
+import libgit2.GIT_ECERTIFICATE
+import libgit2.GIT_ECONFLICT
+import libgit2.GIT_EDIRECTORY
+import libgit2.GIT_EEOF
+import libgit2.GIT_EEXISTS
+import libgit2.GIT_EINDEXDIRTY
+import libgit2.GIT_EINVALID
+import libgit2.GIT_EINVALIDSPEC
+import libgit2.GIT_ELOCKED
+import libgit2.GIT_EMERGECONFLICT
+import libgit2.GIT_EMISMATCH
+import libgit2.GIT_EMODIFIED
+import libgit2.GIT_ENONFASTFORWARD
+import libgit2.GIT_ENOTFOUND
+import libgit2.GIT_EOWNER
+import libgit2.GIT_EPEEL
+import libgit2.GIT_ERROR
+import libgit2.GIT_EUNBORNBRANCH
+import libgit2.GIT_EUNCOMMITTED
+import libgit2.GIT_EUNMERGED
+import libgit2.GIT_EUSER
+import libgit2.GIT_ITEROVER
+import libgit2.GIT_OK
+import libgit2.GIT_PASSTHROUGH
+import libgit2.GIT_RETRY
+import libgit2.git_error_code
 
 sealed class GitErrorCode(val value: git_error_code) {
     /**< No error */

@@ -1,7 +1,7 @@
 package com.kgit2.tree
 
 import cnames.structs.git_tree_entry
-import com.kgit2.common.error.GitErrorCode
+import com.kgit2.common.callback.CallbackResult
 import kotlinx.cinterop.*
 import libgit2.*
 
@@ -12,7 +12,7 @@ import libgit2.*
  * @param entry The current entry
  * @return 0 on success or error code
  */
-typealias TreeWalkCallback = (root: String, entry: TreeEntry) -> GitErrorCode
+typealias TreeWalkCallback = (root: String, entry: TreeEntry) -> CallbackResult
 
 interface TreeWalkCallbackPayload {
     var treeWalkCallback: TreeWalkCallback?
@@ -27,10 +27,10 @@ val staticTreeWalkCallback: git_treewalk_cb = staticCFunction {
     callback?.treeWalkCallback?.invoke(
         root!!.toKString(),
         TreeEntry(handler = entry!!)
-    )?.value ?: GitErrorCode.Ok.value
+    )?.value ?: CallbackResult.Ok.value
 }
 
-typealias TreebuilderFilterCallback = (entry: TreeEntry) -> GitErrorCode
+typealias TreebuilderFilterCallback = (entry: TreeEntry) -> CallbackResult
 
 interface TreebuilderFilterCallbackPayload {
     var treebuilderFilterCallback: TreebuilderFilterCallback?
@@ -40,5 +40,5 @@ val staticTreebuilderFilterCallback: git_treebuilder_filter_cb = staticCFunction
         treeEntry: CPointer<git_tree_entry>?, payload: COpaquePointer?,
     ->
     val callbackPayload = payload?.asStableRef<TreebuilderFilterCallbackPayload>()?.get()
-    callbackPayload?.treebuilderFilterCallback?.invoke(TreeEntry(handler = treeEntry!!))?.value ?: GitErrorCode.Ok.value
+    callbackPayload?.treebuilderFilterCallback?.invoke(TreeEntry(handler = treeEntry!!))?.value ?: CallbackResult.Ok.value
 }

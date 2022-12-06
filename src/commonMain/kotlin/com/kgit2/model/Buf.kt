@@ -3,7 +3,15 @@ package com.kgit2.model
 import com.kgit2.annotations.Raw
 import com.kgit2.common.memory.Memory
 import com.kgit2.memory.RawWrapper
-import kotlinx.cinterop.*
+import kotlinx.cinterop.CPointer
+import kotlinx.cinterop.addressOf
+import kotlinx.cinterop.cValue
+import kotlinx.cinterop.convert
+import kotlinx.cinterop.cstr
+import kotlinx.cinterop.pointed
+import kotlinx.cinterop.readBytes
+import kotlinx.cinterop.toCValues
+import kotlinx.cinterop.usePinned
 import libgit2.git_buf
 
 @Raw(

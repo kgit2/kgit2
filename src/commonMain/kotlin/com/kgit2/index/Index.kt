@@ -9,7 +9,6 @@ import com.kgit2.common.extend.toInt
 import com.kgit2.common.memory.Memory
 import com.kgit2.memory.IterableBase
 import com.kgit2.memory.RawWrapper
-import com.kgit2.model.StrArray
 import com.kgit2.model.toStrArray
 import com.kgit2.oid.Oid
 import com.kgit2.repository.Repository
@@ -19,7 +18,31 @@ import kotlinx.cinterop.allocPointerTo
 import kotlinx.cinterop.convert
 import kotlinx.cinterop.ptr
 import kotlinx.cinterop.usePinned
-import libgit2.*
+import libgit2.git_index_add
+import libgit2.git_index_add_all
+import libgit2.git_index_add_bypath
+import libgit2.git_index_add_frombuffer
+import libgit2.git_index_clear
+import libgit2.git_index_conflict_cleanup
+import libgit2.git_index_conflict_iterator_new
+import libgit2.git_index_conflict_remove
+import libgit2.git_index_entrycount
+import libgit2.git_index_get_byindex
+import libgit2.git_index_get_bypath
+import libgit2.git_index_has_conflicts
+import libgit2.git_index_new
+import libgit2.git_index_open
+import libgit2.git_index_read
+import libgit2.git_index_read_tree
+import libgit2.git_index_remove_all
+import libgit2.git_index_remove_bypath
+import libgit2.git_index_remove_directory
+import libgit2.git_index_set_version
+import libgit2.git_index_update_all
+import libgit2.git_index_version
+import libgit2.git_index_write
+import libgit2.git_index_write_tree
+import libgit2.git_index_write_tree_to
 
 @Raw(
     base = git_index::class,

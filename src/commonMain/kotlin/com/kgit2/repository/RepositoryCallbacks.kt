@@ -2,7 +2,7 @@ package com.kgit2.repository
 
 import cnames.structs.git_remote
 import cnames.structs.git_repository
-import com.kgit2.common.error.GitErrorCode
+import com.kgit2.common.callback.CallbackResult
 import com.kgit2.common.extend.toBoolean
 import com.kgit2.common.memory.Memory
 import com.kgit2.oid.Oid
@@ -23,7 +23,7 @@ import libgit2.*
  * @param bare whether the repository is bare. This is the value from the clone options
  * @return 0, or a negative value to indicate error
  */
-typealias RepositoryCreateCallback = (repository: Repository, path: String, bare: Boolean) -> GitErrorCode
+typealias RepositoryCreateCallback = (path: String, bare: Boolean) -> Pair<Repository?, CallbackResult>
 
 interface RepositoryCreateCallbackPayload {
     var repositoryCreateCallback: RepositoryCreateCallback?
@@ -36,11 +36,14 @@ val staticRepositoryCreateCallback: git_repository_create_cb = staticCFunction {
         payload: COpaquePointer?,
     ->
     val callback = payload?.asStableRef<RepositoryCreateCallbackPayload>()?.get()
-    callback?.repositoryCreateCallback?.invoke(
-        Repository(Memory(), repo!!.pointed.value!!),
+    val result = callback?.repositoryCreateCallback?.invoke(
         path!!.toKString(),
         bare.toBoolean(),
-    )?.value ?: GitErrorCode.Ok.value
+    )
+    result?.first?.let {
+        repo!!.pointed.value = it.raw.handler
+    }
+    result?.second?.value ?: CallbackResult.Ok.value
 }
 
 /**
@@ -56,7 +59,7 @@ val staticRepositoryCreateCallback: git_repository_create_cb = staticCFunction {
  * @param url the remote's url
  * @return GitErrorCode GIT_OK on success, GIT_EINVALIDSPEC, GIT_EEXISTS or an error code
  */
-typealias RemoteCreateCallback = (remote: Remote, repository: Repository, name: String, url: String) -> GitErrorCode
+typealias RemoteCreateCallback = (repository: Repository?, name: String, url: String) -> Pair<Remote?, CallbackResult>
 
 interface RemoteCreateCallbackPayload {
     var remoteCreateCallback: RemoteCreateCallback?
@@ -70,15 +73,18 @@ val staticRemoteCreateCallback: git_remote_create_cb = staticCFunction {
         payload: COpaquePointer?,
     ->
     val callback = payload?.asStableRef<CloneOptions.CallbacksPayload>()?.get()
-    callback?.remoteCreateCallback?.invoke(
-        Remote(Memory(), remote!!.pointed.value!!),
-        Repository(Memory(), repository!!),
+    val result = callback?.remoteCreateCallback?.invoke(
+        repository?.let { Repository(Memory(), it) },
         name!!.toKString(),
         url!!.toKString(),
-    )?.value ?: GitErrorCode.Ok.value
+    )
+    result?.first?.let {
+        remote!!.pointed.value = it.raw.handler
+    }
+    result?.second?.value ?: CallbackResult.Ok.value
 }
 
-typealias RepositoryFetchHeadForeachCallback = (refname: String, remoteUrl: String, oid: Oid, isMerge: Boolean) -> GitErrorCode
+typealias RepositoryFetchHeadForeachCallback = (refname: String, remoteUrl: String, oid: Oid, isMerge: Boolean) -> CallbackResult
 
 interface RepositoryFetchHeadForeachCallbackPayload {
     var repositoryFetchHeadForeachCallback: RepositoryFetchHeadForeachCallback?
@@ -97,10 +103,26 @@ val staticRepositoryFetchHeadForeachCallback: git_repository_fetchhead_foreach_c
         remoteUrl!!.toKString(),
         Oid(handler = oid!!),
         isMerge.convert<Int>().toBoolean(),
-    )?.value ?: GitErrorCode.Ok.value
+    )?.value ?: CallbackResult.Ok.value
 }
 
-typealias RevwalkHideCallback = (oid: Oid) -> GitErrorCode
+typealias RepositoryMergeHeadForeachCallback = (oid: Oid) -> CallbackResult
+
+interface RepositoryMergeHeadForeachCallbackPayload {
+    var repositoryMergeHeadForeachCallback: RepositoryMergeHeadForeachCallback?
+}
+
+val staticRepositoryMergeHeadForeachCallback: git_repository_mergehead_foreach_cb =
+    staticCFunction { id: CPointer<git_oid>?, payload: COpaquePointer?
+        ->
+        val callbackPayload = payload?.asStableRef<RepositoryMergeHeadForeachCallbackPayload>()?.get()
+        callbackPayload?.repositoryMergeHeadForeachCallback?.invoke(
+            Oid(handler = id!!)
+        )?.value ?: CallbackResult.Ok.value
+    }
+
+
+typealias RevwalkHideCallback = (oid: Oid) -> CallbackResult
 
 interface RevwalkHideCallbackPayload {
     var revwalkHideCallback: RevwalkHideCallback?
@@ -110,5 +132,5 @@ val staticRevwalkHideCallback: git_revwalk_hide_cb = staticCFunction {
         oid: CPointer<git_oid>?, payload: COpaquePointer?,
     ->
     val callbackPayload = payload?.asStableRef<RevwalkHideCallbackPayload>()?.get()
-    callbackPayload?.revwalkHideCallback?.invoke(Oid(handler = oid!!))?.value ?: GitErrorCode.Ok.value
+    callbackPayload?.revwalkHideCallback?.invoke(Oid(handler = oid!!))?.value ?: CallbackResult.Ok.value
 }

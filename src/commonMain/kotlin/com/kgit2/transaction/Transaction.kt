@@ -1,5 +1,6 @@
 package com.kgit2.transaction
 
+import cnames.structs.git_transaction
 import com.kgit2.annotations.Raw
 import com.kgit2.common.extend.errorCheck
 import com.kgit2.memory.RawWrapper
@@ -8,7 +9,13 @@ import com.kgit2.reflog.Reflog
 import com.kgit2.repository.Repository
 import com.kgit2.signature.Signature
 import kotlinx.cinterop.ptr
-import libgit2.*
+import libgit2.git_transaction_commit
+import libgit2.git_transaction_lock_ref
+import libgit2.git_transaction_new
+import libgit2.git_transaction_remove
+import libgit2.git_transaction_set_reflog
+import libgit2.git_transaction_set_symbolic_target
+import libgit2.git_transaction_set_target
 
 @Raw(
     base = git_transaction::class,

@@ -9,9 +9,24 @@ import com.kgit2.memory.ICallbacksPayload
 import com.kgit2.memory.IteratorBase
 import com.kgit2.memory.RawWrapper
 import com.kgit2.oid.Oid
-import com.kgit2.repository.*
+import com.kgit2.repository.RevwalkHideCallback
+import com.kgit2.repository.RevwalkHideCallbackPayload
+import com.kgit2.repository.staticRevwalkHideCallback
 import kotlinx.cinterop.StableRef
-import libgit2.*
+import libgit2.git_revwalk_add_hide_cb
+import libgit2.git_revwalk_hide
+import libgit2.git_revwalk_hide_glob
+import libgit2.git_revwalk_hide_head
+import libgit2.git_revwalk_hide_ref
+import libgit2.git_revwalk_next
+import libgit2.git_revwalk_push
+import libgit2.git_revwalk_push_glob
+import libgit2.git_revwalk_push_head
+import libgit2.git_revwalk_push_range
+import libgit2.git_revwalk_push_ref
+import libgit2.git_revwalk_reset
+import libgit2.git_revwalk_simplify_first_parent
+import libgit2.git_revwalk_sorting
 import kotlin.native.ref.WeakReference
 
 @Raw(

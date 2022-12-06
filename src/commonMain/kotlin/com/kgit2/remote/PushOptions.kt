@@ -39,7 +39,7 @@ class PushOptions(
             raw.handler.pointed.pb_parallelism = value
         }
 
-    var followRedirects: RemoteRedirect = RemoteRedirect.fromRaw(raw.handler.pointed.follow_redirects)
+    var followRedirects: RemoteRedirect = RemoteRedirect.from(raw.handler.pointed.follow_redirects)
         set(value) {
             field = value
             raw.handler.pointed.follow_redirects = value.value

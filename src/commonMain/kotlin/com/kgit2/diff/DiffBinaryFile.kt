@@ -3,7 +3,11 @@ package com.kgit2.diff
 import com.kgit2.annotations.Raw
 import com.kgit2.common.memory.Memory
 import com.kgit2.memory.RawWrapper
-import kotlinx.cinterop.*
+import kotlinx.cinterop.alloc
+import kotlinx.cinterop.convert
+import kotlinx.cinterop.pointed
+import kotlinx.cinterop.ptr
+import kotlinx.cinterop.readBytes
 import libgit2.git_diff_binary_file
 
 @Raw(

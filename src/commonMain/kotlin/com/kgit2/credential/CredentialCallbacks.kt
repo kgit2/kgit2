@@ -1,7 +1,7 @@
 package com.kgit2.credential
 
 import com.kgit2.certificate.Cert
-import com.kgit2.common.error.GitErrorCode
+import com.kgit2.common.callback.CallbackResult
 import com.kgit2.common.extend.toBoolean
 import com.kgit2.common.memory.Memory
 import kotlinx.cinterop.*
@@ -31,7 +31,7 @@ import libgit2.git_transport_certificate_check_cb
  * @return 0 for success, < 0 to indicate an error, > 0 to indicate
  *       no credential was acquired
  */
-typealias CredentialAcquireCallback = (credential: Credential, url: String, usernameFromUrl: String?, allowedTypes: CredentialType) -> GitErrorCode
+typealias CredentialAcquireCallback = (url: String, usernameFromUrl: String?, allowedTypes: CredentialType) -> Credential
 
 interface CredentialAcquireCallbackPayload {
     var credentialAcquireCallback: CredentialAcquireCallback?
@@ -44,13 +44,13 @@ val staticCredentialAcquireCallback: git_credential_acquire_cb = staticCFunction
         allowedTypes: UInt,
         payload: COpaquePointer?
     ->
-    val callback = payload!!.asStableRef<CredentialAcquireCallbackPayload>().get()
-    callback.credentialAcquireCallback!!.invoke(
-        Credential(Memory(), credential!!.pointed.value!!),
+    val callback = payload?.asStableRef<CredentialAcquireCallbackPayload>()?.get()
+    callback?.credentialAcquireCallback?.invoke(
         url!!.toKString(),
         usernameFromUrl!!.toKString(),
         CredentialType(allowedTypes)
-    ).value
+    )?.let { credential!!.pointed.value = it.raw.handler }
+    CallbackResult.Ok.value
 }
 
 /**
@@ -64,7 +64,7 @@ val staticCredentialAcquireCallback: git_credential_acquire_cb = staticCFunction
  *         or > 0 to indicate that the callback refused to act and that
  *         the existing validity determination should be honored
  */
-typealias CertificateCheckCallback = (cert: Cert, valid: Boolean, host: String) -> GitErrorCode
+typealias CertificateCheckCallback = (cert: Cert, valid: Boolean, host: String) -> CallbackResult
 
 interface CertificateCheckCallbackPayload {
     var certificateCheckCallback: CertificateCheckCallback?

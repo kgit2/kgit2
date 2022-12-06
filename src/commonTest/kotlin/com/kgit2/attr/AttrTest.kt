@@ -2,7 +2,6 @@ package com.kgit2.attr
 
 import com.kgit2.common.callback.CallbackResult
 import com.kgit2.common.kgitRunTest
-import com.kgit2.repository.Repository
 import com.kgit2.utils.initRepository
 import com.kgit2.utils.withTempDir
 import okio.FileSystem

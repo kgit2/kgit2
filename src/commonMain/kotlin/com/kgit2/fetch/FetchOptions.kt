@@ -1,6 +1,7 @@
 package com.kgit2.fetch
 
 import com.kgit2.annotations.Raw
+import com.kgit2.common.extend.errorCheck
 import com.kgit2.common.memory.Memory
 import com.kgit2.common.option.mutually.AutoTagOption
 import com.kgit2.memory.RawWrapper
@@ -10,19 +11,23 @@ import com.kgit2.remote.RemoteCallbacks
 import com.kgit2.remote.RemoteRedirect
 import kotlinx.cinterop.pointed
 import kotlinx.cinterop.ptr
+import libgit2.GIT_FETCH_OPTIONS_VERSION
 import libgit2.git_fetch_options
+import libgit2.git_fetch_options_init
 
 @Raw(
     base = git_fetch_options::class,
 )
 class FetchOptions(
-    raw: FetchOptionsRaw = FetchOptionsRaw(),
+    raw: FetchOptionsRaw = FetchOptionsRaw(initial = {
+        git_fetch_options_init(this, GIT_FETCH_OPTIONS_VERSION).errorCheck()
+    }),
 ) : RawWrapper<git_fetch_options, FetchOptionsRaw>(raw) {
     constructor(memory: Memory, handler: FetchOptionsPointer) : this(FetchOptionsRaw(memory, handler))
 
-    val callbacks: RemoteCallbacks = RemoteCallbacks(Memory(), raw.handler.pointed.callbacks.ptr)
+    val remoteCallbacks: RemoteCallbacks = RemoteCallbacks(Memory(), raw.handler.pointed.callbacks.ptr)
 
-    val proxy: ProxyOptions = ProxyOptions(Memory(), raw.handler.pointed.proxy_opts.ptr)
+    val proxyOptions: ProxyOptions = ProxyOptions(Memory(), raw.handler.pointed.proxy_opts.ptr)
 
     var prune: FetchPrune = FetchPrune.fromRaw(raw.handler.pointed.prune)
         set(value) {
@@ -42,10 +47,10 @@ class FetchOptions(
             raw.handler.pointed.download_tags = value.value
         }
 
-    var followRedirects: RemoteRedirect = RemoteRedirect.fromRaw(raw.handler.pointed.follow_redirects)
+    var followRedirects: RemoteRedirect? = runCatching { RemoteRedirect.from(raw.handler.pointed.follow_redirects) }.getOrNull()
         set(value) {
             field = value
-            raw.handler.pointed.follow_redirects = value.value
+            value?.let { raw.handler.pointed.follow_redirects = it.value }
         }
 
     val customHeaders: StrArray = StrArray(Memory(), raw.handler.pointed.custom_headers)

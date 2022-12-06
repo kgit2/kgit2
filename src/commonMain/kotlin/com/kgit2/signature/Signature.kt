@@ -5,12 +5,14 @@ import com.kgit2.common.extend.errorCheck
 import com.kgit2.common.memory.Memory
 import com.kgit2.memory.RawWrapper
 import com.kgit2.time.Time
-import kotlinx.cinterop.*
+import kotlinx.cinterop.CPointer
+import kotlinx.cinterop.allocPointerTo
+import kotlinx.cinterop.pointed
+import kotlinx.cinterop.ptr
+import kotlinx.cinterop.toKString
 import libgit2.git_signature
 import libgit2.git_signature_new
 import libgit2.git_signature_now
-import kotlin.native.internal.Cleaner
-import kotlin.native.internal.createCleaner
 
 @Raw(
     base = git_signature::class,

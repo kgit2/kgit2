@@ -3,7 +3,7 @@ package com.kgit2.repository
 import com.kgit2.annotations.Raw
 import com.kgit2.checkout.CheckoutOptions
 import com.kgit2.common.extend.asStableRef
-import com.kgit2.common.extend.toBoolean
+import com.kgit2.common.extend.errorCheck
 import com.kgit2.common.extend.toInt
 import com.kgit2.common.memory.Memory
 import com.kgit2.fetch.FetchOptions
@@ -11,16 +11,22 @@ import com.kgit2.memory.CallbackAble
 import com.kgit2.memory.ICallbacksPayload
 import com.kgit2.memory.RawWrapper
 import com.kgit2.memory.createCleaner
-import com.kgit2.remote.Remote
-import kotlinx.cinterop.*
+import kotlinx.cinterop.cstr
+import kotlinx.cinterop.pointed
+import kotlinx.cinterop.ptr
+import kotlinx.cinterop.toKString
+import libgit2.GIT_CLONE_OPTIONS_VERSION
 import libgit2.git_clone_options
+import libgit2.git_clone_options_init
 import kotlin.native.internal.Cleaner
 
 @Raw(
     base = git_clone_options::class,
 )
 class CloneOptions(
-    raw: CloneOptionsRaw = CloneOptionsRaw(),
+    raw: CloneOptionsRaw = CloneOptionsRaw(initial = {
+        git_clone_options_init(this, GIT_CLONE_OPTIONS_VERSION).errorCheck()
+    }),
     initial: CloneOptions.() -> Unit = {},
 ) :
     RawWrapper<git_clone_options, CloneOptionsRaw>(raw),

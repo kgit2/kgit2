@@ -1,6 +1,6 @@
 package com.kgit2.describe
 
-import libgit2.*
+import libgit2.git_describe_strategy_t
 
 enum class DescribeStrategyMode(val value: git_describe_strategy_t) {
     Default(git_describe_strategy_t.GIT_DESCRIBE_DEFAULT),

@@ -1,6 +1,11 @@
 package com.kgit2.submodule
 
-import libgit2.*
+import libgit2.GIT_SUBMODULE_IGNORE_ALL
+import libgit2.GIT_SUBMODULE_IGNORE_DIRTY
+import libgit2.GIT_SUBMODULE_IGNORE_NONE
+import libgit2.GIT_SUBMODULE_IGNORE_UNSPECIFIED
+import libgit2.GIT_SUBMODULE_IGNORE_UNTRACKED
+import libgit2.git_submodule_ignore_t
 
 enum class SubmoduleIgnore(val value: git_submodule_ignore_t) {
     None(GIT_SUBMODULE_IGNORE_NONE),

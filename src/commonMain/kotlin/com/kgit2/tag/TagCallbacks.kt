@@ -1,12 +1,17 @@
 package com.kgit2.tag
 
-import com.kgit2.common.error.GitErrorCode
+import com.kgit2.common.callback.CallbackResult
 import com.kgit2.oid.Oid
-import kotlinx.cinterop.*
+import kotlinx.cinterop.ByteVar
+import kotlinx.cinterop.COpaquePointer
+import kotlinx.cinterop.CPointer
+import kotlinx.cinterop.asStableRef
+import kotlinx.cinterop.staticCFunction
+import kotlinx.cinterop.toKString
 import libgit2.git_oid
 import libgit2.git_tag_foreach_cb
 
-typealias TagForeachCallback = (tagName: String, id: Oid) -> GitErrorCode
+typealias TagForeachCallback = (tagName: String, id: Oid) -> CallbackResult
 
 interface TagForeachCallbackPayload {
     var tagForeachCallback: TagForeachCallback?
@@ -21,5 +26,5 @@ val staticTagForeachCallback: git_tag_foreach_cb = staticCFunction {
     callback?.tagForeachCallback?.invoke(
         name!!.toKString(),
         Oid(handler = id!!)
-    )?.value ?: GitErrorCode.Ok.value
+    )?.value ?: CallbackResult.Ok.value
 }

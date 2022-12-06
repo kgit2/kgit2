@@ -9,10 +9,15 @@ import com.kgit2.memory.RawWrapper
 import com.kgit2.`object`.Object
 import com.kgit2.oid.Oid
 import kotlinx.cinterop.CPointer
-import kotlinx.cinterop.allocPointerTo
 import kotlinx.cinterop.ptr
 import kotlinx.cinterop.reinterpret
-import libgit2.*
+import libgit2.git_tree_entry_byid
+import libgit2.git_tree_entry_byindex
+import libgit2.git_tree_entry_byname
+import libgit2.git_tree_entry_bypath
+import libgit2.git_tree_entrycount
+import libgit2.git_tree_id
+import libgit2.git_tree_walk
 
 @Raw(
     base = git_tree::class,

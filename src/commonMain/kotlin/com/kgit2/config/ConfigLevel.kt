@@ -1,6 +1,13 @@
 package com.kgit2.config
 
-import libgit2.*
+import libgit2.GIT_CONFIG_HIGHEST_LEVEL
+import libgit2.GIT_CONFIG_LEVEL_APP
+import libgit2.GIT_CONFIG_LEVEL_GLOBAL
+import libgit2.GIT_CONFIG_LEVEL_LOCAL
+import libgit2.GIT_CONFIG_LEVEL_PROGRAMDATA
+import libgit2.GIT_CONFIG_LEVEL_SYSTEM
+import libgit2.GIT_CONFIG_LEVEL_XDG
+import libgit2.git_config_level_t
 
 enum class ConfigLevel(val value: git_config_level_t) {
     /** System-wide on Windows, for compatibility with portable git */

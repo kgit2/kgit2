@@ -12,7 +12,17 @@ import com.kgit2.oid.Oid
 import kotlinx.cinterop.allocPointerTo
 import kotlinx.cinterop.convert
 import kotlinx.cinterop.ptr
-import libgit2.*
+import libgit2.git_diff_find_similar
+import libgit2.git_diff_foreach
+import libgit2.git_diff_from_buffer
+import libgit2.git_diff_get_delta
+import libgit2.git_diff_get_stats
+import libgit2.git_diff_is_sorted_icase
+import libgit2.git_diff_merge
+import libgit2.git_diff_num_deltas
+import libgit2.git_diff_num_deltas_of_type
+import libgit2.git_diff_patchid
+import libgit2.git_diff_print
 
 @Raw(
     base = git_diff::class,

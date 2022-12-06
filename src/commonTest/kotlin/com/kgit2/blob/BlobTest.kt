@@ -4,11 +4,7 @@ import com.kgit2.common.kgitRunTest
 import com.kgit2.repository.Repository
 import com.kgit2.utils.withTempDir
 import io.ktor.utils.io.core.*
-import kotlinx.cinterop.invoke
-import kotlinx.cinterop.pointed
-import okio.Buffer
 import okio.FileSystem
-import okio.buffer
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
