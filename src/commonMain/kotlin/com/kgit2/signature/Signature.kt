@@ -1,6 +1,7 @@
 package com.kgit2.signature
 
 import com.kgit2.annotations.Raw
+import com.kgit2.common.extend.errorCheck
 import com.kgit2.common.memory.Memory
 import com.kgit2.memory.RawWrapper
 import com.kgit2.time.Time
@@ -32,9 +33,9 @@ class Signature(raw: SignatureRaw) : RawWrapper<git_signature, SignatureRaw>(raw
         time: Time? = null,
     ) : this(SignatureRaw(secondaryInitial = {
         when (time) {
-            null -> git_signature_now(ptr, name, email)
-            else -> git_signature_new(ptr, name, email, time.seconds, time.offset)
-        }
+            null -> git_signature_now(this.ptr, name, email)
+            else -> git_signature_new(this.ptr, name, email, time.seconds, time.offset)
+        }.errorCheck()
     }))
 
     val name: String = raw.handler.pointed.name!!.toKString()

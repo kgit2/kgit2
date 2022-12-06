@@ -34,16 +34,22 @@ if [ $index = "--list" ]; then
     done
     exit 0
 elif [ $index = "null" ]; then
-    repeat=20
+    repeat=${2:-20}
+    count=0
     for i in "${!tests[@]}"; do
         if [[ ${tests[$i]} = *"*" ]]; then
             continue
         fi
-        echo "$i: ${tests[$i]}"
-        leaks --atExit -- /Users/bppleman/kgit2/kgit2/build/bin/native/debugTest/test.kexe --ktest_filter=${tests[$i]} --ktest_repeat=$repeat | grep "$regex"
-#        output=$(leaks --atExit -- /Users/bppleman/kgit2/kgit2/build/bin/native/debugTest/test.kexe --ktest_filter=${tests[$i]} --ktest_repeat=$repeat)
-#        echo $output | grep "$regex"
+        echo "$i: ${tests[$i]} $count"
+        if [ count = 0 ]; then
+            leaks --atExit -- /Users/bppleman/kgit2/kgit2/build/bin/native/debugTest/test.kexe --ktest_filter=${tests[$i]} --ktest_repeat=$repeat > leaks_report.txt 2> leaks_report.txt
+        else
+            leaks --atExit -- /Users/bppleman/kgit2/kgit2/build/bin/native/debugTest/test.kexe --ktest_filter=${tests[$i]} --ktest_repeat=$repeat >> leaks_report.txt 2>> leaks_report.txt
+        fi
+        count=$((count + 1))
     done
+    # grep and count
+    cat leaks_report.txt | grep "Process \d*: [0-9]* leaks" | wc -l
     exit 0
 fi
 
