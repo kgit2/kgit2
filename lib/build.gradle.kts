@@ -222,9 +222,14 @@ tasks {
                 |staticLibraries = libgit2.a libssh2.a libssl.a libcrypto.a
                 |libraryPaths = ${
                 libgit2DistDir.resolve("lib").normalize().absolutePath
-            } ${libssh2DistDir.resolve("lib").normalize().absolutePath}${if (opensslDir != null) " $opensslDir/lib" else ""}
+            } ${
+                libssh2DistDir.resolve("lib").normalize().absolutePath
+            }${if (opensslDir != null) " $opensslDir/lib" else ""}
                 |compilerOpts = -I${libgit2DistDir.resolve("include").normalize().absolutePath}
-                |linkerOpts = ${inputs.files.singleFile.readText()}
+                |linkerOpts = ${
+                inputs.files.singleFile.readText().replace("-lgit2", "").replace("-lssh2", "").replace("-lssl", "")
+                    .replace("-lcrypto", "")
+            }
                 |
                 |noStringConversion = ${noStringConversion.joinToString(" ")}
                 |
