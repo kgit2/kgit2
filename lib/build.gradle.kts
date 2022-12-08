@@ -1,3 +1,4 @@
+import org.apache.tools.ant.taskdefs.condition.Os
 import org.jetbrains.kotlin.de.undercouch.gradle.tasks.download.Download
 import java.io.FileOutputStream
 
@@ -8,6 +9,9 @@ plugins {
 repositories {
     mavenCentral()
 }
+
+val isMac = Os.isFamily(Os.FAMILY_MAC)
+val isArm64 = Os.isArch("aarch64")
 
 val libssh2Version = "1.10.0"
 val libgit2Version = "1.5.0"
@@ -21,13 +25,16 @@ val libgit2SourceDir = buildDir.resolve("sources/libgit2")
 val libssh2BuildDir = libssh2SourceDir.resolve("build")
 val libgit2BuildDir = libgit2SourceDir.resolve("build")
 
-val opensslDistVersion = buildDir.resolve("dist/openssl/version.txt")
-val opensslDir = file("/opt/homebrew/opt/openssl@3")
+val opensslDir = if (isMac) {
+    File(
+        ProcessBuilder("sh", "-c", "brew --cellar openssl").redirectInput(ProcessBuilder.Redirect.PIPE)
+            .start().inputStream.bufferedReader().readText()
+    ).parentFile.parentFile.resolve("opt/openssl@3")
+} else null
 val libssh2DistDir = buildDir.resolve("dist/libssh2")
 val libgit2DistDir = buildDir.resolve("dist/libgit2")
 
 val cinterop = buildDir.resolve("cinterop")
-val pkgConfigVersion = cinterop.resolve("pkg-config-version.txt")
 val linkerOpts = cinterop.resolve("linker-opts.txt")
 val defFile = cinterop.resolve("libgit2.def")
 
@@ -42,30 +49,10 @@ tasks {
         gradleVersion = "7.6"
     }
 
-    val opensslVersion by creating(Exec::class) {
-        group = "openssl"
-        outputs.file(opensslDistVersion)
-        workingDir(opensslDir.resolve("bin"))
-        val command = commandLine("./openssl", "version")
-        doFirst {
-            standardOutput = FileOutputStream(opensslDistVersion)
-        }
-        doLast {
-            logger.warn("openssl version: ${opensslDistVersion.readText()}")
-        }
-    }
-
-    val installOpenssl by creating(Exec::class) {
-        group = "openssl"
-        outputs.file(opensslDistVersion)
-        commandLine("brew", "install", "openssl@3")
-        finalizedBy(opensslVersion)
-    }
-
     val downloadLibssh2 by creating(Download::class) {
         group = "libssh2"
         outputs.file(libssh2Archive)
-        src("https://www.libssh2.org/download/libssh2-${libssh2Version}.tar.gz")
+        src("https://github.com/libssh2/libssh2/releases/download/libssh2-${libssh2Version}/libssh2-${libssh2Version}.tar.gz")
         dest(libssh2Archive)
         overwrite(false)
     }
@@ -81,7 +68,7 @@ tasks {
 
     val configureLibssh2 by creating(Exec::class) {
         group = "libssh2"
-        dependsOn(decompressLibssh2, installOpenssl)
+        dependsOn(decompressLibssh2)
         outputs.files(
             libssh2SourceDir.resolve("Makefile"),
             libssh2SourceDir.resolve("Makefile.in")
@@ -94,9 +81,9 @@ tasks {
                     "--disable-examples-build " +
                     "--with-libz " +
                     "--with-crypto=openssl " +
-                    "--with-libssl-prefix=${opensslDir}",
+                    if (opensslDir != null) "--with-libssl-prefix=${opensslDir}" else "",
         )
-        doLast {
+        doFirst {
             logger.warn("Configure LibSSH2: ${command.executable} ${command.args?.joinToString(" ")}")
         }
     }
@@ -149,17 +136,13 @@ tasks {
             libgit2BuildDir.resolve("Makefile"),
         )
         workingDir(libgit2BuildDir)
-        doFirst {
-            if (!libgit2BuildDir.exists()) {
-                libgit2BuildDir.mkdirs()
-            }
-        }
+        errorOutput = System.err
         val command = commandLine(
             "sh", "-c",
             "cmake $libgit2SourceDir " +
                     "-DCMAKE_BUILD_TYPE=Release " +
                     "-DCMAKE_INSTALL_PREFIX=$libgit2DistDir " +
-                    "-DCMAKE_OSX_ARCHITECTURES='arm64' " +
+                    (if (isMac && isArm64) "-DCMAKE_OSX_ARCHITECTURES='arm64' " else "-DCMAKE_OSX_ARCHITECTURES='x86_64' ") +
                     "-DBUILD_SHARED_LIBS=OFF " +
                     "-DUSE_SSH=ON " +
                     "-DBUILD_TESTS=OFF " +
@@ -184,34 +167,18 @@ tasks {
         }
     }
 
-    val pkgConfigVersion by creating(Exec::class) {
-        group = "interop"
-        outputs.file(pkgConfigVersion)
-        val command = commandLine("sh", "-c", "pkg-config --version")
-        doFirst {
-            standardOutput = FileOutputStream(pkgConfigVersion)
-        }
-        doLast {
-            logger.warn("pkg-config version: ${pkgConfigVersion.readText()}")
-        }
-    }
-
-    val installPkgConfig by creating(Exec::class) {
-        group = "interop"
-        finalizedBy(pkgConfigVersion)
-        outputs.file(pkgConfigVersion)
-        val command = commandLine("sh", "-c", "brew install pkg-config")
-        doLast {
-            logger.warn("Install pkg-config: ${command.executable} ${command.args?.joinToString(" ")}")
-        }
-    }
-
     val pkgConfig by creating(Exec::class) {
         group = "interop"
-        dependsOn(installLibgit2, installPkgConfig)
+        dependsOn(installLibgit2)
         outputs.file(linkerOpts)
         workingDir(libgit2DistDir)
-        environment("PKG_CONFIG_PATH", libgit2DistDir.resolve("lib/pkgconfig").normalize().absolutePath)
+        environment(
+            "PKG_CONFIG_PATH", listOf(
+                libgit2DistDir.resolve("lib/pkgconfig").normalize().absolutePath,
+                libssh2DistDir.resolve("lib/pkgconfig").normalize().absolutePath,
+                opensslDir
+            ).filterNotNull().joinToString(":")
+        )
         val command = commandLine("sh", "-c", "pkg-config --libs libgit2 --static")
         doFirst {
             standardOutput = FileOutputStream(linkerOpts)
@@ -255,9 +222,9 @@ tasks {
                 |staticLibraries = libgit2.a libssh2.a libssl.a libcrypto.a
                 |libraryPaths = ${
                 libgit2DistDir.resolve("lib").normalize().absolutePath
-            } ${libssh2DistDir.resolve("lib").normalize().absolutePath} /opt/homebrew/opt/openssl@3/lib
+            } ${libssh2DistDir.resolve("lib").normalize().absolutePath}${if (opensslDir != null) " $opensslDir/lib" else ""}
                 |compilerOpts = -I${libgit2DistDir.resolve("include").normalize().absolutePath}
-                |linkerOpts = -L/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/lib -framework CoreFoundation -framework Security -lz -liconv
+                |linkerOpts = ${inputs.files.singleFile.readText()}
                 |
                 |noStringConversion = ${noStringConversion.joinToString(" ")}
                 |
