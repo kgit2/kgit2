@@ -3,7 +3,7 @@ package com.kgit2.credential
 import com.kgit2.config.Config
 import com.kgit2.process.Command
 import com.kgit2.process.Stdio
-import io.github.aakira.napier.Napier
+// import io.github.aakira.napier.Napier
 import io.ktor.http.*
 
 class CredentialHelper(val url: String) {
@@ -133,12 +133,12 @@ class CredentialHelper(val url: String) {
             .stdin(Stdio.Pipe)
             .stdout(Stdio.Pipe)
             .stderr(Stdio.Pipe)
-        Napier.d("executing credential helper: ${command.prompt()}")
+        // Napier.d("executing credential helper: ${command.prompt()}")
         val child = runCatching {
             command.spawn()
         }.runCatching {
             getOrElse {
-                Napier.d("`sh` failed to spawn: $it")
+                // Napier.d("`sh` failed to spawn: $it")
                 val parts = cmd.split(Regex("\\s+"))
                 command = Command(parts[0])
                 parts.subList(1, parts.size).forEach(command::arg)
@@ -146,11 +146,11 @@ class CredentialHelper(val url: String) {
                     .stdin(Stdio.Pipe)
                     .stdout(Stdio.Pipe)
                     .stderr(Stdio.Pipe)
-                Napier.d("executing credential helper: ${command.prompt()}")
+                // Napier.d("executing credential helper: ${command.prompt()}")
                 command.spawn()
             }
         }.onFailure { e ->
-            Napier.d("fallback of $cmd failed with $e")
+            // Napier.d("fallback of $cmd failed with $e")
         }.getOrNull() ?: return (null to null)
 
         val stdinWriter = child.getChildStdin()!!
@@ -175,7 +175,7 @@ class CredentialHelper(val url: String) {
         val stderrReader = child.getChildStderr()!!
         val output = child.waitWithOutput()
         if (output.isNullOrEmpty()) {
-            Napier.d("credential helper failed:\nstdout ---\n${stdoutReader.readText()}\nstderr ---\n${stderrReader.readText()}")
+            // Napier.d("credential helper failed:\nstdout ---\n${stdoutReader.readText()}\nstderr ---\n${stderrReader.readText()}")
             return (null to null)
         }
         return parseOutput(output)
@@ -187,7 +187,7 @@ class CredentialHelper(val url: String) {
         for (line in output.split(Regex("([\\r\\n]+)"))) {
             val parts = line.split('=').take(2)
             if (parts.size != 2) {
-                Napier.d("ignoring output line: $line")
+                // Napier.d("ignoring output line: $line")
                 continue
             }
             val key = parts[0]
@@ -195,7 +195,7 @@ class CredentialHelper(val url: String) {
             when (key) {
                 "username" -> username = value
                 "password" -> password = value
-                else -> Napier.d("ignoring output key: $key")
+                // else -> Napier.d("ignoring output key: $key")
             }
         }
         return (username to password)

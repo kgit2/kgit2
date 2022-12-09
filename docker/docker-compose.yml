@@ -1,0 +1,11 @@
+version: '3.6'
+services:
+#  kgit2:
+#    container_name: kgit2
+#    build: kgit2
+  git:
+    container_name: git-nginx
+    build: git-nginx
+    image: git-nginx
+    ports:
+      - "8080:8080"

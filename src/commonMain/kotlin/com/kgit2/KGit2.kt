@@ -9,8 +9,8 @@ import com.kgit2.config.ConfigLevel
 import com.kgit2.model.Buf
 import com.kgit2.model.Version
 import com.kgit2.`object`.ObjectType
-import io.github.aakira.napier.DebugAntilog
-import io.github.aakira.napier.Napier
+// import io.github.aakira.napier.DebugAntilog
+// import io.github.aakira.napier.Napier
 import kotlinx.atomicfu.AtomicBoolean
 import kotlinx.atomicfu.atomic
 import kotlinx.cinterop.IntVar
@@ -41,7 +41,7 @@ object KGit2 {
         if (initialized.compareAndSet(expect = false, update = true)) {
             Platform.isCleanersLeakCheckerActive = true
             Platform.isMemoryLeakCheckerActive = true
-            Napier.base(DebugAntilog())
+            // Napier.base(DebugAntilog())
         }
     }
 

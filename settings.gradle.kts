@@ -35,7 +35,7 @@ include(":ksp")
 //     includeBuild(bitmask)
 // }
 
-// val kommand = File(settingsDir, "../kommand")
-// if (kommand.exists()) {
-//     includeBuild(kommand)
-// }
+val kommand = File(settingsDir, "../kommand")
+if (kommand.exists()) {
+    includeBuild(kommand)
+}

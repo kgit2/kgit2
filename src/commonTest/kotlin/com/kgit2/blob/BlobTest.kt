@@ -14,7 +14,6 @@ class BlobTest {
         withTempDir { tempDir ->
             val repository = Repository.initial(tempDir.toString())
             val id = repository.Blob.blob(byteArrayOf(5, 4, 6))
-            println(id)
             val blob = repository.Blob.findBlob(id)
 
             assertEquals(id, blob.id)
@@ -53,7 +52,6 @@ class BlobTest {
             writer.write("Hello".toByteArray())
 
             val id = writer.commit()
-            println(id)
             val blob = repository.Blob.findBlob(id)
 
             assertEquals(id, blob.id)

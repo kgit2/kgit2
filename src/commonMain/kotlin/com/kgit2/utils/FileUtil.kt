@@ -1,6 +1,6 @@
 package com.kgit2.utils
 
-import io.github.aakira.napier.Napier
+// import io.github.aakira.napier.Napier
 import okio.FileHandle
 import okio.FileSystem
 import okio.Path
@@ -8,7 +8,7 @@ import okio.Path
 val tempPath = FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "kgit2"
 
 fun <R> withTempDir(block: (Path) -> R): R = with(TempDir()) {
-    Napier.d("temp path: $path")
+    println("temp path: $path")
     return try {
         block(this.path)
     } catch (e: Exception) {

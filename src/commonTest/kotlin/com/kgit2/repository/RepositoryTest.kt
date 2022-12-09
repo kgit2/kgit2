@@ -3,7 +3,7 @@ package com.kgit2.repository
 import com.kgit2.common.callback.CallbackResult
 import com.kgit2.common.kgitRunTest
 import com.kgit2.utils.withTempDir
-import io.github.aakira.napier.Napier
+// import io.github.aakira.napier.Napier
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -65,21 +65,21 @@ class RepositoryTest {
                  */
                 checkoutOptions.progressCallback = { path, _, _ ->
                     if (progressCount == 0) {
-                        Napier.d("progressCallback")
+                        // Napier.d("progressCallback")
                     }
                     progressCount++
                     path?.let { progressPaths.add(it) }
                     CallbackResult.Ok
                 }
                 fetchOptions.remoteCallbacks.transferProgress = { stats ->
-                    Napier.d("transferProgress")
-                    Napier.d("stats: $stats")
+                    // Napier.d("transferProgress")
+                    // Napier.d("stats: $stats")
                     CallbackResult.Ok
                 }
                 fetchOptions.proxyOptions.url = "http://127.0.0.1:6152"
             }
             val repository = Repository.clone(
-                "https://github.com/BppleMan/floater_test_repo.git",
+                "https://github.com/kgit2/test_repo.git",
                 repoPath.toString(),
                 cloneOptions
             )

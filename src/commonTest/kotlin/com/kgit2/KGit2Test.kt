@@ -51,7 +51,6 @@ class KGit2Test {
         val extensions = KGit2.Options.extensions
 
         assertEquals(2, extensions.size)
-        println(extensions)
         assertEquals("custom", extensions[0])
         assertEquals("other", extensions[1])
     }

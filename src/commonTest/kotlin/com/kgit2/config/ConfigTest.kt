@@ -3,7 +3,7 @@ package com.kgit2.config
 import com.kgit2.common.kgitRunTest
 import com.kgit2.utils.TempConfig
 import com.kgit2.utils.withTempDir
-import io.github.aakira.napier.Napier
+// import io.github.aakira.napier.Napier
 import kotlinx.cinterop.toKString
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -82,7 +82,7 @@ class ConfigTest {
 
     @Test
     fun parse() = kgitRunTest {
-        Napier.d("parse")
+        // Napier.d("parse")
         assertEquals(false, Config.parseBool(""))
         assertEquals(false, Config.parseBool("false"))
         assertEquals(false, Config.parseBool("no"))

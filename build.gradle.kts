@@ -1,11 +1,9 @@
-import java.io.ByteArrayOutputStream
-import java.nio.file.Path
-
 val kotlinVersion: String by rootProject
 val kotlinXCoroutinesVersion: String by rootProject
 val kspVersion: String by rootProject
 val bitmaskVersion: String by rootProject
 val kommandVersion: String by rootProject
+val ktorVersion: String by rootProject
 
 plugins {
     kotlin("multiplatform")
@@ -15,13 +13,7 @@ plugins {
 kotlin {
     val hostOs = System.getProperty("os.name")
     val isMingwX64 = hostOs.startsWith("Windows")
-    val nativeTarget = when {
-        hostOs == "Mac OS X" -> macosArm64("native")
-        hostOs == "Linux" -> linuxX64("native")
-        isMingwX64 -> mingwX64("native")
-        else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
-    }
-
+    val (nativeTarget, nativeTargetString) = macosArm64("native") to "macosArm64"
 
     sourceSets {
         all {
@@ -33,8 +25,10 @@ kotlin {
             dependencies {
                 implementation("com.squareup.okio:okio:3.2.0")
                 implementation("io.ktor:ktor-client-core:2.1.2")
-                implementation("io.github.aakira:napier:2.6.1")
-                implementation("com.kgit2:kommand:$kommandVersion")
+                // implementation("io.github.aakira:napier:2.6.1")
+                implementation("com.kgit2:kommand:$kommandVersion") {
+                    exclude("io.ktor", "ktor-client-core")
+                }
                 implementation(project(":annotations"))
                 // implementation("com.kgit2:bitmask-library:$bitmaskVersion")
             }
@@ -45,6 +39,7 @@ kotlin {
             dependencies {
                 implementation(kotlin("test"))
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:$kotlinXCoroutinesVersion")
+                implementation("io.ktor:ktor-server-core:$ktorVersion")
             }
         }
         val nativeMain by getting
@@ -55,19 +50,22 @@ kotlin {
         compilations.getByName("main") {
             cinterops {
                 val libgit2 by creating {
-                    defFile(rootProject.file("lib/build/cinterop/libgit2.def"))
+                    defFile(rootProject.file("libs/${nativeTargetString}/libgit2.def"))
                     packageName("libgit2")
                 }
 
-                val libnative by creating {
-                    defFile(rootProject.file("lib/build/cinterop/libnative.def"))
-                    packageName("libnative")
-                }
+                // val libnative by creating {
+                //     defFile(rootProject.file("../kgit2-sys/build/cinterop/libnative.def"))
+                //     packageName("libnative")
+                // }
             }
         }
         binaries {
-            executable {
-                entryPoint = "main"
+            // executable {
+            //     entryPoint = "main"
+            // }
+            staticLib {
+                baseName = "kgit2"
             }
         }
         binaries.all {
@@ -77,8 +75,6 @@ kotlin {
 }
 
 dependencies {
-    // add("kspCommonMainMetadata", "com.kgit2:bitmask-processor:$kspVersion")
-    // add("kspNative", "com.kgit2:bitmask-processor:$kspVersion")
     add("kspCommonMainMetadata", project(":ksp"))
     add("kspNative", project(":ksp"))
 }
@@ -89,56 +85,56 @@ tasks {
         gradleVersion = "7.6"
     }
 
-    val generateLeaksCheck by creating(Exec::class) {
-        dependsOn("linkDebugTestNative")
-        outputs.file(buildDir.resolve("bin/leaks/check_leaks"))
-        commandLine("sh", "-c", "${buildDir.resolve("bin/native/debugTest/test.kexe")} --ktest_list_tests")
-        val output = ByteArrayOutputStream()
-        standardOutput = output
-        doLast {
-            val testList = String(output.toByteArray()).lines()
-            val tests = mutableListOf<String>()
-            testList.forEach {
-                if (it.startsWith("com.kgit2.")) {
-                    tests.add("$it*")
-                }
-            }
-            var prefix = ""
-            testList.forEach {
-                if (it.startsWith("com.kgit2.")) {
-                    prefix = it
-                } else if (it.trim().isNotEmpty()) {
-                    tests.add("$prefix${it.trim()}")
-                }
-            }
-
-            val template = """
-                |#!/usr/bin/env sh
-                |
-                |tests=(
-                |${tests.joinToString("\n")}
-                |)
-                |
-                |index=$1
-                |
-                |if [ ${"$"}index = "--list" ]; then
-                |    for i in "${"$"}{!tests[@]}"; do
-                |        echo "${"$"}i: ${"$"}{tests[${"$"}i]}"
-                |    done
-                |    exit 0
-                |fi
-                |
-                |repeat=${"$"}{2:-1}
-                |echo ${"$"}{tests[${"$"}{index}]}
-                |leaks --atExit -- ${buildDir.resolve("bin/native/debugTest/test.kexe")} --ktest_filter=${"$"}{tests[${"$"}{index}]} --ktest_repeat=${"$"}repeat
-            """.trimMargin()
-
-            buildDir.resolve("bin/leaks/check_leaks").writeText(template)
-            exec {
-                commandLine("chmod", "+x", buildDir.resolve("bin/leaks/check_leaks").toString())
-            }
-        }
-    }
+    // val generateLeaksCheck by creating(Exec::class) {
+    //     dependsOn("linkDebugTestNative")
+    //     outputs.file(buildDir.resolve("bin/leaks/check_leaks"))
+    //     commandLine("sh", "-c", "${buildDir.resolve("bin/native/debugTest/test.kexe")} --ktest_list_tests")
+    //     val output = ByteArrayOutputStream()
+    //     standardOutput = output
+    //     doLast {
+    //         val testList = String(output.toByteArray()).lines()
+    //         val tests = mutableListOf<String>()
+    //         testList.forEach {
+    //             if (it.startsWith("com.kgit2.")) {
+    //                 tests.add("$it*")
+    //             }
+    //         }
+    //         var prefix = ""
+    //         testList.forEach {
+    //             if (it.startsWith("com.kgit2.")) {
+    //                 prefix = it
+    //             } else if (it.trim().isNotEmpty()) {
+    //                 tests.add("$prefix${it.trim()}")
+    //             }
+    //         }
+    //
+    //         val template = """
+    //             |#!/usr/bin/env sh
+    //             |
+    //             |tests=(
+    //             |${tests.joinToString("\n")}
+    //             |)
+    //             |
+    //             |index=$1
+    //             |
+    //             |if [ ${"$"}index = "--list" ]; then
+    //             |    for i in "${"$"}{!tests[@]}"; do
+    //             |        echo "${"$"}i: ${"$"}{tests[${"$"}i]}"
+    //             |    done
+    //             |    exit 0
+    //             |fi
+    //             |
+    //             |repeat=${"$"}{2:-1}
+    //             |echo ${"$"}{tests[${"$"}{index}]}
+    //             |leaks --atExit -- ${buildDir.resolve("bin/native/debugTest/test.kexe")} --ktest_filter=${"$"}{tests[${"$"}{index}]} --ktest_repeat=${"$"}repeat
+    //         """.trimMargin()
+    //
+    //         buildDir.resolve("bin/leaks/check_leaks").writeText(template)
+    //         exec {
+    //             commandLine("chmod", "+x", buildDir.resolve("bin/leaks/check_leaks").toString())
+    //         }
+    //     }
+    // }
 }
 
 allprojects {

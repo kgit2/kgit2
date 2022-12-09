@@ -1,0 +1,21 @@
+version: '3.6'
+services:
+  web:
+    container_name: gitlab
+    image: 'gitlab/gitlab-ce:latest'
+    restart: always
+    hostname: 'gitlab.kgit2.com'
+    environment:
+      GITLAB_OMNIBUS_CONFIG: |
+        external_url 'https://gitlab.kgit2.com'
+        # gitlab_rails['gitlab_shell_ssh_port'] = 8022
+        # Add any other gitlab.rb configuration here, each on its own line
+    ports:
+      - '8080:80'
+      - '8443:443'
+      - '8022:22'
+    volumes:
+      - '$GITLAB_HOME/config:/etc/gitlab'
+      - '$GITLAB_HOME/logs:/var/log/gitlab'
+      - '$GITLAB_HOME/data:/var/opt/gitlab'
+    shm_size: '512m'

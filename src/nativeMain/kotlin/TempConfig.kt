@@ -1,6 +1,6 @@
 import com.kgit2.config.Config
 import com.kgit2.config.ConfigLevel
-import io.github.aakira.napier.Napier
+// import io.github.aakira.napier.Napier
 import okio.FileSystem
 import okio.Path
 
@@ -11,7 +11,7 @@ class TempConfig(
     private val configList = mutableListOf<Pair<String, String>>()
 
     fun configs(vararg paris: Pair<String, String>) {
-        Napier.d(paris.joinToString("\n"))
+        // Napier.d(paris.joinToString("\n"))
         configList.addAll(paris)
     }
 
