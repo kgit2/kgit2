@@ -47,7 +47,7 @@ function create_cmake_build_dir() {
 
 function toolchain() {
     local TOOLCHAIN_PATH="${ROOT}/${TARGET}/toolchain.sh"
-    if [ -f "${TOOLCHAIN_PATH}" && "${PROJECT}" = "openssl" ]; then
+    if [ -f "${TOOLCHAIN_PATH}" ] && [ "${PROJECT}" = "openssl" ]; then
         source "${TOOLCHAIN_PATH}"
     fi
     local CMAKE_TOOLCHAIN_FILE="${ROOT}/${TARGET}/toolchain.cmake"

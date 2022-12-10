@@ -1,0 +1,13 @@
+prefix=/Users/bppleman/kgit2/kgit2/libs/linuxX64/usr
+exec_prefix=/Users/bppleman/kgit2/kgit2/libs/linuxX64/usr
+libdir=/Users/bppleman/kgit2/kgit2/libs/linuxX64/usr/lib
+sharedlibdir=/Users/bppleman/kgit2/kgit2/libs/linuxX64/usr/lib
+includedir=/Users/bppleman/kgit2/kgit2/libs/linuxX64/usr/include
+
+Name: zlib
+Description: zlib compression library
+Version: 1.2.13
+
+Requires:
+Libs: -L${libdir} -L${sharedlibdir} -lz
+Cflags: -I${includedir}
