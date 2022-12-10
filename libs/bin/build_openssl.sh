@@ -22,9 +22,8 @@ toolchain
     --release \
     --prefix=${DIST_DIR} \
     --openssldir=${DIST_DIR}/ssl \
-    no-zlib \
+    no-shared \
     no-asm \
-    no-module \
     no-acvp-tests \
     no-buildtest-c++ \
     no-external-tests \

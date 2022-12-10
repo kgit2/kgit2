@@ -9,7 +9,7 @@ set(CMAKE_IMPORT_FILE_VERSION 1)
 set_property(TARGET Libssh2::libssh2 APPEND PROPERTY IMPORTED_CONFIGURATIONS RELEASE)
 set_target_properties(Libssh2::libssh2 PROPERTIES
   IMPORTED_LINK_INTERFACE_LANGUAGES_RELEASE "C"
-  IMPORTED_LINK_INTERFACE_LIBRARIES_RELEASE "/Users/bppleman/kgit2/kgit2/libs/linuxX64/usr/lib64/libssl.so;/Users/bppleman/kgit2/kgit2/libs/linuxX64/usr/lib64/libcrypto.so;/Users/bppleman/kgit2/kgit2/libs/linuxX64/usr/lib/libz.so"
+  IMPORTED_LINK_INTERFACE_LIBRARIES_RELEASE "/Users/bppleman/kgit2/kgit2/libs/linuxX64/usr/lib64/libssl.a;/Users/bppleman/kgit2/kgit2/libs/linuxX64/usr/lib64/libcrypto.a;-lpthread;dl;/Users/bppleman/.konan/dependencies/x86_64-unknown-linux-gnu-gcc-8.3.0-glibc-2.19-kernel-4.9-2/x86_64-unknown-linux-gnu/sysroot/usr/lib/libz.so"
   IMPORTED_LOCATION_RELEASE "${_IMPORT_PREFIX}/lib/libssh2.a"
   )
 

@@ -13,7 +13,6 @@ create_cmake_build_dir
 cd ${CMAKE_BUILD_DIR}
 export PKG_CONFIG_PATH="${DIST_DIR}/lib/pkgconfig:${DIST_DIR}/share/pkgconfig:${DIST_DIR}/lib64/pkgconfig"
 export CFLAGS=$(pkg-config --cflags --static libssh2 libssl libcrypto zlib)
-export LDFLAGS=$(pkg-config --libs --static libssh2 libssl libcrypto zlib)
 
 cmake .. \
     $(toolchain) \
