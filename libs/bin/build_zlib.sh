@@ -13,6 +13,6 @@ create_cmake_build_dir
 
 cd ${CMAKE_BUILD_DIR}
 
-cmake .. -DCMAKE_INSTALL_PREFIX=${DIST_DIR}
+cmake .. $(toolchain) -DCMAKE_INSTALL_PREFIX=${DIST_DIR}
 
-cmake --build . --target install -j6
+cmake --build . --target install -j8

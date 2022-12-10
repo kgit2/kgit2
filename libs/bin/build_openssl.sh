@@ -14,18 +14,22 @@ create_cmake_build_dir
 
 cd ${CMAKE_BUILD_DIR}
 
+toolchain
+
 #make -s clean
 ../Configure \
+    linux-x86_64 \
     --release \
     --prefix=${DIST_DIR} \
     --openssldir=${DIST_DIR}/ssl \
-    --with-zlib-include=${ZLIB_DIR}/include \
-    --with-zlib-lib=${ZLIB_DIR}/lib \
+    no-zlib \
+    no-asm \
+    no-module \
     no-acvp-tests \
     no-buildtest-c++ \
     no-external-tests \
     no-unit-test
 
-make -s build_sw -j6
+make -s build_sw -j8 V=1
 
 make -s install_sw

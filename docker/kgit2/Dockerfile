@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM --platform=linux/amd64 ubuntu:rolling
+FROM ubuntu:rolling
 RUN apt-get update \
     && apt-get install -y \
     git \

@@ -12,6 +12,7 @@ create_cmake_build_dir
 
 cd ${CMAKE_BUILD_DIR}
 cmake .. \
+    $(toolchain) \
     -DBUILD_SHARED_LIBS=OFF \
     -DCRYPTO_BACKEND=OpenSSL \
     -DENABLE_ZLIB_COMPRESSION=ON \
@@ -19,6 +20,6 @@ cmake .. \
     -DCMAKE_INSTALL_PREFIX="${DIST_DIR}" \
     -DCMAKE_PREFIX_PATH="${DIST_DIR}"
 
-cmake --build . --target install -j6
+cmake --build . --target install -j8
 
 echo "Build ${PROJECT} Successful"

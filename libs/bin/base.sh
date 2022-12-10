@@ -44,3 +44,14 @@ function create_cmake_build_dir() {
     rm -rf "${CMAKE_BUILD_DIR}"
     mkdir -p "${CMAKE_BUILD_DIR}"
 }
+
+function toolchain() {
+    local TOOLCHAIN_PATH="${ROOT}/${TARGET}/toolchain.sh"
+    if [ -f "${TOOLCHAIN_PATH}" && "${PROJECT}" = "openssl" ]; then
+        source "${TOOLCHAIN_PATH}"
+    fi
+    local CMAKE_TOOLCHAIN_FILE="${ROOT}/${TARGET}/toolchain.cmake"
+    if [ -f "${CMAKE_TOOLCHAIN_FILE}" ]; then
+        echo "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}"
+    fi
+}

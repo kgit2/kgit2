@@ -11,11 +11,12 @@ decompress
 create_cmake_build_dir
 
 cd ${CMAKE_BUILD_DIR}
-export PKG_CONFIG_PATH="${DIST_DIR}/lib/pkgconfig"
+export PKG_CONFIG_PATH="${DIST_DIR}/lib/pkgconfig:${DIST_DIR}/share/pkgconfig:${DIST_DIR}/lib64/pkgconfig"
 export CFLAGS=$(pkg-config --cflags --static libssh2 libssl libcrypto zlib)
 export LDFLAGS=$(pkg-config --libs --static libssh2 libssl libcrypto zlib)
 
 cmake .. \
+    $(toolchain) \
     -DBUILD_SHARED_LIBS=OFF \
     -DUSE_SSH=ON \
     -DBUILD_TESTS=OFF \
@@ -24,6 +25,6 @@ cmake .. \
     -DCMAKE_PREFIX_PATH="${DIST_DIR}"
 
 
-cmake --build . --target install -j6
+cmake --build . --target install -j8
 
 echo "Build ${PROJECT} Successful"
