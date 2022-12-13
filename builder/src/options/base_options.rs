@@ -9,18 +9,18 @@ use crate::options::Arch;
 #[derive(Clone, Debug, Args)]
 pub struct BaseOptions {
     /// Build for target arch
-    #[arg(default_value = "mac_arm64")]
+    #[clap(default_value = "mac_arm64")]
     pub arch: Arch,
 
     /// Build shared libraries
-    #[arg(short = 'S', long)]
+    #[clap(short = 'S', long)]
     pub shared: bool,
 
     #[clap(default_value = "static")]
     pub link_type: LinkType,
 
     /// Build with debug type
-    #[arg(short = 'D', long)]
+    #[clap(short = 'D', long)]
     pub debug: bool,
 
     #[clap(flatten)]

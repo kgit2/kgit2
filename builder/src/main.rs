@@ -21,6 +21,9 @@ use tar::Archive;
 pub struct Cli {
     #[command(subcommand)]
     pub command: Commands,
+
+    #[clap(short = 'd', default_value_t = std::env::current_dir().unwrap().as_path().display().to_string())]
+    pub work_dir: String,
 }
 
 //noinspection DuplicatedCode
@@ -28,10 +31,12 @@ fn main() {
     init_log4rs();
     println!("{} {}", env::consts::OS, env::consts::ARCH);
     let cli = Cli::parse();
+    let work_dir = PathBuf::from(&cli.work_dir);
     match cli.command {
         Git(options) => {
             info!("Git command: {:#?}", options);
-            let mut command = GitCommand::from(options);
+            let path_data = PathData::git(options.base.clone(), work_dir);
+            let mut command = GitCommand::new(options, path_data);
             prepare(&command.options.base, &command.path_data);
             build_and_install(&command, &command.path_data);
             if let LinkType::Both = command.options.base.link_type {
@@ -41,7 +46,8 @@ fn main() {
         }
         SSH(options) => {
             info!("SSH command: {:#?}", options);
-            let mut command = SSHCommand::from(options);
+            let path_data = PathData::git(options.base.clone(), work_dir);
+            let mut command = SSHCommand::new(options, path_data);
             prepare(&command.options.base, &command.path_data);
             build_and_install(&command, &command.path_data);
             if let LinkType::Both = command.options.base.link_type {
@@ -51,7 +57,8 @@ fn main() {
         }
         SSL(options) => {
             info!("SSL command: {:#?}", options);
-            let mut command = SSLCommand::from(options);
+            let path_data = PathData::git(options.base.clone(), work_dir);
+            let mut command = SSLCommand::new(options, path_data);
             prepare(&command.options.base, &command.path_data);
             build_and_install(&command, &command.path_data);
             if let LinkType::Both = command.options.base.link_type {

@@ -12,9 +12,8 @@ pub struct SSLCommand {
     pub path_data: PathData,
 }
 
-impl From<SSLOptions> for SSLCommand {
-    fn from(options: SSLOptions) -> Self {
-        let path_data = PathData::openssl(options.base.clone());
+impl SSLCommand {
+    pub fn new(options: SSLOptions, path_data: PathData) -> SSLCommand {
         SSLCommand { options, path_data }
     }
 }
@@ -24,7 +23,10 @@ impl GenerateProcessCommand for SSLCommand {
         let mut command = Command::from_path_data(&self.path_data, self.options.base.verbose.is_silent());
         let mut arg = format!("{}/Configure", self.path_data.source_code_dir());
         if let Arch::LinuxX64 = self.options.base.arch {
-            arg.push_str(" linux-x86_64");
+            if let Some(os) = &self.options.os {
+                arg.push_str(format!(" {}", os).as_str());
+            }
+            arg.push_str(format!(" --cross-compile-prefix={}", self.options.cross_prefix).as_str())
         }
         if !self.options.base.debug {
             arg.push_str(" --release");
@@ -34,7 +36,7 @@ impl GenerateProcessCommand for SSLCommand {
         if !self.options.base.shared {
             arg.push_str(" no-shared");
         }
-        arg.push_str("no-asm no-acvp-tests no-buildtest-c++ no-external-tests no-unit-test");
+        arg.push_str(" no-asm no-acvp-tests no-buildtest-c++ no-external-tests no-unit-test");
         command.arg(arg);
         command
     }

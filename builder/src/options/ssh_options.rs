@@ -7,10 +7,10 @@ pub struct SSHOptions {
     #[clap(flatten)]
     pub base: BaseOptions,
 
-    #[arg(long, default_value = "true")]
+    #[clap(long, default_value = "true")]
     pub zlib: bool,
 
-    #[arg(long, default_value = "openssl")]
+    #[clap(long, default_value = "openssl")]
     pub crypto: CryptoBackend,
 }
 

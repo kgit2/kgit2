@@ -14,9 +14,8 @@ pub struct SSHCommand {
     pub path_data: PathData,
 }
 
-impl From<SSHOptions> for SSHCommand {
-    fn from(options: SSHOptions) -> Self {
-        let path_data = PathData::ssh(options.base.clone());
+impl SSHCommand {
+    pub fn new(options: SSHOptions, path_data: PathData) -> SSHCommand {
         SSHCommand { options, path_data }
     }
 }

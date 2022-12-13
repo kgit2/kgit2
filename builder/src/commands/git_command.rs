@@ -1,3 +1,4 @@
+use std::path::PathBuf;
 use std::process::Command;
 
 use crate::commands::GenerateProcessCommand;
@@ -12,16 +13,13 @@ pub struct GitCommand {
     pub path_data: PathData,
 }
 
-impl From<GitOptions> for GitCommand {
-    fn from(options: GitOptions) -> Self {
-        let path_data = PathData::git(options.base.clone());
+impl GitCommand {
+    pub fn new(options: GitOptions, path_data: PathData) -> GitCommand {
         GitCommand { options, path_data }
     }
-}
 
-impl GitCommand {
     pub fn join_pkg_config_path(&self) -> String {
-        let ssh_path_data = PathData::ssh(self.options.base.clone());
+        let ssh_path_data = PathData::ssh(self.options.base.clone(), self.path_data.work_dir.clone());
         match self.path_data.openssl_root() {
             Some(openssl_root) => [ssh_path_data.pkg_config_dir(), format!("{}/lib/pkgconfig", openssl_root)].join(":"),
             None => ssh_path_data.pkg_config_dir(),

@@ -1,36 +1,40 @@
 use crate::options::base_options::BaseOptions;
 use crate::options::Arch;
 use crate::{GIT_BUNDLE_NAME, GIT_NAME, OPENSSL_BUNDLE_NAME, OPENSSL_NAME, SSH_BUNDLE_NAME, SSH_NAME};
-use std::env;
 use std::fmt::Debug;
+use std::path::PathBuf;
 use std::process::Command;
 
 #[derive(Clone, Hash, PartialEq, Eq)]
 pub struct PathData {
+    pub work_dir: PathBuf,
     pub project_name: &'static str,
     pub bundle_name: &'static str,
     pub base_options: BaseOptions,
 }
 
 impl PathData {
-    pub fn git(options: BaseOptions) -> PathData {
+    pub fn git(options: BaseOptions, work_dir: PathBuf) -> PathData {
         PathData {
+            work_dir,
             project_name: GIT_NAME,
             base_options: options,
             bundle_name: GIT_BUNDLE_NAME,
         }
     }
 
-    pub fn ssh(options: BaseOptions) -> PathData {
+    pub fn ssh(options: BaseOptions, work_dir: PathBuf) -> PathData {
         PathData {
+            work_dir,
             project_name: SSH_NAME,
             base_options: options,
             bundle_name: SSH_BUNDLE_NAME,
         }
     }
 
-    pub fn openssl(options: BaseOptions) -> PathData {
+    pub fn openssl(options: BaseOptions, work_dir: PathBuf) -> PathData {
         PathData {
+            work_dir,
             project_name: OPENSSL_NAME,
             base_options: options,
             bundle_name: OPENSSL_BUNDLE_NAME,
@@ -47,7 +51,7 @@ impl PathData {
         match &self.base_options.paths.temp_dir {
             Some(prefix) => format!("{}/{}", prefix, self.project_name),
             None => {
-                let temp = env::current_dir().unwrap().join("temp").as_path().display().to_string();
+                let temp = self.work_dir.join("temp").as_path().display().to_string();
                 format!("{}/{}", temp, self.project_name)
             }
         }
@@ -56,11 +60,7 @@ impl PathData {
     pub fn source_code_bundle(&self) -> String {
         match &self.base_options.paths.source_code_bundle_path {
             Some(bundle_path) => bundle_path.to_string(),
-            None => format!(
-                "{}/{}",
-                env::current_dir().unwrap().join("source-code").as_path().display(),
-                self.bundle_name
-            ),
+            None => format!("{}/{}", self.work_dir.join("source-code").as_path().display(), self.bundle_name),
         }
     }
 
@@ -70,11 +70,7 @@ impl PathData {
             None => {
                 format!(
                     "{}/{}",
-                    env::current_dir()
-                        .unwrap()
-                        .join(self.base_options.arch.to_string())
-                        .as_path()
-                        .display(),
+                    self.work_dir.join(self.base_options.arch.to_string()).as_path().display(),
                     self.project_name
                 )
             }
