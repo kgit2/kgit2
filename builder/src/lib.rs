@@ -1,7 +1,5 @@
 // #![warn(missing_docs)]
 
-use std::env;
-
 pub mod commands;
 pub mod log;
 pub mod options;

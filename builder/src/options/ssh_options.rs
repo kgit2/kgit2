@@ -1,5 +1,5 @@
 use crate::options::base_options::BaseOptions;
-use clap::{ArgAction, Args, ValueEnum};
+use clap::{Args, ValueEnum};
 use std::fmt::{Display, Formatter};
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq, Args)]

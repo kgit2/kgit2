@@ -1,11 +1,9 @@
 use crate::options::base_options::BaseOptions;
-use crate::options::ssh_options::SSHOptions;
 use crate::options::Arch;
 use crate::{GIT_BUNDLE_NAME, GIT_NAME, OPENSSL_BUNDLE_NAME, OPENSSL_NAME, SSH_BUNDLE_NAME, SSH_NAME};
 use std::env;
 use std::fmt::Debug;
 use std::process::Command;
-use std::rc::Rc;
 
 #[derive(Clone, Hash, PartialEq, Eq)]
 pub struct PathData {

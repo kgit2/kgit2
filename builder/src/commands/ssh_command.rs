@@ -1,12 +1,8 @@
-use std::cell::{Cell, RefCell};
-use std::ops::Deref;
 use std::process::Command;
-use std::rc::Rc;
 
 use log::info;
 
 use crate::commands::GenerateProcessCommand;
-use crate::options::base_options::BaseOptions;
 use crate::options::ssh_options::SSHOptions;
 use crate::options::{BuildType, CMakeBool};
 use crate::path_data::PathData;
@@ -59,7 +55,7 @@ impl GenerateProcessCommand for SSHCommand {
     fn generate_make_command(&self) -> Command {
         let mut command = Command::from_path_data(&self.path_data, self.options.base.verbose.is_silent());
         command.arg(format!(
-            "cmake --build {} --target libssh2 -j {}",
+            "cmake --build {} --target all -j {}",
             self.path_data.build_dir(),
             num_cpus::get()
         ));

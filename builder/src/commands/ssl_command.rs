@@ -1,7 +1,6 @@
 use std::process::Command;
 
 use crate::commands::GenerateProcessCommand;
-use crate::options::base_options::BaseOptions;
 use crate::options::ssl_options::SSLOptions;
 use crate::options::Arch;
 use crate::path_data::PathData;

@@ -124,14 +124,14 @@ tasks {
             val libgit2Path = rootDir.resolve("libs").resolve(currentPlatform.toString()).resolve("libgit2")
             val libssh2Path = rootDir.resolve("libs").resolve(currentPlatform.toString()).resolve("libssh2")
 
-            lateinit var defFile: File
+            val defFile: File = rootDir.resolve("src")
+                .resolve("nativeInterop")
+                .resolve("cinterop")
+                .resolve("${currentPlatform}.def")
 
             when (currentPlatform) {
-                Platform.MACOS_ARM64 -> {
-                    defFile = rootDir.resolve("src")
-                        .resolve("nativeInterop")
-                        .resolve("cinterop")
-                        .resolve("${currentPlatform}.def")
+                Platform.MACOS_ARM64,
+                Platform.MACOS_X64 -> {
                     val libsslPath = File(getBrewPrefix("openssl@3"))
                     staticLibraries.addAll(listOf("libssl.a", "libcrypto.a"))
                     libraryPaths.addAll(
@@ -151,6 +151,23 @@ tasks {
                     )
                     linkerOpts.addAll(pkgConfig.split(" ").filter { it.trim().startsWith("-L") })
                     linkerOpts.addAll("-framework CoreFoundation -framework Security -liconv -lz".split(" "))
+                }
+                Platform.LINUX_X64 -> {
+                    staticLibraries.addAll(listOf("libssl.a", "libcrypto.a"))
+                    libraryPaths.addAll(
+                        listOf(
+                            libgit2Path.resolve("lib"),
+                            libssh2Path.resolve("lib"),
+                        )
+                    )
+                    compilerOpts.add(libgit2Path.resolve("include"))
+                    val pkgConfig = getPkgConfig(
+                        listOf(
+                            libgit2Path.resolve("lib").resolve("pkgconfig").absolutePath,
+                            libssh2Path.resolve("lib").resolve("pkgconfig").absolutePath,
+                        ), "--libs --static libgit2 libssh2 libssl libcrypto"
+                    )
+                    linkerOpts.addAll(pkgConfig.split(" ").filter { it.trim().startsWith("-L") })
                 }
                 else -> {}
             }

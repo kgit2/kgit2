@@ -1,7 +1,6 @@
 use std::process::Command;
 
 use crate::commands::GenerateProcessCommand;
-use crate::options::base_options::BaseOptions;
 use crate::options::git_options::GitOptions;
 use crate::options::{BuildType, CMakeBool};
 use crate::path_data::PathData;
