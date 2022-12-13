@@ -1,0 +1,15 @@
+[package]
+name = "builder"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+clap = { version = "4.0.29", features = ["derive", "cargo", "env", "unicode", "wrap_help", "string"] }
+clap-verbosity-flag = "2.0.0"
+openssl = "0.10.41"
+log = "0.4.17"
+num_cpus = "1.14.0"
+flate2 = "1.0.25"
+tar = "0.4.38"
+log4rs = "1.2.0"
+anyhow = "1.0.66"

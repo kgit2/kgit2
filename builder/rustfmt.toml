@@ -1,0 +1,9 @@
+color = "Always"
+max_width = 140
+imports_granularity = "Module"
+merge_derives = true
+reorder_impl_items = true
+reorder_imports = true
+group_imports = "StdExternalCrate"
+spaces_around_ranges = true
+where_single_line = true

@@ -1,0 +1,46 @@
+CMAKE_PREFIX_PATH="/Users/bppleman/kgit2/kgit2-builder/temp/macosArm64/libssh2;/opt/homebrew/opt/openssl@3" \
+
+set -vx
+export PKG_CONFIG_PATH=/Users/bppleman/kgit2/kgit2-builder/temp/macosArm64/libssh2/lib/pkgconfig:/opt/homebrew/opt/openssl@3/lib/pkgconfig
+cmake \
+    -DCMAKE_BUILD_TYPE=Debug \
+    -G Ninja \
+    -S /Users/bppleman/kgit2/kgit2-builder/temp/temp/libgit2 \
+    -B /Users/bppleman/kgit2/kgit2-builder/temp/temp/libgit2/build \
+    -DBUILD_EXAMPLES=OFF \
+    -DBUILD_TESTS=OFF \
+    -DCMAKE_INSTALL_PREFIX=/Users/bppleman/kgit2/kgit2-builder/temp/macosArm64/libgit2 \
+    -DBUILD_SHARED_LIBS=OFF \
+    -DUSE_BUNDLED_ZLIB=OFF \
+    -DUSE_SSH=ON
+unset PKG_CONFIG_PATH
+set +vx
+
+set -vx
+cmake --build /Users/bppleman/kgit2/kgit2-builder/temp/temp/libgit2/build --target all -j8 || set +vx
+set +vx
+
+------------------------------------------------------------------------------------------------------------------------
+
+set -vx
+OPENSSL_ROOT_DIR=$(brew --prefix openssl@3) \
+cmake /Users/bppleman/kgit2/kgit2-builder/temp/temp/libssh2 \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_INSTALL_PREFIX=/Users/bppleman/kgit2/kgit2-builder/temp/macosArm64/libssh2 \
+    -DBUILD_SHARED_LIBS=OFF -DCRYPTO_BACKEND=OpenSSL \
+    -DENABLE_ZLIB_COMPRESSION=ON \
+    -DLINT=OFF \
+    -DBUILD_EXAMPLES=OFF \
+    -DBUILD_TESTING=OFF
+set +vx
+
+set -vx
+PKG_CONFIG_PATH=/opt/homebrew/opt/openssl@3/lib/pkgconfig \
+    CLFLAGS="$(pkg-config --cflags --static libssl)" \
+    LDFLAGS="$(pkg-config --libs --static libssl)" \
+    make -s all -j8
+set +vx
+
+cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_MAKE_PROGRAM=/opt/homebrew/bin/ninja -G Ninja -S /Users/bppleman/CLionProjects/libgit2-demo -B /Users/bppleman/CLionProjects/libgit2-demo/cmake-build-release
+
+PKG_CONFIG_PATH=/Users/bppleman/kgit2/kgit2/libs/macosArm64/libgit2/lib/pkgconfig:/Users/bppleman/kgit2/kgit2/libs/macosArm64/libssh2/lib/pkgconfig:/opt/homebrew/opt/openssl@3/lib/pkgconfig
