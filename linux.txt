@@ -1,0 +1,255 @@
+alloc.c.o
+failalloc.c.o
+stdalloc.c.o
+win32_leakcheck.c.o
+date.c.o
+filebuf.c.o
+fs_path.c.o
+futils.c.o
+hash.c.o
+net.c.o
+pool.c.o
+posix.c.o
+pqueue.c.o
+rand.c.o
+regexp.c.o
+runtime.c.o
+sortedcache.c.o
+str.c.o
+strmap.c.o
+thread.c.o
+tsort.c.o
+utf8.c.o
+util.c.o
+varint.c.o
+vector.c.o
+wildmatch.c.o
+zstream.c.o
+map.c.o
+realpath.c.o
+collisiondetect.c.o
+sha1.c.o
+ubc_check.c.o
+openssl.c.o
+annotated_commit.c.o
+apply.c.o
+attr.c.o
+attr_file.c.o
+attrcache.c.o
+blame.c.o
+blame_git.c.o
+blob.c.o
+branch.c.o
+buf.c.o
+cache.c.o
+checkout.c.o
+cherrypick.c.o
+clone.c.o
+commit.c.o
+commit_graph.c.o
+commit_list.c.o
+config.c.o
+config_cache.c.o
+config_entries.c.o
+config_file.c.o
+config_mem.c.o
+config_parse.c.o
+config_snapshot.c.o
+crlf.c.o
+delta.c.o
+describe.c.o
+diff.c.o
+diff_driver.c.o
+diff_file.c.o
+diff_generate.c.o
+diff_parse.c.o
+diff_print.c.o
+diff_stats.c.o
+diff_tform.c.o
+diff_xdiff.c.o
+email.c.o
+errors.c.o
+fetch.c.o
+fetchhead.c.o
+filter.c.o
+graph.c.o
+hashsig.c.o
+ident.c.o
+idxmap.c.o
+ignore.c.o
+index.c.o
+indexer.c.o
+iterator.c.o
+libgit2.c.o
+mailmap.c.o
+merge.c.o
+merge_driver.c.o
+merge_file.c.o
+message.c.o
+midx.c.o
+mwindow.c.o
+netops.c.o
+notes.c.o
+object.c.o
+object_api.c.o
+odb.c.o
+odb_loose.c.o
+odb_mempack.c.o
+odb_pack.c.o
+offmap.c.o
+oid.c.o
+oidarray.c.o
+oidmap.c.o
+pack-objects.c.o
+pack.c.o
+parse.c.o
+patch.c.o
+patch_generate.c.o
+patch_parse.c.o
+path.c.o
+pathspec.c.o
+proxy.c.o
+push.c.o
+reader.c.o
+rebase.c.o
+refdb.c.o
+refdb_fs.c.o
+reflog.c.o
+refs.c.o
+refspec.c.o
+remote.c.o
+repository.c.o
+reset.c.o
+revert.c.o
+revparse.c.o
+revwalk.c.o
+signature.c.o
+stash.c.o
+status.c.o
+strarray.c.o
+mbedtls.c.o
+openssl.c.o
+openssl_dynamic.c.o
+openssl_legacy.c.o
+registry.c.o
+socket.c.o
+stransport.c.o
+tls.c.o
+submodule.c.o
+sysdir.c.o
+tag.c.o
+threadstate.c.o
+trace.c.o
+trailer.c.o
+transaction.c.o
+transport.c.o
+auth.c.o
+auth_negotiate.c.o
+auth_ntlm.c.o
+credential.c.o
+credential_helpers.c.o
+git.c.o
+http.c.o
+httpclient.c.o
+local.c.o
+smart.c.o
+smart_pkt.c.o
+smart_protocol.c.o
+ssh.c.o
+winhttp.c.o
+tree-cache.c.o
+tree.c.o
+worktree.c.o
+xdiffi.c.o
+xemit.c.o
+xhistogram.c.o
+xmerge.c.o
+xpatience.c.o
+xprepare.c.o
+xutils.c.o
+http_parser.c.o
+ntlm.c.o
+util.c.o
+unicode_builtin.c.o
+crypt_openssl.c.o
+
+PATH=/root/.konan/dependencies/x86_64-unknown-linux-gnu-gcc-8.3.0-glibc-2.19-kernel-4.9-2/bin:$PATH \
+/root/kgit2/kgit2/libs/temp/openssl/Configure --cross-compile-prefix=x86_64-unknown-linux-gnu- --release --prefix=/root/kgit2/kgit2/libs/linuxX64/openssl --openssldir=/root/kgit2/kgit2/libs/linuxX64/openssl/ssl no-shared no-asm no-acvp-tests no-buildtest-c++ no-external-tests no-unit-test
+
+
+PKG_CONFIG_PATH=/root/kgit2/kgit2/libs/linuxX64/libgit2/lib/pkgconfig:/root/kgit2/kgit2/libs/linuxX64/libssh2/lib/pkgconfig:/root/kgit2/kgit2/libs/linuxX64/openssl/lib64/pkgconfig
+
+set -vx
+#export PKG_CONFIG_PATH=/root/kgit2/kgit2/libs/linuxX64/openssl/lib64/pkgconfig
+cmake -DCMAKE_BUILD_TYPE=Release \
+    -G Ninja \
+    -S /root/kgit2/kgit2/libs/temp/libssh2 \
+    -B /root/kgit2/kgit2/libs/temp/libssh2/build \
+    -DCMAKE_PREFIX_PATH=/root/kgit2/kgit2/libs/linuxX64/openssl \
+    -DCMAKE_TOOLCHAIN_FILE=/root/kgit2/kgit2/libs/linuxX64/toolchain.cmake \
+    -DCMAKE_INSTALL_PREFIX=/root/kgit2/kgit2/libs/linuxX64/libssh2 \
+    -DBUILD_SHARED_LIBS=OFF \
+    -DCRYPTO_BACKEND=OpenSSL \
+    -DENABLE_ZLIB_COMPRESSION=ON -DLINT=OFF -DBUILD_EXAMPLES=OFF \
+    -DBUILD_TESTING=OFF -DCMAKE_C_FLAGS="-Wno-error=deprecated-declarations -Wno-deprecated-declarations" \
+    -Wno-dev
+unset PKG_CONFIG_PATH
+set +vx
+
+
+
+
+
+build libssh2
+
+
+
+
+#export CC="/root/.konan/dependencies/x86_64-unknown-linux-gnu-gcc-8.3.0-glibc-2.19-kernel-4.9-2/bin/x86_64-unknown-linux-gnu-gcc -fuse-ld=gold"
+#export CFLAGS="--sysroot=/root/.konan/dependencies/x86_64-unknown-linux-gnu-gcc-8.3.0-glibc-2.19-kernel-4.9-2/x86_64-unknown-linux-gnu/sysroot -Wno-error=deprecated-declarations -Wno-deprecated-declarations -I/root/kgit2/kgit2/libs/linuxX64/openssl/include"
+#export LDFLAGS="-L/root/kgit2/kgit2/libs/linuxX64/openssl/lib64"
+rm -rf *
+../configure --prefix=/root/kgit2/kgit2/libs/linuxX64/libssh2 \
+    CC="/root/.konan/dependencies/x86_64-unknown-linux-gnu-gcc-8.3.0-glibc-2.19-kernel-4.9-2/bin/x86_64-unknown-linux-gnu-gcc -fuse-ld=gold" \
+    --disable-examples-build \
+    --with-crypto=openssl \
+    --with-libssl-prefix=/root/kgit2/kgit2/libs/linuxX64/openssl \
+    --with-libz \
+    --build=x86_64-unknown-linux-gnu \
+    --host=x86_64-unknown-linux-gnu
+
+make -j 4
+make install
+#unset CC
+#unset CFLAGS
+#unset LDFLAGS
+
+
+
+build libgit2
+
+
+
+rm -rf *
+set -vx
+#export CFLAGS="--sysroot=/root/.konan/dependencies/x86_64-unknown-linux-gnu-gcc-8.3.0-glibc-2.19-kernel-4.9-2/x86_64-unknown-linux-gnu/sysroot -Wno-error=deprecated-declarations -Wno-deprecated-declarations -I/root/kgit2/kgit2/libs/linuxX64/openssl/include"
+cmake -DCMAKE_BUILD_TYPE=Release \
+    -G Ninja \
+    -S /root/kgit2/kgit2/libs/temp/libgit2 \
+    -B /root/kgit2/kgit2/libs/temp/libgit2/build \
+    -DCMAKE_PREFIX_PATH="/root/kgit2/kgit2/libs/linuxX64/openssl;/root/kgit2/kgit2/libs/linuxX64/libssh2" \
+    -DCMAKE_TOOLCHAIN_FILE=/root/kgit2/kgit2/libs/linuxX64/toolchain.cmake \
+    -DCMAKE_INSTALL_PREFIX=/root/kgit2/kgit2/libs/linuxX64/libgit2 \
+    -DBUILD_SHARED_LIBS=OFF \
+    -DUSE_BUNDLED_ZLIB=ON \
+    -DBUILD_CLI=OFF \
+    -DUSE_SSH=ON -DBUILD_TESTS=OFF \
+    -DBUILD_EXAMPLES=OFF \
+    -DCMAKE_C_FLAGS="-Wno-error=deprecated-declarations -Wno-deprecated-declarations -I/root/kgit2/kgit2/libs/linuxX64/openssl/include" \
+    -Wno-dev
+
+cmake --build . --target all -j 4
+cmake --build . --target install
+unset CFLAGS
+set +vx
+
