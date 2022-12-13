@@ -46,7 +46,7 @@ fn main() {
         }
         SSH(options) => {
             info!("SSH command: {:#?}", options);
-            let path_data = PathData::git(options.base.clone(), work_dir);
+            let path_data = PathData::ssh(options.base.clone(), work_dir);
             let mut command = SSHCommand::new(options, path_data);
             prepare(&command.options.base, &command.path_data);
             build_and_install(&command, &command.path_data);
@@ -57,7 +57,7 @@ fn main() {
         }
         SSL(options) => {
             info!("SSL command: {:#?}", options);
-            let path_data = PathData::git(options.base.clone(), work_dir);
+            let path_data = PathData::openssl(options.base.clone(), work_dir);
             let mut command = SSLCommand::new(options, path_data);
             prepare(&command.options.base, &command.path_data);
             build_and_install(&command, &command.path_data);
