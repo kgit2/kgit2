@@ -15,8 +15,7 @@ enum class Platform {
     LINUX_X64,
     MINGW_X64,
     ;
-
-    override fun toString(): String {
+override fun toString(): String {
         return when (this) {
             MACOS_X64 -> "macosX64"
             MACOS_ARM64 -> "macosArm64"
@@ -40,14 +39,20 @@ plugins {
 }
 
 kotlin {
-    val hostOs = System.getProperty("os.name")
-    val isMingwX64 = hostOs.startsWith("Windows")
-    val (nativeTarget, nativeTargetString) = when (currentPlatform) {
-        Platform.MACOS_ARM64 -> macosArm64("native") to "macosArm64"
-        Platform.MACOS_X64 -> macosX64("native") to "macosX64"
-        Platform.LINUX_X64 -> linuxX64("native") to "linuxX64"
-        Platform.MINGW_X64 -> mingwX64("native") to "mingwX64"
-    }
+    // val hostOs = System.getProperty("os.name")
+    // val isMingwX64 = hostOs.startsWith("Windows")
+    // val (nativeTarget, nativeTargetString) = when (currentPlatform) {
+    //     Platform.MACOS_ARM64 -> macosArm64("native") to "macosArm64"
+    //     Platform.MACOS_X64 -> macosX64("native") to "macosX64"
+    //     Platform.LINUX_X64 -> linuxX64("native") to "linuxX64"
+    //     Platform.MINGW_X64 -> mingwX64("native") to "mingwX64"
+    // }
+    val nativeTargets = listOf(
+        macosArm64() to Platform.MACOS_ARM64,
+        macosX64() to Platform.MACOS_X64,
+        linuxX64() to Platform.LINUX_X64,
+        mingwX64() to Platform.MINGW_X64,
+    )
 
     sourceSets {
         all {
@@ -73,39 +78,72 @@ kotlin {
             dependencies {
                 implementation(kotlin("test"))
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:$kotlinXCoroutinesVersion")
-                implementation("io.ktor:ktor-server-core:$ktorVersion")
+                // implementation("io.ktor:ktor-server-core:$ktorVersion")
             }
         }
-        val nativeMain by getting
-        val nativeTest by getting
+        val nativeMain by creating
+        val nativeTest by creating
+
+        val macosArm64Main by getting {
+            dependsOn(nativeMain)
+        }
+        val macosArm64Test by getting {
+            dependsOn(nativeTest)
+        }
+
+        val macosX64Main by getting {
+            dependsOn(nativeMain)
+        }
+        val macosX64Test by getting {
+            dependsOn(nativeTest)
+        }
+
+        val linuxX64Main by getting {
+            dependsOn(nativeMain)
+        }
+        val linuxX64Test by getting {
+            dependsOn(nativeTest)
+        }
+
+        val mingwX64Main by getting {
+            dependsOn(nativeMain)
+        }
+        val mingwX64Test by getting {
+            dependsOn(nativeTest)
+        }
     }
 
-    nativeTarget.apply {
-        compilations.getByName("main") {
-            cinterops {
-                val libgit2 by creating {
-                    defFile(rootProject.file("src/nativeInterop/cinterop/${currentPlatform}.def"))
-                    packageName(this@creating.name)
+    nativeTargets.forEach { (it, os) ->
+        it.apply {
+            compilations.getByName("main") {
+                cinterops {
+                    val libgit2 by creating {
+                        defFile(rootProject.file("src/nativeInterop/cinterop/${os.toString()}.def"))
+                        packageName(this@creating.name)
+                    }
                 }
             }
-        }
-        binaries {
-            // executable {
-            //     entryPoint = "main"
-            // }
-            staticLib {
-                baseName = "kgit2"
+            binaries {
+                // executable {
+                //     entryPoint = "main"
+                // }
+                staticLib {
+                    baseName = "kgit2"
+                }
             }
-        }
-        binaries.all {
-            freeCompilerArgs += "-Xadd-light-debug=enable"
+            binaries.all {
+                freeCompilerArgs += "-Xadd-light-debug=enable"
+            }
         }
     }
 }
 
 dependencies {
     add("kspCommonMainMetadata", project(":ksp"))
-    add("kspNative", project(":ksp"))
+    add("kspMacosArm64", project(":ksp"))
+    add("kspMacosX64", project(":ksp"))
+    add("kspLinuxX64", project(":ksp"))
+    add("kspMingwX64", project(":ksp"))
 }
 
 tasks {

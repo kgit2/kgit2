@@ -27,6 +27,7 @@ class RawAnnotatedVisitor(
         if (file !is KSFile) return
         val fileModel = data[file.filePath] ?: RawFileModel(file.fileName, file.packageName.asString())
         val argumentMap = rawAnnotation.arguments.associateBy { it.name!!.asString() }
+        logger.info("RawAnnotatedVisitor: ${annotated.simpleName.asString()}")
         val superTypeOfBase = argumentMap[Raw::base.name]!!.accept(argumentVisitor, Unit)
         val structVar = superTypeOfBase.any { it.declaration.simpleName.asString() == "CStructVar" }
         val free = argumentMap[Raw::free.name]!!.value as String?
