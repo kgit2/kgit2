@@ -2,7 +2,7 @@
 # libssh2 installation details
 ###########################################################################
 
-prefix=/Users/bppleman/kgit2/kgit2/libs/linuxX64/libssh2
+prefix=/home/bppleman/kgit2/kgit2/libs/linuxX64/libssh2
 exec_prefix=${prefix}
 libdir=${exec_prefix}/lib
 includedir=${prefix}/include

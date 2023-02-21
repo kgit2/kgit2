@@ -1,11 +1,11 @@
-prefix="/Users/bppleman/kgit2/kgit2/libs/linuxX64/libgit2"
-libdir="/Users/bppleman/kgit2/kgit2/libs/linuxX64/libgit2/lib"
-includedir="/Users/bppleman/kgit2/kgit2/libs/linuxX64/libgit2/include"
+prefix="/home/bppleman/kgit2/kgit2/libs/linuxX64/libgit2"
+libdir="/home/bppleman/kgit2/kgit2/libs/linuxX64/libgit2/lib"
+includedir="/home/bppleman/kgit2/kgit2/libs/linuxX64/libgit2/include"
 
 Name: libgit2
 Description: The git library, take 2
 Version: 1.5.0
 Libs: -L${libdir} -lgit2
-Libs.private: -lssh2 -lrt -lpthread
+Libs.private: -lssh2 -lrt
 Requires.private: openssl zlib
 Cflags: -I${includedir} 
