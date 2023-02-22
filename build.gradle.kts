@@ -39,20 +39,18 @@ plugins {
 }
 
 kotlin {
-    // val hostOs = System.getProperty("os.name")
-    // val isMingwX64 = hostOs.startsWith("Windows")
-    // val (nativeTarget, nativeTargetString) = when (currentPlatform) {
-    //     Platform.MACOS_ARM64 -> macosArm64("native") to "macosArm64"
-    //     Platform.MACOS_X64 -> macosX64("native") to "macosX64"
-    //     Platform.LINUX_X64 -> linuxX64("native") to "linuxX64"
-    //     Platform.MINGW_X64 -> mingwX64("native") to "mingwX64"
-    // }
-    val nativeTargets = listOf(
-        macosArm64() to Platform.MACOS_ARM64,
-        macosX64() to Platform.MACOS_X64,
-        linuxX64() to Platform.LINUX_X64,
-        mingwX64() to Platform.MINGW_X64,
-    )
+    val nativeTargets = listOf(when (currentPlatform) {
+        Platform.MACOS_ARM64 -> macosArm64("native") to "macosArm64"
+        Platform.MACOS_X64 -> macosX64("native") to "macosX64"
+        Platform.LINUX_X64 -> linuxX64("native") to "linuxX64"
+        Platform.MINGW_X64 -> mingwX64("native") to "mingwX64"
+    })
+    // val nativeTargets = listOf(
+        // macosArm64() to Platform.MACOS_ARM64,
+        // macosX64() to Platform.MACOS_X64,
+        // linuxX64() to Platform.LINUX_X64,
+        // mingwX64() to Platform.MINGW_X64,
+    // )
 
     sourceSets {
         all {
@@ -71,7 +69,7 @@ kotlin {
                 implementation(project(":annotations"))
                 // implementation("com.kgit2:bitmask-library:$bitmaskVersion")
             }
-            kotlin.srcDirs("build/generated/ksp/metadata/commonMain")
+            // kotlin.srcDirs("build/generated/ksp/metadata/commonMain")
             kotlin.srcDirs("build/generated/ksp/native/nativeMain/kotlin")
         }
         val commonTest by getting {
@@ -81,36 +79,45 @@ kotlin {
                 // implementation("io.ktor:ktor-server-core:$ktorVersion")
             }
         }
-        val nativeMain by creating
-        val nativeTest by creating
 
-        val macosArm64Main by getting {
-            dependsOn(nativeMain)
-        }
-        val macosArm64Test by getting {
-            dependsOn(nativeTest)
-        }
+        val nativeMain by getting
+        val nativeTest by getting
 
-        val macosX64Main by getting {
-            dependsOn(nativeMain)
-        }
-        val macosX64Test by getting {
-            dependsOn(nativeTest)
-        }
+        // nativeTargets.forEach { (_, os) ->
+        //     getByName("${os}Main").apply {
+        //         kotlin.srcDirs("build/generated/ksp/${os}/${os}Main/kotlin")
+        //     }
+        //     getByName("${os}Test").apply {
+        //     }
+        // }
 
-        val linuxX64Main by getting {
-            dependsOn(nativeMain)
-        }
-        val linuxX64Test by getting {
-            dependsOn(nativeTest)
-        }
+        // val macosArm64Main by getting {
+        //     dependsOn(nativeMain)
+        // }
+        // val macosArm64Test by getting {
+        //     dependsOn(nativeTest)
+        // }
+        //
+        // val macosX64Main by getting {
+        //     dependsOn(nativeMain)
+        // }
+        // val macosX64Test by getting {
+        //     dependsOn(nativeTest)
+        // }
 
-        val mingwX64Main by getting {
-            dependsOn(nativeMain)
-        }
-        val mingwX64Test by getting {
-            dependsOn(nativeTest)
-        }
+        // val linuxX64Main by getting {
+        //     dependsOn(nativeMain)
+        // }
+        // val linuxX64Test by getting {
+        //     dependsOn(nativeTest)
+        // }
+        //
+        // val mingwX64Main by getting {
+        //     dependsOn(nativeMain)
+        // }
+        // val mingwX64Test by getting {
+        //     dependsOn(nativeTest)
+        // }
     }
 
     nativeTargets.forEach { (it, os) ->
@@ -140,10 +147,11 @@ kotlin {
 
 dependencies {
     add("kspCommonMainMetadata", project(":ksp"))
-    add("kspMacosArm64", project(":ksp"))
-    add("kspMacosX64", project(":ksp"))
-    add("kspLinuxX64", project(":ksp"))
-    add("kspMingwX64", project(":ksp"))
+    add("kspNative", project(":ksp"))
+    // add("kspMacosArm64", project(":ksp"))
+    // add("kspMacosX64", project(":ksp"))
+    // add("kspLinuxX64", project(":ksp"))
+    // add("kspMingwX64", project(":ksp"))
 }
 
 tasks {
