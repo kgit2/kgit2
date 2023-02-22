@@ -1,8 +1,8 @@
 headers = git2.h git2/reflog.h git2/sys/reflog.h git2/sys/odb_backend.h git2/sys/mempack.h git2/sys/repository.h
 staticLibraries = libgit2.a libssh2.a libssl.a libcrypto.a
-libraryPaths = /Users/bppleman/kgit2/kgit2/libs/macosArm64/libgit2/lib /Users/bppleman/kgit2/kgit2/libs/macosArm64/libssh2/lib /opt/homebrew/opt/openssl@3/lib
+libraryPaths = /Users/bppleman/kgit2/kgit2/libs/macosArm64/libgit2/lib /Users/bppleman/kgit2/kgit2/libs/macosArm64/libssh2/lib /Users/bppleman/kgit2/kgit2/libs/macosArm64/openssl/lib
 compilerOpts = -I/Users/bppleman/kgit2/kgit2/libs/macosArm64/libgit2/include
-linkerOpts = -L/Users/bppleman/kgit2/kgit2/libs/macosArm64/libgit2/lib -L/Users/bppleman/kgit2/kgit2/libs/macosArm64/libssh2/lib -L/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/lib -L/Users/bppleman/kgit2/kgit2/libs/macosArm64/libssh2/lib -L/opt/homebrew/Cellar/openssl@3/3.0.7/lib -framework CoreFoundation -framework Security -liconv -lz
+linkerOpts = -L/Users/bppleman/kgit2/kgit2/libs/macosArm64/libgit2/lib -L/Users/bppleman/kgit2/kgit2/libs/macosArm64/libssh2/lib -L/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/lib -L/Users/bppleman/kgit2/kgit2/libs/macosArm64/libssh2/lib /Users/bppleman/kgit2/kgit2/libs/macosArm64/openssl/lib -framework CoreFoundation -framework Security -liconv -lz
 
 noStringConversion = git_attr_value git_mailmap_from_buffer
 
