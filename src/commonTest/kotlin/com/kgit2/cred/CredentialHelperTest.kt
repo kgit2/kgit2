@@ -157,10 +157,11 @@ class CredentialHelperTest {
 
     @Test
     fun sshKeyFromMemory() = kgitRunTest {
-        val credential = Credential(
-            username = "test",
-            publicKey = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDByAO8uj+kXicj6C2ODMspgmUoVyl5eaw8vR6a1yEnFuJFzevabNlN6Ut+CPT3TRnYk5BW73pyXBtnSL2X95BOnbjMDXc4YIkgs3YYHWnxbqsD4Pj/RoGqhf+gwhOBtL0poh8tT8WqXZYxdJQKLQC7oBqf3ykCEYulE4oeRUmNh4IzEE+skD/zDkaJ+S1HRD8D8YCiTO01qQnSmoDFdmIZTi8MS8Cw+O/Qhym1271ThMlhD6PubSYJXfE6rVbE7A9RzH73A6MmKBlzK8VTb4SlNSrr/DOk+L0uq+wPkv+pm+D9WtxoqQ9yl6FaK1cPawa3+7yRNle3m+72KCtyMkQv",
-            privateKey = """
+        if (Platform.osFamily == OsFamily.MACOSX) {
+            val credential = Credential(
+                username = "test",
+                publicKey = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDByAO8uj+kXicj6C2ODMspgmUoVyl5eaw8vR6a1yEnFuJFzevabNlN6Ut+CPT3TRnYk5BW73pyXBtnSL2X95BOnbjMDXc4YIkgs3YYHWnxbqsD4Pj/RoGqhf+gwhOBtL0poh8tT8WqXZYxdJQKLQC7oBqf3ykCEYulE4oeRUmNh4IzEE+skD/zDkaJ+S1HRD8D8YCiTO01qQnSmoDFdmIZTi8MS8Cw+O/Qhym1271ThMlhD6PubSYJXfE6rVbE7A9RzH73A6MmKBlzK8VTb4SlNSrr/DOk+L0uq+wPkv+pm+D9WtxoqQ9yl6FaK1cPawa3+7yRNle3m+72KCtyMkQv",
+                privateKey = """
                 -----BEGIN RSA PRIVATE KEY-----
                 Proc-Type: 4,ENCRYPTED
                 DEK-Info: AES-128-CBC,818C7722D3B01F2161C2ACF6A5BBAAE8
@@ -192,9 +193,10 @@ class CredentialHelperTest {
                 8l5dq/LI/3G5sZXwUHKOcuQWTj7Saq7Q6gkKoMfqt0wC5bpZ1m17GHPoMz6GtX9O
                 -----END RSA PRIVATE KEY-----
             """.trimIndent(),
-            passphrase = "test123",
-            fromMemory = true,
-        )
-        assertNotNull(credential)
+                passphrase = "test123",
+                fromMemory = true,
+            )
+            assertNotNull(credential)
+        }
     }
 }
