@@ -1,8 +1,8 @@
 headers = git2.h git2/reflog.h git2/sys/reflog.h git2/sys/odb_backend.h git2/sys/mempack.h git2/sys/repository.h /usr/include/x86_64-linux-gnu/sys/random.h
 staticLibraries = libgit2.a libssh2.a libssl.a libcrypto.a
-libraryPaths = /root/kgit2/kgit2/libs/linuxX64/libgit2/lib /root/kgit2/kgit2/libs/linuxX64/libssh2/lib /root/kgit2/kgit2/libs/linuxX64/openssl/lib64
-compilerOpts = -I/root/kgit2/kgit2/libs/linuxX64/libgit2/include
-linkerOpts = -Bstatic -L/root/kgit2/kgit2/libs/linuxX64/libgit2/lib -L/root/kgit2/kgit2/libs/linuxX64/libssh2/lib -L/root/kgit2/kgit2/libs/linuxX64/openssl/lib64 -lgit2 -lssh2 -lrt -lssl -lcrypto -Bdynamic -pthread -lz
+libraryPaths = /home/bppleman/kgit2/kgit2/libs/linuxX64/libgit2/lib /home/bppleman/kgit2/kgit2/libs/linuxX64/libssh2/lib /home/bppleman/kgit2/kgit2/libs/linuxX64/openssl/lib64
+compilerOpts = -I/home/bppleman/kgit2/kgit2/libs/linuxX64/libgit2/include
+linkerOpts = -Bstatic -L/home/bppleman/kgit2/kgit2/libs/linuxX64/libgit2/lib -L/home/bppleman/kgit2/kgit2/libs/linuxX64/libssh2/lib -L/home/bppleman/kgit2/kgit2/libs/linuxX64/openssl/lib64 -lssh2 -lrt -lssl -lcrypto -Bdynamic -ldl -pthread -lz
 #linkerOpts = -lrt -ldl -pthread -lz
 
 noStringConversion = git_attr_value git_mailmap_from_buffer

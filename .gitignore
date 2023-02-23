@@ -200,3 +200,4 @@ build
 build-cache
 temp
 !libs/source-code/*
+local.properties

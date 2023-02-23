@@ -76,7 +76,7 @@ class RepositoryTest {
                     // Napier.d("stats: $stats")
                     CallbackResult.Ok
                 }
-                fetchOptions.proxyOptions.url = "http://127.0.0.1:6152"
+//                fetchOptions.proxyOptions.url = "127.0.0.1:7890"
             }
             val repository = Repository.clone(
                 "https://github.com/kgit2/test_repo.git",
